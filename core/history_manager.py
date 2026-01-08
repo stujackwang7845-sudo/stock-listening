@@ -1,14 +1,70 @@
 
 import json
 import os
+import requests
 from datetime import datetime
 
 class HistoryManager:
     FILE_PATH = "listening_history.json"
+    GITHUB_RAW_URL = "https://raw.githubusercontent.com/stujackwang7845-sudo/stock-listening/master/listening_history.json"
 
     def __init__(self):
         self.history = self._load()
         self._cleanup_bad_records()
+
+    def sync_from_github(self):
+        """Fetch remote history and merge into local."""
+        try:
+            print(f"Syncing from GitHub: {self.GITHUB_RAW_URL}...")
+            resp = requests.get(self.GITHUB_RAW_URL, timeout=5)
+            if resp.status_code == 200:
+                remote_data = resp.json()
+                print(f"Downloaded {len(remote_data)} records from GitHub.")
+                
+                added_count = 0
+                for rec in remote_data:
+                    # Reuse internal logic to add/update
+                    # We check duplicate inside add_record logic manually to avoid redundant saves, 
+                    # or just use add_record directly (slower but safer).
+                    # Optimization: Batch check
+                    
+                    if self._merge_record(rec):
+                        added_count += 1
+                
+                if added_count > 0:
+                    self.save()
+                    print(f"Sync complete. Added/Updated {added_count} records.")
+                else:
+                    print("Sync complete. No new data.")
+                
+                return True
+            else:
+                print(f"GitHub Sync Failed: Status {resp.status_code}")
+                return False
+        except Exception as e:
+            print(f"GitHub Sync Error: {e}")
+            return False
+
+    def _merge_record(self, record):
+        """Internal helper to merge record without immediate save."""
+        # [Filter] Exclude CB
+        if len(str(record.get("code", ""))) == 5:
+            return False
+
+        # Check duplicate
+        for existing in self.history:
+            if existing.get("date") == record["date"] and existing.get("code") == record["code"]:
+                # Found existing. Update invalid/missing fields?
+                # Ideally we respect local changes (tags/comments).
+                # But fetcher data (trigger_info) might be better?
+                # Let's update trigger_info if widely different?
+                return False # Assume local is up to date or same
+
+        # If not found, append
+        if "tags" not in record: record["tags"] = []
+        if "comment" not in record: record["comment"] = ""
+        self.history.append(record)
+        return True
 
     def _cleanup_bad_records(self):
         """Remove 5-digit codes (CBs) from existing history."""

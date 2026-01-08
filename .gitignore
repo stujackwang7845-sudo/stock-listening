@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+.env
+
+# Backups & Temp
+temp/
+2026*/
+backup_*.py
+
+# Logs & Debug
+*.log
+debug_*.py
+verify_*.py
+
+# Scraper artifacts
+*.html
+verification_result.txt
