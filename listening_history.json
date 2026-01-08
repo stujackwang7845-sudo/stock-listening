@@ -241,5 +241,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "2337",
+        "name": "旺宏",
+        "trigger_info": "115年1月7日至115年1月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "114年12月26日至115年1月8日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "6116",
+        "name": "彩晶",
+        "trigger_info": "115年1月7日至115年1月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年01月05日至115年01月08日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
