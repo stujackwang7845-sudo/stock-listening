@@ -319,7 +319,15 @@ class Dashboard(QWidget):
         self.calc_cache = {} # code -> result_tuple
         
         if auto_start:
+            # Sync GitHub in background (simple thread)
+            self.sync_thread = QThread()
+            self.sync_thread.run = self._run_sync
+            self.sync_thread.start()
+            
             QTimer.singleShot(500, self.start_worker)
+            
+    def _run_sync(self):
+        self.history_manager.sync_from_github()
             
     def init_ui(self):
         main_layout = QHBoxLayout(self)
