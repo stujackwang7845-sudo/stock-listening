@@ -1,0 +1,212 @@
+[
+    {
+        "date": "2026-01-06",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "{\"12/29\": \"一\", \"12/30\": \"一,二,四\", \"12/31\": \"一,二,四\", \"01/02\": \"一,二\", \"01/05\": \"一,二\", \"01/06\": \"一\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "5分",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{\"01/05\": \"一\", \"01/06\": \"一,三,四\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{\"12/22\": \"\", \"12/24\": \"\", \"12/26\": \"\", \"12/31\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"二\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "{\"12/29\": \"一\", \"12/30\": \"一,二,四\", \"12/31\": \"一,二,四\", \"01/02\": \"一,二\", \"01/05\": \"一,二\", \"01/06\": \"一\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "5分",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{\"01/05\": \"一\", \"01/06\": \"一,三,四\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{\"12/22\": \"\", \"12/24\": \"\", \"12/26\": \"\", \"12/31\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"二\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-02",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "{\"12/29\": \"一\", \"12/30\": \"一,二,四\", \"12/31\": \"一,二,四\", \"01/02\": \"一,二\", \"01/05\": \"一,二\", \"01/06\": \"一\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "5分",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-02",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{\"01/05\": \"一\", \"01/06\": \"一,三,四\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-02",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{\"12/22\": \"\", \"12/24\": \"\", \"12/26\": \"\", \"12/31\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"二\"}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-02",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": true,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-04",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-04",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-04",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": true,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2025-12-31",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2025-12-31",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2025-12-31",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": true,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-01",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-01",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{}",
+        "is_disposed_next_day": false,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-01",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "{}",
+        "is_disposed_next_day": true,
+        "disposition_status": "",
+        "tags": [],
+        "comment": ""
+    }
+]
