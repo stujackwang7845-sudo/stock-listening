@@ -2,8 +2,8 @@ name: Daily Attention Stock Fetch
 
 on:
   schedule:
-    # Run at 18:00 (UTC+8) -> 10:00 UTC
-    - cron: '0 10 * * *'
+    # Run at 22:00 (UTC+8) -> 14:00 UTC
+    - cron: '0 14 * * *'
   workflow_dispatch:
 
 permissions:
