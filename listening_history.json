@@ -1,0 +1,245 @@
+[
+    {
+        "date": "2026-01-05",
+        "code": "3308",
+        "name": "聯德",
+        "trigger_info": "{\"12/31\": \"三\", \"01/02\": \"一,三\", \"01/05\": \"一,三\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "3481",
+        "name": "群創",
+        "trigger_info": "{\"12/30\": \"三,四\", \"12/31\": \"三,四\", \"01/02\": \"一,三\", \"01/05\": \"一\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "4304",
+        "name": "勝昱",
+        "trigger_info": "{\"12/24\": \"二\", \"12/26\": \"二\", \"12/29\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "5351",
+        "name": "鈺創",
+        "trigger_info": "{\"01/02\": \"一,四\", \"01/05\": \"一,四\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "{\"12/22\": \"六\", \"12/23\": \"六\", \"12/24\": \"六\", \"12/29\": \"六\", \"12/30\": \"六\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-05",
+        "code": "8299",
+        "name": "群聯",
+        "trigger_info": "{\"12/24\": \"二\", \"12/26\": \"二\", \"12/29\": \"二\", \"12/31\": \"二\", \"01/05\": \"二\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "3308",
+        "name": "聯德",
+        "trigger_info": "{\"12/31\": \"三\", \"01/02\": \"一,三\", \"01/05\": \"一,三\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "3481",
+        "name": "群創",
+        "trigger_info": "{\"12/30\": \"三,四\", \"12/31\": \"三,四\", \"01/02\": \"一,三\", \"01/05\": \"一\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "4304",
+        "name": "勝昱",
+        "trigger_info": "{\"12/24\": \"二\", \"12/26\": \"二\", \"12/29\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "5351",
+        "name": "鈺創",
+        "trigger_info": "{\"01/02\": \"一,四\", \"01/05\": \"一,四\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "{\"12/22\": \"六\", \"12/23\": \"六\", \"12/24\": \"六\", \"12/29\": \"六\", \"12/30\": \"六\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "8299",
+        "name": "群聯",
+        "trigger_info": "{\"12/24\": \"二\", \"12/26\": \"二\", \"12/29\": \"二\", \"12/31\": \"二\", \"01/05\": \"二\"}",
+        "is_disposed_next_day": true,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "3680",
+        "name": "家登",
+        "trigger_info": "{\"01/05\": \"一\", \"01/06\": \"一,三,四\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-06",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "{\"12/22\": \"\", \"12/24\": \"\", \"12/26\": \"\", \"12/31\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"二\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-07",
+        "code": "2344",
+        "name": "華邦電",
+        "trigger_info": "{\"12/30\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"一,二\", \"01/07\": \"一,二\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-07",
+        "code": "2408",
+        "name": "南亞科",
+        "trigger_info": "{\"12/22\": \"二\", \"12/24\": \"二\", \"12/30\": \"二\", \"01/02\": \"二\", \"01/06\": \"二\", \"01/07\": \"二\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-07",
+        "code": "3623",
+        "name": "富晶通",
+        "trigger_info": "{\"01/05\": \"三\", \"01/06\": \"一,三,四,五\", \"01/07\": \"一,三\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-07",
+        "code": "6770",
+        "name": "力積電",
+        "trigger_info": "{\"12/22\": \"二\", \"12/30\": \"二\", \"01/02\": \"二\", \"01/05\": \"二\", \"01/06\": \"二\", \"01/07\": \"二\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-07",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "{\"01/02\": \"六\", \"01/05\": \"六\", \"01/06\": \"六\", \"01/07\": \"六\"}",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": ""
+    },
+    {
+        "date": "2026-01-08",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年01月02日至115年01月07日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "Auto-fetched via GitHub Actions"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "2344",
+        "name": "華邦電",
+        "trigger_info": "115年1月6日至115年1月7日連續二次<br>115年1月2日至115年1月7日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "2408",
+        "name": "南亞科",
+        "trigger_info": "114年12月24日至115年1月7日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "3006",
+        "name": "晶豪科",
+        "trigger_info": "115年1月6日至115年1月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "6770",
+        "name": "力積電",
+        "trigger_info": "115年1月2日至115年1月7日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "8438",
+        "name": "昶昕",
+        "trigger_info": "115年1月6日至115年1月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "3623",
+        "name": "富晶通",
+        "trigger_info": "115年01月06日至115年01月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-08",
+        "code": "7728",
+        "name": "光焱科技",
+        "trigger_info": "115年01月06日至115年01月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    }
+]

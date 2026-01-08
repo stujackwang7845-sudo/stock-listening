@@ -1,0 +1,19 @@
+DEBUG: Parsed TWSE Disposition Items: 5
+DEBUG: Parsed TPEX Disposition Items: 17
+DEBUG: Final Disposition Map Keys: ['1528', '2413', '3092', '3701', '6205', '6265', '8068', '30922', '3260', '3444', '37012', '3354', '5498', '7717', '4991', '4931', '3081', '6788', '4768', '4971', '3491', '3163']
+DEBUG: Day 20251217 Items: 40
+DEBUG: Day 20251218 Items: 24
+DEBUG: Day 20251219 Items: 22
+DEBUG: Day 20251222 Items: 21
+DEBUG: Day 20251223 Items: 27
+DEBUG: Day 20251224 Items: 33
+DEBUG: Day 20251226 Items: 35
+DEBUG: Day 20251229 Items: 37
+DEBUG: Day 20251230 Items: 41
+DEBUG: Day 20251231 Items: 34
+DEBUG: Fetched 20260102 -> TWSE: 18, TPEX: 19, Total: 37
+DEBUG: Day 20260102 Items: 37
+DEBUG 1528 RAW: Period='115/01/02～115/01/15' Start='2026-01-02 00:00:00' End='2026-01-15 00:00:00'
+DEBUG 2413 RAW: Period='115/01/02～115/01/19' Start='2026-01-02 00:00:00' End='2026-01-19 00:00:00'
+DEBUG 3354: Period='1141231~1150114' Start='2025-12-31 00:00:00'
+  Hist Dates: ['12/18', '12/19', '12/22', '12/23', '12/24', '12/26', '12/29', '12/30', '12/31', '01/02']
