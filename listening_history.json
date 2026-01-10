@@ -286,5 +286,14 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-10",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "114年12月29日至115年1月9日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
