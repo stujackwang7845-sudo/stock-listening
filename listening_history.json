@@ -304,5 +304,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-12",
+        "code": "1789",
+        "name": "神隆",
+        "trigger_info": "115年1月9日至115年1月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-12",
+        "code": "5291",
+        "name": "邑昇",
+        "trigger_info": "115年01月09日至115年01月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
