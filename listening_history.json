@@ -322,5 +322,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-13",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年1月8日至115年1月13日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-13",
+        "code": "3693",
+        "name": "營邦",
+        "trigger_info": "115年01月12日至115年01月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-13",
+        "code": "737880",
+        "name": "晶呈元大54購01",
+        "trigger_info": "115年01月12日至115年01月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
