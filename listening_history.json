@@ -349,5 +349,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-14",
+        "code": "3138",
+        "name": "耀登",
+        "trigger_info": "115年1月13日至115年1月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-14",
+        "code": "6443",
+        "name": "元晶",
+        "trigger_info": "115年1月13日至115年1月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-14",
+        "code": "8422",
+        "name": "可寧衛*",
+        "trigger_info": "115年1月13日至115年1月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-14",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年1月13日至115年1月14日連續二次<br>115年1月2日至115年1月14日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-14",
+        "code": "8080",
+        "name": "泰霖",
+        "trigger_info": "115年01月13日至115年01月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
