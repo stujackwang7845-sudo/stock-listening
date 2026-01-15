@@ -394,5 +394,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-15",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年1月12日至115年1月15日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-15",
+        "code": "6163",
+        "name": "華電網",
+        "trigger_info": "115年01月14日至115年01月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-15",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "115年01月05日至115年01月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
