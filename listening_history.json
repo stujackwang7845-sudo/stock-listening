@@ -565,5 +565,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "1528",
+        "name": "恩德",
+        "trigger_info": "115年1月19日至115年1月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "2484",
+        "name": "希華",
+        "trigger_info": "115年1月19日至115年1月20日連續二次<br>115年1月15日至115年1月20日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "3432",
+        "name": "台端",
+        "trigger_info": "115年1月19日至115年1月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "6770",
+        "name": "力積電",
+        "trigger_info": "115年1月8日至115年1月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "8046",
+        "name": "南電",
+        "trigger_info": "115年1月19日至115年1月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年01月08日至115年01月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "5340",
+        "name": "建榮",
+        "trigger_info": "115年01月15日至115年01月20日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "6265",
+        "name": "方土昶",
+        "trigger_info": "115年01月19日至115年01月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-20",
+        "code": "8043",
+        "name": "蜜望實",
+        "trigger_info": "115年01月08日至115年01月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
