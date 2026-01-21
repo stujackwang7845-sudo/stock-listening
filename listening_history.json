@@ -646,5 +646,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "1802",
+        "name": "台玻",
+        "trigger_info": "115年1月20日至115年1月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "1809",
+        "name": "中釉",
+        "trigger_info": "115年1月20日至115年1月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "6770",
+        "name": "力積電",
+        "trigger_info": "115年1月9日至115年1月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年01月09日至115年01月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "3691",
+        "name": "碩禾",
+        "trigger_info": "115年01月20日至115年01月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "4561",
+        "name": "健椿",
+        "trigger_info": "115年01月20日至115年01月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年01月16日至115年01月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "5498",
+        "name": "凱崴",
+        "trigger_info": "115年01月16日至115年01月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-21",
+        "code": "8043",
+        "name": "蜜望實",
+        "trigger_info": "115年01月09日至115年01月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
