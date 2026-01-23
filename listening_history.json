@@ -817,5 +817,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-23",
+        "code": "3037",
+        "name": "欣興",
+        "trigger_info": "115年1月22日至115年1月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-23",
+        "code": "3049",
+        "name": "精金",
+        "trigger_info": "115年1月20日至115年1月23日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-23",
+        "code": "8046",
+        "name": "南電",
+        "trigger_info": "115年1月22日至115年1月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
