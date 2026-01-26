@@ -844,5 +844,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-26",
+        "code": "2489",
+        "name": "瑞軒",
+        "trigger_info": "115年1月21日至115年1月26日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-26",
+        "code": "6285",
+        "name": "啟碁",
+        "trigger_info": "115年1月23日至115年1月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-26",
+        "code": "4534",
+        "name": "慶騰",
+        "trigger_info": "115年01月14日至115年01月26日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
