@@ -889,5 +889,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "2486",
+        "name": "一詮",
+        "trigger_info": "115年1月27日至115年1月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "6921",
+        "name": "嘉雨思-創",
+        "trigger_info": "115年1月27日至115年1月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年01月27日至115年01月28日連續二次<br>115年01月16日至115年01月28日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "4533",
+        "name": "協易機",
+        "trigger_info": "115年01月16日至115年01月28日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "4534",
+        "name": "慶騰",
+        "trigger_info": "115年01月16日至115年01月28日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "5498",
+        "name": "凱崴",
+        "trigger_info": "115年01月16日至115年01月28日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-28",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年01月23日至115年01月28日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
