@@ -952,5 +952,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-29",
+        "code": "9103",
+        "name": "美德醫療-DR",
+        "trigger_info": "115年1月26日至115年1月29日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-29",
+        "code": "2740",
+        "name": "天蔥",
+        "trigger_info": "115年01月28日至115年01月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-29",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年01月28日至115年01月29日連續二次<br>115年01月26日至115年01月29日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-29",
+        "code": "4534",
+        "name": "慶騰",
+        "trigger_info": "115年01月19日至115年01月29日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-29",
+        "code": "8155",
+        "name": "博智",
+        "trigger_info": "115年01月28日至115年01月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
