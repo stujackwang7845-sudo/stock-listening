@@ -997,5 +997,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "6442",
+        "name": "光聖",
+        "trigger_info": "115年1月29日至115年1月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "6446",
+        "name": "藥華藥",
+        "trigger_info": "115年1月29日至115年1月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "6949",
+        "name": "沛爾生醫-創",
+        "trigger_info": "115年1月29日至115年1月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "6291",
+        "name": "沛亨",
+        "trigger_info": "115年01月29日至115年01月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "6739",
+        "name": "竹陞科技",
+        "trigger_info": "115年01月29日至115年01月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "7709",
+        "name": "榮田",
+        "trigger_info": "115年01月29日至115年01月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-01-30",
+        "code": "8096",
+        "name": "擎亞",
+        "trigger_info": "115年01月29日至115年01月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
