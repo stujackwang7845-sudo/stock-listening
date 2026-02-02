@@ -1060,5 +1060,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-02",
+        "code": "6442",
+        "name": "光聖",
+        "trigger_info": "115年1月21日至115年2月2日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-02",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年01月30日至115年02月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-02",
+        "code": "3555",
+        "name": "博士旺",
+        "trigger_info": "115年01月30日至115年02月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-02",
+        "code": "6588",
+        "name": "東典光電",
+        "trigger_info": "115年01月30日至115年02月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-02",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年01月30日至115年02月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
