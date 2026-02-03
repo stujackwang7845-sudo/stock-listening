@@ -1105,5 +1105,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-03",
+        "code": "6426",
+        "name": "統新",
+        "trigger_info": "115年2月2日至115年2月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-03",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年01月22日至115年02月03日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-03",
+        "code": "4971",
+        "name": "IET-KY",
+        "trigger_info": "115年01月29日至115年02月03日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
