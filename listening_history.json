@@ -1177,5 +1177,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-05",
+        "code": "2367",
+        "name": "燿華",
+        "trigger_info": "115年1月26日至115年2月5日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-05",
+        "code": "5347",
+        "name": "世界",
+        "trigger_info": "115年02月04日至115年02月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-05",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年02月04日至115年02月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
