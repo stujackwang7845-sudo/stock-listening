@@ -1231,5 +1231,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-09",
+        "code": "5386",
+        "name": "青雲",
+        "trigger_info": "115年02月06日至115年02月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-09",
+        "code": "6584",
+        "name": "南俊國際",
+        "trigger_info": "115年02月04日至115年02月09日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
