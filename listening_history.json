@@ -1249,5 +1249,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-10",
+        "code": "3230",
+        "name": "錦明",
+        "trigger_info": "115年02月09日至115年02月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-10",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年02月09日至115年02月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-10",
+        "code": "5340",
+        "name": "建榮",
+        "trigger_info": "115年02月05日至115年02月10日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-10",
+        "code": "7744",
+        "name": "崴寶",
+        "trigger_info": "115年02月09日至115年02月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
