@@ -1573,5 +1573,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年1月30日至115年2月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年2月10日至115年2月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年2月10日至115年2月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年1月30日至115年2月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "2230",
+        "name": "泰茂",
+        "trigger_info": "115年02月10日至115年02月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年02月10日至115年02月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-18",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年02月10日至115年02月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
