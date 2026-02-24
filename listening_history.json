@@ -1807,5 +1807,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年2月3日至115年2月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年02月10日至115年02月24日連續四次<br>115年02月03日至115年02月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "3529",
+        "name": "力旺",
+        "trigger_info": "115年02月23日至115年02月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年02月23日至115年02月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "6716",
+        "name": "應廣",
+        "trigger_info": "115年02月23日至115年02月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年02月23日至115年02月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-24",
+        "code": "7744",
+        "name": "崴寶",
+        "trigger_info": "115年02月23日至115年02月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
