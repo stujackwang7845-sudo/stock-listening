@@ -1870,5 +1870,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年2月4日至115年2月25日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "2489",
+        "name": "瑞軒",
+        "trigger_info": "115年2月24日至115年2月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年2月11日至115年2月25日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "6426",
+        "name": "統新",
+        "trigger_info": "115年2月24日至115年2月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年2月24日至115年2月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "8046",
+        "name": "南電",
+        "trigger_info": "115年2月24日至115年2月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "2230",
+        "name": "泰茂",
+        "trigger_info": "115年02月24日至115年02月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年02月24日至115年02月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "3363",
+        "name": "上詮",
+        "trigger_info": "115年02月24日至115年02月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-25",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "114年08月19日至115年02月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
