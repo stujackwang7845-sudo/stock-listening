@@ -1960,5 +1960,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "2360",
+        "name": "致茂",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "2413",
+        "name": "環科",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "3037",
+        "name": "欣興",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "4927",
+        "name": "泰鼎-KY",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-02-27",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年2月25日至115年2月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
