@@ -2491,5 +2491,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "6141",
+        "name": "柏承",
+        "trigger_info": "115年3月3日至115年3月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年3月3日至115年3月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年2月10日至115年3月4日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "1815",
+        "name": "富喬",
+        "trigger_info": "115年02月10日至115年03月04日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "6187",
+        "name": "萬潤",
+        "trigger_info": "115年03月03日至115年03月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "6877",
+        "name": "鏵友益",
+        "trigger_info": "115年03月03日至115年03月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-04",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年02月10日至115年03月04日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
