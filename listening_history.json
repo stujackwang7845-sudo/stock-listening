@@ -2554,5 +2554,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "051344",
+        "name": "旺宏群益57購02",
+        "trigger_info": "115年3月4日至115年3月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "3092",
+        "name": "鴻碩",
+        "trigger_info": "115年3月4日至115年3月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "6230",
+        "name": "尼得科超眾",
+        "trigger_info": "115年3月2日至115年3月5日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "6442",
+        "name": "光聖",
+        "trigger_info": "115年3月2日至115年3月5日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年03月04日至115年03月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-05",
+        "code": "8489",
+        "name": "三貝德",
+        "trigger_info": "115年03月04日至115年03月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
