@@ -2608,5 +2608,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "1589",
+        "name": "永冠-KY",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "2467",
+        "name": "志聖",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "2616",
+        "name": "山隆",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "3049",
+        "name": "精金",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "3665",
+        "name": "貿聯-KY",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年2月23日至115年3月6日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "6830",
+        "name": "汎銓",
+        "trigger_info": "115年3月5日至115年3月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年03月03日至115年03月06日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-06",
+        "code": "4416",
+        "name": "三圓",
+        "trigger_info": "115年03月05日至115年03月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
