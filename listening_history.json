@@ -2689,5 +2689,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-09",
+        "code": "6141",
+        "name": "柏承",
+        "trigger_info": "115年3月6日至115年3月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-09",
+        "code": "8489",
+        "name": "三貝德",
+        "trigger_info": "115年03月04日至115年03月09日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
