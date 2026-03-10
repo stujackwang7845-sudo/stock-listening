@@ -2707,5 +2707,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "2923",
+        "name": "鼎固-KY",
+        "trigger_info": "115年3月9日至115年3月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "6426",
+        "name": "統新",
+        "trigger_info": "115年3月9日至115年3月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "6934",
+        "name": "心誠鎂",
+        "trigger_info": "115年3月9日至115年3月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年02月25日至115年03月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年03月09日至115年03月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "4971",
+        "name": "IET-KY",
+        "trigger_info": "115年03月05日至115年03月10日連續四次<br>115年02月25日至115年03月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "5386",
+        "name": "青雲",
+        "trigger_info": "115年03月09日至115年03月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "6588",
+        "name": "東典光電",
+        "trigger_info": "115年03月09日至115年03月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-10",
+        "code": "7717",
+        "name": "萊德光電-KY",
+        "trigger_info": "115年03月09日至115年03月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
