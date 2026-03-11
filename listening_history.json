@@ -2788,5 +2788,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-11",
+        "code": "1589",
+        "name": "永冠-KY",
+        "trigger_info": "115年3月10日至115年3月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-11",
+        "code": "3054",
+        "name": "立萬利",
+        "trigger_info": "115年2月26日至115年3月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-11",
+        "code": "5521",
+        "name": "工信",
+        "trigger_info": "115年3月10日至115年3月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-11",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年3月10日至115年3月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-11",
+        "code": "4416",
+        "name": "三圓",
+        "trigger_info": "115年03月10日至115年03月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
