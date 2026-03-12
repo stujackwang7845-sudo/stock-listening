@@ -2833,5 +2833,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-12",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年3月11日至115年3月12日連續二次<br>115年3月9日至115年3月12日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-12",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "115年03月11日至115年03月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-12",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年03月11日至115年03月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
