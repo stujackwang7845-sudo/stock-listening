@@ -2860,5 +2860,122 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "2368",
+        "name": "金像電",
+        "trigger_info": "115年3月12日至115年3月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年3月12日至115年3月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "4960",
+        "name": "誠美材",
+        "trigger_info": "115年3月12日至115年3月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "6515",
+        "name": "穎崴",
+        "trigger_info": "115年3月12日至115年3月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "8271",
+        "name": "宇瞻",
+        "trigger_info": "115年3月12日至115年3月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "3093",
+        "name": "港建*",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "3555",
+        "name": "博士旺",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "4973",
+        "name": "廣穎",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "5289",
+        "name": "宜鼎",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "5340",
+        "name": "建榮",
+        "trigger_info": "115年03月10日至115年03月13日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "5386",
+        "name": "青雲",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-13",
+        "code": "6223",
+        "name": "旺矽",
+        "trigger_info": "115年03月12日至115年03月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
