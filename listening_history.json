@@ -2977,5 +2977,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-16",
+        "code": "3054",
+        "name": "立萬利",
+        "trigger_info": "115年3月13日至115年3月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-16",
+        "code": "5521",
+        "name": "工信",
+        "trigger_info": "115年3月13日至115年3月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-16",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年3月13日至115年3月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-16",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年03月13日至115年03月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-16",
+        "code": "6727",
+        "name": "亞泰金屬",
+        "trigger_info": "115年03月13日至115年03月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
