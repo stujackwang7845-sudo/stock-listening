@@ -3022,5 +3022,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "2243",
+        "name": "宏旭-KY",
+        "trigger_info": "115年3月16日至115年3月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "2337",
+        "name": "旺宏",
+        "trigger_info": "115年3月5日至115年3月17日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年3月16日至115年3月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "3037",
+        "name": "欣興",
+        "trigger_info": "115年3月16日至115年3月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "3437",
+        "name": "榮創",
+        "trigger_info": "115年3月16日至115年3月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "4949",
+        "name": "有成精密",
+        "trigger_info": "115年3月12日至115年3月17日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "115年03月16日至115年03月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "5351",
+        "name": "鈺創",
+        "trigger_info": "115年03月16日至115年03月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-17",
+        "code": "6103",
+        "name": "合邦",
+        "trigger_info": "115年03月16日至115年03月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
