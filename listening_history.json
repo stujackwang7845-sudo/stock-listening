@@ -3373,5 +3373,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "2399",
+        "name": "映泰",
+        "trigger_info": "115年3月18日至115年3月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "2451",
+        "name": "創見",
+        "trigger_info": "115年3月18日至115年3月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "3054",
+        "name": "立萬利",
+        "trigger_info": "115年3月18日至115年3月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "6426",
+        "name": "統新",
+        "trigger_info": "115年3月9日至115年3月19日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "1785",
+        "name": "光洋科",
+        "trigger_info": "115年03月09日至115年03月19日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "3508",
+        "name": "位速",
+        "trigger_info": "115年03月18日至115年03月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "3693",
+        "name": "營邦",
+        "trigger_info": "115年03月18日至115年03月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "6727",
+        "name": "亞泰金屬",
+        "trigger_info": "115年03月18日至115年03月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-19",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年03月18日至115年03月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
