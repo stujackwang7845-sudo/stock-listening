@@ -3454,5 +3454,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "2337",
+        "name": "旺宏",
+        "trigger_info": "115年3月19日至115年3月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "3437",
+        "name": "榮創",
+        "trigger_info": "115年3月19日至115年3月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "115年3月19日至115年3月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "7711",
+        "name": "永擎",
+        "trigger_info": "115年3月19日至115年3月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "1785",
+        "name": "光洋科",
+        "trigger_info": "115年03月10日至115年03月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "3260",
+        "name": "威剛",
+        "trigger_info": "115年03月19日至115年03月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "3508",
+        "name": "位速",
+        "trigger_info": "115年03月17日至115年03月20日連續四次<br>115年03月10日至115年03月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "6465",
+        "name": "威潤",
+        "trigger_info": "115年03月19日至115年03月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "735856",
+        "name": "茂迪統一57購01",
+        "trigger_info": "115年03月19日至115年03月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-20",
+        "code": "8155",
+        "name": "博智",
+        "trigger_info": "115年03月19日至115年03月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
