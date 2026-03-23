@@ -3544,5 +3544,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-23",
+        "code": "053230",
+        "name": "道瓊銀富邦61購02",
+        "trigger_info": "115年3月20日至115年3月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-23",
+        "code": "3135",
+        "name": "凌航",
+        "trigger_info": "115年3月18日至115年3月23日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-23",
+        "code": "9929",
+        "name": "秋雨",
+        "trigger_info": "115年3月20日至115年3月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
