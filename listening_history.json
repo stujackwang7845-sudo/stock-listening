@@ -3643,5 +3643,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-26",
+        "code": "6187",
+        "name": "萬潤",
+        "trigger_info": "115年03月25日至115年03月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-26",
+        "code": "6584",
+        "name": "南俊國際",
+        "trigger_info": "115年03月25日至115年03月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
