@@ -3661,5 +3661,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "053230",
+        "name": "道瓊銀富邦61購02",
+        "trigger_info": "115年3月26日至115年3月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "2231",
+        "name": "為升",
+        "trigger_info": "115年3月26日至115年3月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "8271",
+        "name": "宇瞻",
+        "trigger_info": "115年3月26日至115年3月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "4973",
+        "name": "廣穎",
+        "trigger_info": "115年03月26日至115年03月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "5289",
+        "name": "宜鼎",
+        "trigger_info": "115年03月26日至115年03月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "5386",
+        "name": "青雲",
+        "trigger_info": "115年03月26日至115年03月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-27",
+        "code": "6821",
+        "name": "聯寶",
+        "trigger_info": "115年03月26日至115年03月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
