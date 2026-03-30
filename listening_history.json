@@ -3724,5 +3724,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "3135",
+        "name": "凌航",
+        "trigger_info": "115年3月18日至115年3月30日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "5292",
+        "name": "華懋",
+        "trigger_info": "115年3月27日至115年3月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "2640",
+        "name": "大車隊",
+        "trigger_info": "115年03月27日至115年03月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "4154",
+        "name": "樂威科-KY",
+        "trigger_info": "115年03月27日至115年03月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "4971",
+        "name": "IET-KY",
+        "trigger_info": "115年03月27日至115年03月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-03-30",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年03月27日至115年03月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
