@@ -3805,5 +3805,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-01",
+        "code": "6821",
+        "name": "聯寶",
+        "trigger_info": "115年03月31日至115年04月01日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-01",
+        "code": "7709",
+        "name": "榮田",
+        "trigger_info": "115年03月31日至115年04月01日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
