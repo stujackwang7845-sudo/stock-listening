@@ -3859,5 +3859,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-03",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年4月1日至115年4月2日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-03",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年03月30日至115年04月02日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-03",
+        "code": "6727",
+        "name": "亞泰金屬",
+        "trigger_info": "115年04月01日至115年04月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-03",
+        "code": "7734",
+        "name": "印能科技",
+        "trigger_info": "115年04月01日至115年04月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
