@@ -3931,5 +3931,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-07",
+        "code": "6830",
+        "name": "汎銓",
+        "trigger_info": "115年4月2日至115年4月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-07",
+        "code": "7721",
+        "name": "微程式",
+        "trigger_info": "115年4月2日至115年4月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-07",
+        "code": "3664",
+        "name": "安瑞-KY",
+        "trigger_info": "115年04月02日至115年04月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-07",
+        "code": "4741",
+        "name": "泓瀚",
+        "trigger_info": "115年04月02日至115年04月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
