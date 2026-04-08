@@ -3967,5 +3967,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-08",
+        "code": "6443",
+        "name": "元晶",
+        "trigger_info": "115年3月25日至115年4月8日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-08",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年04月07日至115年04月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-08",
+        "code": "3508",
+        "name": "位速",
+        "trigger_info": "115年04月07日至115年04月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-08",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年04月07日至115年04月08日連續二次<br>115年04月01日至115年04月08日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-08",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年03月25日至115年04月08日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
