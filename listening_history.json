@@ -4012,5 +4012,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年4月2日至115年4月9日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "6806",
+        "name": "森崴能源",
+        "trigger_info": "115年4月8日至115年4月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "6919",
+        "name": "康霈*",
+        "trigger_info": "115年4月8日至115年4月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "5243",
+        "name": "乙盛-KY",
+        "trigger_info": "115年4月8日至115年4月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年4月8日至115年4月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "6443",
+        "name": "元晶",
+        "trigger_info": "115年2月25日至115年4月9日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-09",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年03月26日至115年04月09日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
