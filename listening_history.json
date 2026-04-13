@@ -4210,5 +4210,122 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "050503",
+        "name": "緯穎中信5A購05",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "2467",
+        "name": "志聖",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "2486",
+        "name": "一詮",
+        "trigger_info": "115年4月8日至115年4月13日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "2489",
+        "name": "瑞軒",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "6426",
+        "name": "統新",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "6451",
+        "name": "訊芯-KY",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "6933",
+        "name": "AMAX-KY",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年4月10日至115年4月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-13",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年3月30日至115年4月13日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
