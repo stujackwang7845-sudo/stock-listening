@@ -4327,5 +4327,149 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "053481",
+        "name": "金寶凱基57購05",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "3042",
+        "name": "晶技",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4569",
+        "name": "六方科-KY",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4576",
+        "name": "大銀微系統",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年4月13日至115年4月14日連續二次<br>115年4月9日至115年4月14日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4949",
+        "name": "有成精密",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "6806",
+        "name": "森崴能源",
+        "trigger_info": "115年4月13日至115年4月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "1785",
+        "name": "光洋科",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "3555",
+        "name": "博士旺",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "3587",
+        "name": "閎康",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4577",
+        "name": "達航科技",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4760",
+        "name": "勤凱",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "4908",
+        "name": "前鼎",
+        "trigger_info": "115年04月13日至115年04月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-14",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年03月31日至115年04月14日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
