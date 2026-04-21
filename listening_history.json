@@ -5173,5 +5173,113 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3443",
+        "name": "創意",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3518",
+        "name": "柏騰",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "4960",
+        "name": "誠美材",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "6205",
+        "name": "詮欣",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年4月20日至115年4月21日連續二次<br>115年4月9日至115年4月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "6278",
+        "name": "台表科",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "6789",
+        "name": "采鈺",
+        "trigger_info": "115年4月20日至115年4月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3105",
+        "name": "穩懋",
+        "trigger_info": "115年04月16日至115年04月21日連續四次<br>115年04月09日至115年04月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3221",
+        "name": "台嘉碩",
+        "trigger_info": "115年04月20日至115年04月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3339",
+        "name": "泰谷",
+        "trigger_info": "115年04月20日至115年04月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "3363",
+        "name": "上詮",
+        "trigger_info": "115年04月16日至115年04月21日連續四次<br>115年04月09日至115年04月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-21",
+        "code": "6829",
+        "name": "千附精密",
+        "trigger_info": "115年04月20日至115年04月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
