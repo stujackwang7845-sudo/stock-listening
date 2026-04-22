@@ -5281,5 +5281,113 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "3086",
+        "name": "華義*",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "3105",
+        "name": "穩懋",
+        "trigger_info": "115年04月10日至115年04月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "3272",
+        "name": "東碩",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "3363",
+        "name": "上詮",
+        "trigger_info": "115年04月10日至115年04月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "4768",
+        "name": "晶呈科技",
+        "trigger_info": "115年04月10日至115年04月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "4908",
+        "name": "前鼎",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "5498",
+        "name": "凱崴",
+        "trigger_info": "115年04月10日至115年04月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "6174",
+        "name": "安碁",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "6423",
+        "name": "億而得",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "6643",
+        "name": "M31",
+        "trigger_info": "115年04月17日至115年04月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "706140",
+        "name": "蜜望實統一66購01",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-22",
+        "code": "8092",
+        "name": "建暐",
+        "trigger_info": "115年04月21日至115年04月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
