@@ -5632,5 +5632,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年4月24日至115年4月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "3645",
+        "name": "達邁",
+        "trigger_info": "115年4月15日至115年4月27日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "6658",
+        "name": "聯策",
+        "trigger_info": "115年4月24日至115年4月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "6789",
+        "name": "采鈺",
+        "trigger_info": "115年4月24日至115年4月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年4月24日至115年4月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "7711",
+        "name": "永擎",
+        "trigger_info": "115年4月24日至115年4月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年04月22日至115年04月27日連續四次<br>115年04月15日至115年04月27日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "629010",
+        "name": "良維十",
+        "trigger_info": "115年04月24日至115年04月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "707070",
+        "name": "台燿統一74購01",
+        "trigger_info": "115年04月24日至115年04月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-27",
+        "code": "7751",
+        "name": "竑騰",
+        "trigger_info": "115年04月24日至115年04月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
