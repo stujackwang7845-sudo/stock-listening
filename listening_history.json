@@ -5722,5 +5722,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "4967",
+        "name": "十銓",
+        "trigger_info": "115年4月27日至115年4月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "3228",
+        "name": "金麗科",
+        "trigger_info": "115年04月27日至115年04月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年04月23日至115年04月28日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "4529",
+        "name": "淳紳",
+        "trigger_info": "115年04月27日至115年04月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年04月16日至115年04月28日等九個營業日已有五次<br>115年03月17日至115年04月28日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "5276",
+        "name": "達輝-KY",
+        "trigger_info": "115年04月27日至115年04月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-28",
+        "code": "6735",
+        "name": "美達科技",
+        "trigger_info": "115年04月27日至115年04月28日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
