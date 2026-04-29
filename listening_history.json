@@ -5785,5 +5785,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-29",
+        "code": "1727",
+        "name": "中華化",
+        "trigger_info": "115年4月24日至115年4月29日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-29",
+        "code": "3363",
+        "name": "上詮",
+        "trigger_info": "115年04月28日至115年04月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-04-29",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年04月28日至115年04月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
