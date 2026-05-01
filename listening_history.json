@@ -5893,5 +5893,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "057363",
+        "name": "新唐元大58購02",
+        "trigger_info": "115年4月29日至115年4月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年4月27日至115年4月30日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年4月29日至115年4月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "6658",
+        "name": "聯策",
+        "trigger_info": "115年4月29日至115年4月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年4月29日至115年4月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "4951",
+        "name": "精拓科",
+        "trigger_info": "115年04月29日至115年04月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "6234",
+        "name": "高僑",
+        "trigger_info": "115年04月29日至115年04月30日連續二次<br>115年04月20日至115年04月30日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "731240",
+        "name": "金麗科元富61購01",
+        "trigger_info": "115年04月29日至115年04月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-01",
+        "code": "9949",
+        "name": "琉園",
+        "trigger_info": "115年04月29日至115年04月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
