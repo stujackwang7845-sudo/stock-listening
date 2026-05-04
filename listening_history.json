@@ -5974,5 +5974,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年4月21日至115年5月4日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "4807",
+        "name": "日成-KY",
+        "trigger_info": "115年4月30日至115年5月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "4958",
+        "name": "臻鼎-KY",
+        "trigger_info": "115年4月30日至115年5月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "6405",
+        "name": "悅城",
+        "trigger_info": "115年4月30日至115年5月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年04月21日至115年05月04日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-04",
+        "code": "8027",
+        "name": "鈦昇",
+        "trigger_info": "115年04月30日至115年05月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
