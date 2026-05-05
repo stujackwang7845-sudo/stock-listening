@@ -6028,5 +6028,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "1597",
+        "name": "直得",
+        "trigger_info": "115年5月4日至115年5月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "2233",
+        "name": "宇隆",
+        "trigger_info": "115年5月4日至115年5月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "2454",
+        "name": "聯發科",
+        "trigger_info": "115年5月4日至115年5月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "2486",
+        "name": "一詮",
+        "trigger_info": "115年5月4日至115年5月5日連續二次<br>115年4月29日至115年5月5日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "3016",
+        "name": "嘉晶",
+        "trigger_info": "115年5月4日至115年5月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-05",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年5月4日至115年5月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
