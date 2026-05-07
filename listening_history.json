@@ -6136,5 +6136,113 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年5月6日至115年5月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6224",
+        "name": "聚鼎",
+        "trigger_info": "115年5月6日至115年5月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6405",
+        "name": "悅城",
+        "trigger_info": "115年5月6日至115年5月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6706",
+        "name": "惠特",
+        "trigger_info": "115年5月4日至115年5月7日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "1595",
+        "name": "川寶",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年03月25日至115年05月07日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "4991",
+        "name": "環宇-KY",
+        "trigger_info": "115年04月24日至115年05月07日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "5464",
+        "name": "霖宏",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6147",
+        "name": "頎邦",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6261",
+        "name": "久元",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "6274",
+        "name": "台燿",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-07",
+        "code": "8042",
+        "name": "金山電",
+        "trigger_info": "115年05月06日至115年05月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
