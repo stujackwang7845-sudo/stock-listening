@@ -6343,5 +6343,131 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "1809",
+        "name": "中釉",
+        "trigger_info": "115年5月8日至115年5月11日連續二次<br>115年5月6日至115年5月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "2059",
+        "name": "川湖",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "2342",
+        "name": "茂矽",
+        "trigger_info": "115年5月6日至115年5月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "2395",
+        "name": "研華",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "2454",
+        "name": "聯發科",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "2491",
+        "name": "吉祥全",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "3450",
+        "name": "聯鈞",
+        "trigger_info": "115年5月8日至115年5月11日連續二次<br>115年4月28日至115年5月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "3653",
+        "name": "健策",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "6526",
+        "name": "達發",
+        "trigger_info": "115年5月8日至115年5月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年5月6日至115年5月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "3081",
+        "name": "聯亞",
+        "trigger_info": "115年03月27日至115年05月11日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "3664",
+        "name": "安瑞-KY",
+        "trigger_info": "115年05月08日至115年05月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "4979",
+        "name": "華星光",
+        "trigger_info": "115年05月06日至115年05月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-11",
+        "code": "7751",
+        "name": "竑騰",
+        "trigger_info": "115年05月08日至115年05月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
