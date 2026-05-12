@@ -6469,5 +6469,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-12",
+        "code": "2301",
+        "name": "光寶科",
+        "trigger_info": "115年5月11日至115年5月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-12",
+        "code": "2408",
+        "name": "南亞科",
+        "trigger_info": "115年5月11日至115年5月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-12",
+        "code": "3135",
+        "name": "凌航",
+        "trigger_info": "115年5月11日至115年5月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-12",
+        "code": "7769",
+        "name": "鴻勁",
+        "trigger_info": "115年5月11日至115年5月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-12",
+        "code": "8210",
+        "name": "勤誠",
+        "trigger_info": "115年5月11日至115年5月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
