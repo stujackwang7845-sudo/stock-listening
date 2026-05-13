@@ -6514,5 +6514,149 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "2492",
+        "name": "華新科",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "3036",
+        "name": "文曄",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "3481",
+        "name": "群創",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "6831",
+        "name": "邁科",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "8114",
+        "name": "振樺電",
+        "trigger_info": "115年5月12日至115年5月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "4966",
+        "name": "譜瑞-KY",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "4973",
+        "name": "廣穎",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "6263",
+        "name": "普萊德",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "6727",
+        "name": "亞泰金屬",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "707794",
+        "name": "信昌電凱基5A購03",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "8069",
+        "name": "元太",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年05月12日至115年05月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-13",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年04月30日至115年05月13日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
