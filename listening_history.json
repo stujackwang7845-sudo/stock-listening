@@ -6658,5 +6658,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "3135",
+        "name": "凌航",
+        "trigger_info": "115年5月11日至115年5月14日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "6166",
+        "name": "凌華",
+        "trigger_info": "115年5月13日至115年5月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "3664",
+        "name": "安瑞-KY",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "4760",
+        "name": "勤凱",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "5228",
+        "name": "鈺鎧",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "6829",
+        "name": "千附精密",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "724481",
+        "name": "正基統一59購02",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "7751",
+        "name": "竑騰",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-14",
+        "code": "8444",
+        "name": "綠河-KY",
+        "trigger_info": "115年05月13日至115年05月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
