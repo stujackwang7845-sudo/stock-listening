@@ -6739,5 +6739,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "6449",
+        "name": "鈺邦",
+        "trigger_info": "115年5月14日至115年5月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年05月14日至115年05月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "3498",
+        "name": "陽程",
+        "trigger_info": "115年05月14日至115年05月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "4971",
+        "name": "IET-KY",
+        "trigger_info": "115年05月12日至115年05月15日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "6419",
+        "name": "京晨科",
+        "trigger_info": "115年05月14日至115年05月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-15",
+        "code": "725744",
+        "name": "新復興統一5A購01",
+        "trigger_info": "115年05月14日至115年05月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
