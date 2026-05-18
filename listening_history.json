@@ -6793,5 +6793,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "050328",
+        "name": "華固凱基56購01",
+        "trigger_info": "115年5月15日至115年5月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "3008",
+        "name": "大立光",
+        "trigger_info": "115年5月15日至115年5月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "3665",
+        "name": "貿聯-KY",
+        "trigger_info": "115年5月15日至115年5月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "6531",
+        "name": "愛普*",
+        "trigger_info": "115年5月6日至115年5月18日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "6831",
+        "name": "邁科",
+        "trigger_info": "115年5月15日至115年5月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "6924",
+        "name": "榮惠-KY創",
+        "trigger_info": "115年5月15日至115年5月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年05月15日至115年05月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年05月13日至115年05月18日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "8069",
+        "name": "元太",
+        "trigger_info": "115年05月15日至115年05月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "8091",
+        "name": "翔名",
+        "trigger_info": "115年05月15日至115年05月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-18",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年05月15日至115年05月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
