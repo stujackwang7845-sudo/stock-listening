@@ -6892,5 +6892,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "1591",
+        "name": "駿吉-KY",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "3624",
+        "name": "光頡",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "722723",
+        "name": "新復興統一58購02",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "724481",
+        "name": "正基統一59購02",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "8043",
+        "name": "蜜望實",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-19",
+        "code": "8455",
+        "name": "大拓-KY",
+        "trigger_info": "115年05月18日至115年05月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
