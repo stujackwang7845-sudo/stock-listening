@@ -6946,5 +6946,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "046437",
+        "name": "海悅統一58購01",
+        "trigger_info": "115年5月19日至115年5月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "3090",
+        "name": "日電貿",
+        "trigger_info": "115年5月19日至115年5月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "6449",
+        "name": "鈺邦",
+        "trigger_info": "115年5月19日至115年5月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年5月8日至115年5月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "3577",
+        "name": "泓格",
+        "trigger_info": "115年05月19日至115年05月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-20",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年05月19日至115年05月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
