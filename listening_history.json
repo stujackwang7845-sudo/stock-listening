@@ -7117,5 +7117,158 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "050328",
+        "name": "華固凱基56購01",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "2327",
+        "name": "國巨*",
+        "trigger_info": "115年5月21日至115年5月22日連續二次<br>115年5月12日至115年5月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "2424",
+        "name": "隴華",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "2478",
+        "name": "大毅",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "3048",
+        "name": "益登",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年5月19日至115年5月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "4722",
+        "name": "國精化",
+        "trigger_info": "115年5月12日至115年5月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "4916",
+        "name": "事欣科",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "6806",
+        "name": "森崴能源",
+        "trigger_info": "115年5月21日至115年5月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年5月12日至115年5月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "1591",
+        "name": "駿吉-KY",
+        "trigger_info": "115年05月21日至115年05月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "3491",
+        "name": "昇達科",
+        "trigger_info": "115年04月13日至115年05月22日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "6642",
+        "name": "富致",
+        "trigger_info": "115年05月21日至115年05月22日連續二次<br>115年05月19日至115年05月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年05月19日至115年05月22日連續四次<br>115年05月12日至115年05月22日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "722723",
+        "name": "新復興統一58購02",
+        "trigger_info": "115年05月21日至115年05月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-22",
+        "code": "8455",
+        "name": "大拓-KY",
+        "trigger_info": "115年05月21日至115年05月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
