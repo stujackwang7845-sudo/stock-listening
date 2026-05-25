@@ -7270,5 +7270,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年5月20日至115年5月25日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "2492",
+        "name": "華新科",
+        "trigger_info": "115年5月22日至115年5月25日連續二次<br>115年5月13日至115年5月25日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "3090",
+        "name": "日電貿",
+        "trigger_info": "115年5月22日至115年5月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "3221",
+        "name": "台嘉碩",
+        "trigger_info": "115年05月22日至115年05月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "3537",
+        "name": "堡達",
+        "trigger_info": "115年05月22日至115年05月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "4127",
+        "name": "天良",
+        "trigger_info": "115年05月22日至115年05月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年05月22日至115年05月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年05月13日至115年05月25日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-25",
+        "code": "8040",
+        "name": "九暘",
+        "trigger_info": "115年05月22日至115年05月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
