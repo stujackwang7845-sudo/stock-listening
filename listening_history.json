@@ -7855,5 +7855,167 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "050503",
+        "name": "緯穎中信5A購05",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "2302",
+        "name": "麗正",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "2369",
+        "name": "菱生",
+        "trigger_info": "115年5月26日至115年5月29日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "3528",
+        "name": "安馳",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "6770",
+        "name": "力積電",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "6906",
+        "name": "現觀科",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "8150",
+        "name": "南茂",
+        "trigger_info": "115年5月28日至115年5月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "2061",
+        "name": "風青",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "3485",
+        "name": "敘豐",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "3523",
+        "name": "迎輝",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "4760",
+        "name": "勤凱",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "4973",
+        "name": "廣穎",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "6182",
+        "name": "合晶",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "6654",
+        "name": "天正國際",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-05-29",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年05月28日至115年05月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
