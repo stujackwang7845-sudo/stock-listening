@@ -8017,5 +8017,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "058462",
+        "name": "汎銓元大59購05",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "059942",
+        "name": "惠特群益61購01",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "1563",
+        "name": "巧新",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "2337",
+        "name": "旺宏",
+        "trigger_info": "115年5月20日至115年6月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "2464",
+        "name": "盟立",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "3481",
+        "name": "群創",
+        "trigger_info": "115年5月27日至115年6月1日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-01",
+        "code": "6239",
+        "name": "力成",
+        "trigger_info": "115年5月29日至115年6月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
