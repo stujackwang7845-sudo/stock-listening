@@ -8269,5 +8269,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "060668",
+        "name": "惠特元大59購04",
+        "trigger_info": "115年6月2日至115年6月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "2408",
+        "name": "南亞科",
+        "trigger_info": "115年6月2日至115年6月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "3528",
+        "name": "安馳",
+        "trigger_info": "115年6月2日至115年6月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "3535",
+        "name": "晶彩科",
+        "trigger_info": "115年5月22日至115年6月3日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "8454",
+        "name": "富邦媒",
+        "trigger_info": "115年6月2日至115年6月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "3288",
+        "name": "點晶",
+        "trigger_info": "115年06月02日至115年06月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "3523",
+        "name": "迎輝",
+        "trigger_info": "115年06月02日至115年06月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "4707",
+        "name": "磐亞",
+        "trigger_info": "115年06月02日至115年06月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "6654",
+        "name": "天正國際",
+        "trigger_info": "115年06月02日至115年06月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-03",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年05月29日至115年06月03日連續四次<br>115年05月22日至115年06月03日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
