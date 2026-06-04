@@ -8359,5 +8359,122 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "1312",
+        "name": "國喬",
+        "trigger_info": "115年6月3日至115年6月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "2351",
+        "name": "順德",
+        "trigger_info": "115年5月25日至115年6月4日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "3149",
+        "name": "正達",
+        "trigger_info": "115年6月1日至115年6月4日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "1718",
+        "name": "中纖",
+        "trigger_info": "115年6月3日至115年6月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "2491",
+        "name": "吉祥全",
+        "trigger_info": "115年6月3日至115年6月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "6442",
+        "name": "光聖",
+        "trigger_info": "115年5月25日至115年6月4日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "9110",
+        "name": "越南控-DR",
+        "trigger_info": "115年6月1日至115年6月4日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "4807",
+        "name": "日成-KY",
+        "trigger_info": "115年6月3日至115年6月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "3147",
+        "name": "大綜",
+        "trigger_info": "115年06月03日至115年06月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年06月01日至115年06月04日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "3581",
+        "name": "博磊",
+        "trigger_info": "115年06月03日至115年06月04日連續二次<br>115年05月25日至115年06月04日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "5701",
+        "name": "劍湖山",
+        "trigger_info": "115年06月03日至115年06月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-04",
+        "code": "6127",
+        "name": "九豪",
+        "trigger_info": "115年06月01日至115年06月04日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
