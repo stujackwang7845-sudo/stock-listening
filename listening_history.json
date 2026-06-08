@@ -8593,5 +8593,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-08",
+        "code": "8454",
+        "name": "富邦媒",
+        "trigger_info": "115年6月5日至115年6月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-08",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年5月27日至115年6月8日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-08",
+        "code": "4939",
+        "name": "亞電",
+        "trigger_info": "115年05月27日至115年06月08日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-08",
+        "code": "704710",
+        "name": "精材元大58購03",
+        "trigger_info": "115年06月05日至115年06月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
