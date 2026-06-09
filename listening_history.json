@@ -8629,5 +8629,77 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年5月28日至115年6月9日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "3147",
+        "name": "大綜",
+        "trigger_info": "115年06月08日至115年06月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年05月28日至115年06月09日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "3581",
+        "name": "博磊",
+        "trigger_info": "115年06月08日至115年06月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "4939",
+        "name": "亞電",
+        "trigger_info": "115年05月28日至115年06月09日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "6127",
+        "name": "九豪",
+        "trigger_info": "115年05月28日至115年06月09日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "725744",
+        "name": "新復興統一5A購01",
+        "trigger_info": "115年06月08日至115年06月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-09",
+        "code": "731874",
+        "name": "茂訊統一59購01",
+        "trigger_info": "115年06月08日至115年06月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
