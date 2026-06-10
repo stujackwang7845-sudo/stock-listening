@@ -8701,5 +8701,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "050328",
+        "name": "華固凱基56購01",
+        "trigger_info": "115年6月9日至115年6月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "6890",
+        "name": "來億-KY",
+        "trigger_info": "115年6月9日至115年6月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "063950",
+        "name": "揚博凱基5B購01",
+        "trigger_info": "115年6月9日至115年6月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年05月29日至115年06月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年06月09日至115年06月10日連續二次<br>115年06月05日至115年06月10日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "4939",
+        "name": "亞電",
+        "trigger_info": "115年05月29日至115年06月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年06月09日至115年06月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "5426",
+        "name": "振發",
+        "trigger_info": "115年06月09日至115年06月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "6127",
+        "name": "九豪",
+        "trigger_info": "115年05月29日至115年06月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "724481",
+        "name": "正基統一59購02",
+        "trigger_info": "115年06月09日至115年06月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-10",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年06月09日至115年06月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
