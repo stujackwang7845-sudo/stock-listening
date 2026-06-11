@@ -8800,5 +8800,131 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "6116",
+        "name": "彩晶",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "1714",
+        "name": "和桐",
+        "trigger_info": "115年6月8日至115年6月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "6924",
+        "name": "榮惠-KY創",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "7722",
+        "name": "LINEPAY",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "7788",
+        "name": "松川精密",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "8454",
+        "name": "富邦媒",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "6830",
+        "name": "汎銓",
+        "trigger_info": "115年6月10日至115年6月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年06月01日至115年06月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "4402",
+        "name": "郡都開發",
+        "trigger_info": "115年06月10日至115年06月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年06月10日至115年06月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "4741",
+        "name": "泓瀚",
+        "trigger_info": "115年06月10日至115年06月11日連續二次<br>115年06月08日至115年06月11日連續四次<br>115年06月01日至115年06月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "5345",
+        "name": "馥鴻",
+        "trigger_info": "115年06月10日至115年06月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "8043",
+        "name": "蜜望實",
+        "trigger_info": "115年06月10日至115年06月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-11",
+        "code": "8455",
+        "name": "大拓-KY",
+        "trigger_info": "115年06月10日至115年06月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
