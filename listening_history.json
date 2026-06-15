@@ -8971,5 +8971,77 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "2243",
+        "name": "宏旭-KY",
+        "trigger_info": "115年6月10日至115年6月15日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年6月10日至115年6月15日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年06月12日至115年06月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "4741",
+        "name": "泓瀚",
+        "trigger_info": "115年06月03日至115年06月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年06月12日至115年06月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "6187",
+        "name": "萬潤",
+        "trigger_info": "115年06月03日至115年06月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "6241",
+        "name": "鑫永洋",
+        "trigger_info": "115年06月12日至115年06月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-15",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年06月12日至115年06月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
