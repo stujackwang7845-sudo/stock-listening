@@ -9160,5 +9160,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "1714",
+        "name": "和桐",
+        "trigger_info": "115年6月16日至115年6月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年6月12日至115年6月17日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "2478",
+        "name": "大毅",
+        "trigger_info": "115年6月16日至115年6月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "3008",
+        "name": "大立光",
+        "trigger_info": "115年6月16日至115年6月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年6月16日至115年6月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年06月05日至115年06月17日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "3362",
+        "name": "先進光",
+        "trigger_info": "115年06月16日至115年06月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "3441",
+        "name": "聯一光",
+        "trigger_info": "115年06月16日至115年06月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "4744",
+        "name": "皇將",
+        "trigger_info": "115年06月16日至115年06月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "6488",
+        "name": "環球晶",
+        "trigger_info": "115年06月16日至115年06月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-17",
+        "code": "8071",
+        "name": "能率網通",
+        "trigger_info": "115年06月16日至115年06月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
