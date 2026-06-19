@@ -9331,5 +9331,77 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "2243",
+        "name": "宏旭-KY",
+        "trigger_info": "115年6月17日至115年6月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "3090",
+        "name": "日電貿",
+        "trigger_info": "115年6月17日至115年6月18日連續二次<br>115年6月15日至115年6月18日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "4551",
+        "name": "智伸科",
+        "trigger_info": "115年6月17日至115年6月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年06月17日至115年06月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "6465",
+        "name": "威潤",
+        "trigger_info": "115年06月17日至115年06月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "6654",
+        "name": "天正國際",
+        "trigger_info": "115年06月17日至115年06月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "72657U",
+        "name": "家登群益56售04",
+        "trigger_info": "115年06月17日至115年06月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-19",
+        "code": "7734",
+        "name": "印能科技",
+        "trigger_info": "115年06月15日至115年06月18日連續四次<br>115年06月08日至115年06月18日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
