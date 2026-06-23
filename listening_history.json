@@ -9664,5 +9664,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "2316",
+        "name": "楠梓電",
+        "trigger_info": "115年6月22日至115年6月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年6月22日至115年6月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年6月22日至115年6月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "8261",
+        "name": "富鼎",
+        "trigger_info": "115年6月22日至115年6月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "3675",
+        "name": "德微",
+        "trigger_info": "115年06月22日至115年06月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "704710",
+        "name": "精材元大58購03",
+        "trigger_info": "115年06月22日至115年06月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "707630",
+        "name": "信昌電凱基5A購01",
+        "trigger_info": "115年06月22日至115年06月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "7712",
+        "name": "博盛半導體",
+        "trigger_info": "115年06月22日至115年06月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-23",
+        "code": "7734",
+        "name": "印能科技",
+        "trigger_info": "115年06月10日至115年06月23日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
