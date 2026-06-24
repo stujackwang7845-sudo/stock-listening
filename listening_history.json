@@ -9745,5 +9745,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "050328",
+        "name": "華固凱基56購01",
+        "trigger_info": "115年6月23日至115年6月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "2302",
+        "name": "麗正",
+        "trigger_info": "115年6月11日至115年6月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "2481",
+        "name": "強茂",
+        "trigger_info": "115年6月23日至115年6月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "4551",
+        "name": "智伸科",
+        "trigger_info": "115年6月23日至115年6月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "6141",
+        "name": "柏承",
+        "trigger_info": "115年6月11日至115年6月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "6834",
+        "name": "天二科技",
+        "trigger_info": "115年6月18日至115年6月24日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年06月18日至115年06月24日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "5425",
+        "name": "台半",
+        "trigger_info": "115年06月18日至115年06月24日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "5489",
+        "name": "彩富",
+        "trigger_info": "115年06月23日至115年06月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-24",
+        "code": "6620",
+        "name": "漢達",
+        "trigger_info": "115年06月23日至115年06月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
