@@ -9835,5 +9835,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "2061",
+        "name": "風青",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "5464",
+        "name": "霖宏",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年06月12日至115年06月25日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "6693",
+        "name": "廣閎科",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-25",
+        "code": "707059",
+        "name": "健亞永豐5B購01",
+        "trigger_info": "115年06月24日至115年06月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
