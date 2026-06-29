@@ -9961,5 +9961,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-29",
+        "code": "2302",
+        "name": "麗正",
+        "trigger_info": "115年6月16日至115年6月29日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-29",
+        "code": "3230",
+        "name": "錦明",
+        "trigger_info": "115年06月26日至115年06月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-29",
+        "code": "705153",
+        "name": "宜鼎元大58購07",
+        "trigger_info": "115年06月26日至115年06月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
