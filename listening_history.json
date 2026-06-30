@@ -9988,5 +9988,14 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-06-30",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年06月29日至115年06月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
