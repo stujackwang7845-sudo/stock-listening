@@ -9997,5 +9997,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "059570",
+        "name": "強茂凱基5B購03",
+        "trigger_info": "115年6月30日至115年7月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "1435",
+        "name": "中福",
+        "trigger_info": "115年6月30日至115年7月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年6月18日至115年7月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年6月18日至115年7月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "6226",
+        "name": "光鼎",
+        "trigger_info": "115年6月30日至115年7月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年6月18日至115年7月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年6月18日至115年7月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "8046",
+        "name": "南電",
+        "trigger_info": "115年6月30日至115年7月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-01",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年5月21日至115年7月1日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
