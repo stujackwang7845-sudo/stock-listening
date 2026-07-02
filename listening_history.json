@@ -10078,5 +10078,122 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "1447",
+        "name": "力鵬",
+        "trigger_info": "115年7月1日至115年7月2日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "1617",
+        "name": "榮星",
+        "trigger_info": "115年7月1日至115年7月2日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年7月1日至115年7月2日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年6月22日至115年7月2日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "7795",
+        "name": "長廣",
+        "trigger_info": "115年7月1日至115年7月2日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年5月22日至115年7月2日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "3147",
+        "name": "大綜",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "3230",
+        "name": "錦明",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "4707",
+        "name": "磐亞",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "5328",
+        "name": "華容",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年06月22日至115年07月02日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "708057",
+        "name": "環球晶元大5A購03",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-02",
+        "code": "708915",
+        "name": "安葆統一75購01",
+        "trigger_info": "115年07月01日至115年07月02日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
