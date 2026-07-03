@@ -10195,5 +10195,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-03",
+        "code": "066762",
+        "name": "國巨永豐65購01",
+        "trigger_info": "115年7月2日至115年7月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-03",
+        "code": "1515",
+        "name": "力山",
+        "trigger_info": "115年7月2日至115年7月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-03",
+        "code": "1444",
+        "name": "力麗",
+        "trigger_info": "115年7月2日至115年7月3日連續二次<br>115年6月30日至115年7月3日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-03",
+        "code": "1718",
+        "name": "中纖",
+        "trigger_info": "115年7月2日至115年7月3日連續二次<br>115年6月30日至115年7月3日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
