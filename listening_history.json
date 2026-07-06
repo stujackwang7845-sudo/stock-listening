@@ -10231,5 +10231,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "2466",
+        "name": "冠西電",
+        "trigger_info": "115年7月3日至115年7月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年7月3日至115年7月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年6月24日至115年7月6日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年7月3日至115年7月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "4707",
+        "name": "磐亞",
+        "trigger_info": "115年07月01日至115年07月06日連續四次<br>115年06月24日至115年07月06日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "6174",
+        "name": "安碁",
+        "trigger_info": "115年07月01日至115年07月06日連續四次<br>115年06月24日至115年07月06日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "6182",
+        "name": "合晶",
+        "trigger_info": "115年07月03日至115年07月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "6617",
+        "name": "共信-KY",
+        "trigger_info": "115年07月03日至115年07月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-06",
+        "code": "7402",
+        "name": "邑錡",
+        "trigger_info": "115年07月03日至115年07月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
