@@ -10312,5 +10312,77 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年7月6日至115年7月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "6525",
+        "name": "捷敏-KY",
+        "trigger_info": "115年7月6日至115年7月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "8261",
+        "name": "富鼎",
+        "trigger_info": "115年7月6日至115年7月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "4707",
+        "name": "磐亞",
+        "trigger_info": "115年06月25日至115年07月07日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "6174",
+        "name": "安碁",
+        "trigger_info": "115年06月25日至115年07月07日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "6488",
+        "name": "環球晶",
+        "trigger_info": "115年07月06日至115年07月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "708915",
+        "name": "安葆統一75購01",
+        "trigger_info": "115年07月06日至115年07月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-07",
+        "code": "8027",
+        "name": "鈦昇",
+        "trigger_info": "115年07月02日至115年07月07日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
