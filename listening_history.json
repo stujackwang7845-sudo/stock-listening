@@ -10384,5 +10384,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-08",
+        "code": "4169",
+        "name": "泰宗",
+        "trigger_info": "115年7月7日至115年7月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-08",
+        "code": "6182",
+        "name": "合晶",
+        "trigger_info": "115年07月03日至115年07月08日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
