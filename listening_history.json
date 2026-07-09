@@ -10402,5 +10402,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-09",
+        "code": "2466",
+        "name": "冠西電",
+        "trigger_info": "115年7月8日至115年7月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-09",
+        "code": "2601",
+        "name": "益航",
+        "trigger_info": "115年7月8日至115年7月9日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-09",
+        "code": "6617",
+        "name": "共信-KY",
+        "trigger_info": "115年07月08日至115年07月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-09",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年07月08日至115年07月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-09",
+        "code": "8027",
+        "name": "鈦昇",
+        "trigger_info": "115年06月29日至115年07月09日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
