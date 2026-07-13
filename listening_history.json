@@ -10492,5 +10492,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "052974",
+        "name": "今國光統一5C購02",
+        "trigger_info": "115年7月9日至115年7月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "2332",
+        "name": "友訊",
+        "trigger_info": "115年7月9日至115年7月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "2434",
+        "name": "統懋",
+        "trigger_info": "115年6月30日至115年7月13日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "6831",
+        "name": "邁科",
+        "trigger_info": "115年6月30日至115年7月13日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年07月09日至115年07月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-13",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年07月09日至115年07月13日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
