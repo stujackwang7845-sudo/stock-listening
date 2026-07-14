@@ -10546,5 +10546,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-14",
+        "code": "2478",
+        "name": "大毅",
+        "trigger_info": "115年7月13日至115年7月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-14",
+        "code": "2492",
+        "name": "華新科",
+        "trigger_info": "115年7月13日至115年7月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-14",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年07月13日至115年07月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-14",
+        "code": "8096",
+        "name": "擎亞",
+        "trigger_info": "115年07月08日至115年07月14日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-14",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年07月13日至115年07月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
