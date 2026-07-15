@@ -10591,5 +10591,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年7月2日至115年7月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年7月14日至115年7月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "6173",
+        "name": "信昌電",
+        "trigger_info": "115年07月14日至115年07月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "6907",
+        "name": "雅特力-KY",
+        "trigger_info": "115年07月02日至115年07月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "7402",
+        "name": "邑錡",
+        "trigger_info": "115年07月02日至115年07月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-15",
+        "code": "7714",
+        "name": "創泓科技",
+        "trigger_info": "115年07月14日至115年07月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
