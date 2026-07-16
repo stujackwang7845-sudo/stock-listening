@@ -10645,5 +10645,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "2434",
+        "name": "統懋",
+        "trigger_info": "115年7月15日至115年7月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "3090",
+        "name": "日電貿",
+        "trigger_info": "115年7月15日至115年7月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年7月3日至115年7月16日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年7月3日至115年7月16日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年07月15日至115年07月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年07月15日至115年07月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "5483",
+        "name": "中美晶",
+        "trigger_info": "115年07月15日至115年07月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "7402",
+        "name": "邑錡",
+        "trigger_info": "115年07月03日至115年07月16日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-16",
+        "code": "8383",
+        "name": "千附",
+        "trigger_info": "115年07月15日至115年07月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
