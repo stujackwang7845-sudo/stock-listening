@@ -10726,5 +10726,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "039438",
+        "name": "東元統一6A購02",
+        "trigger_info": "115年7月16日至115年7月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "2492",
+        "name": "華新科",
+        "trigger_info": "115年7月16日至115年7月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年7月6日至115年7月17日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "6505",
+        "name": "台塑化",
+        "trigger_info": "115年7月16日至115年7月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "8039",
+        "name": "台虹",
+        "trigger_info": "115年7月16日至115年7月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "4139",
+        "name": "馬光-KY",
+        "trigger_info": "115年07月16日至115年07月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-17",
+        "code": "4991",
+        "name": "環宇-KY",
+        "trigger_info": "115年07月06日至115年07月17日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
