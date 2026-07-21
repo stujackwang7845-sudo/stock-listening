@@ -10933,5 +10933,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "049899",
+        "name": "台玻凱基5C購01",
+        "trigger_info": "115年7月20日至115年7月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "050307",
+        "name": "亞航國泰57購01",
+        "trigger_info": "115年7月20日至115年7月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "1435",
+        "name": "中福",
+        "trigger_info": "115年7月20日至115年7月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "3090",
+        "name": "日電貿",
+        "trigger_info": "115年7月20日至115年7月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "4764",
+        "name": "雙鍵",
+        "trigger_info": "115年7月8日至115年7月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "8028",
+        "name": "昇陽半導體",
+        "trigger_info": "115年7月16日至115年7月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-21",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年07月20日至115年07月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
