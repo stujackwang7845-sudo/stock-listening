@@ -10996,5 +10996,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-22",
+        "code": "4139",
+        "name": "馬光-KY",
+        "trigger_info": "115年07月21日至115年07月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-22",
+        "code": "6182",
+        "name": "合晶",
+        "trigger_info": "115年07月21日至115年07月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
