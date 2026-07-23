@@ -11014,5 +11014,95 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "067647",
+        "name": "國巨凱基5B購07",
+        "trigger_info": "115年7月22日至115年7月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "074860",
+        "name": "台積電統一63購02",
+        "trigger_info": "115年7月22日至115年7月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "6414",
+        "name": "樺漢",
+        "trigger_info": "115年7月22日至115年7月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年7月22日至115年7月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年7月22日至115年7月23日連續二次<br>115年7月20日至115年7月23日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "9103",
+        "name": "美德醫療-DR",
+        "trigger_info": "115年7月13日至115年7月23日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年7月13日至115年7月23日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "700902",
+        "name": "光頡統一5A購01",
+        "trigger_info": "115年07月22日至115年07月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "707461",
+        "name": "金山電統一74購01",
+        "trigger_info": "115年07月22日至115年07月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-23",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年07月22日至115年07月23日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
