@@ -11104,5 +11104,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "046437",
+        "name": "海悅統一58購01",
+        "trigger_info": "115年7月23日至115年7月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "6969",
+        "name": "成信實業*-創",
+        "trigger_info": "115年7月23日至115年7月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "9103",
+        "name": "美德醫療-DR",
+        "trigger_info": "115年7月14日至115年7月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "052974",
+        "name": "今國光統一5C購02",
+        "trigger_info": "115年7月23日至115年7月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "7795",
+        "name": "長廣",
+        "trigger_info": "115年7月23日至115年7月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年07月23日至115年07月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-24",
+        "code": "701658",
+        "name": "信昌電統一5C購02",
+        "trigger_info": "115年07月23日至115年07月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
