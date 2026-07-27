@@ -11167,5 +11167,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-27",
+        "code": "037247",
+        "name": "國巨統一5B購03",
+        "trigger_info": "115年7月24日至115年7月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-27",
+        "code": "057808",
+        "name": "國巨凱基59購05",
+        "trigger_info": "115年7月24日至115年7月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-27",
+        "code": "9103",
+        "name": "美德醫療-DR",
+        "trigger_info": "115年7月15日至115年7月27日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-27",
+        "code": "736244",
+        "name": "金居統一61購01",
+        "trigger_info": "115年07月24日至115年07月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
