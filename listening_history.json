@@ -11266,5 +11266,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "1515",
+        "name": "力山",
+        "trigger_info": "115年7月28日至115年7月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年7月28日至115年7月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年7月28日至115年7月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年7月28日至115年7月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年07月28日至115年07月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "701658",
+        "name": "信昌電統一5C購02",
+        "trigger_info": "115年07月28日至115年07月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-29",
+        "code": "729185",
+        "name": "華星光統一59購03",
+        "trigger_info": "115年07月28日至115年07月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
