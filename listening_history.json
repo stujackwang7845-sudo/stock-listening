@@ -11329,5 +11329,140 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "031319",
+        "name": "緯穎統一59購02",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "039457",
+        "name": "宏達電統一6A購02",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "1303",
+        "name": "南亞",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "1718",
+        "name": "中纖",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "3026",
+        "name": "禾伸堂",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "4169",
+        "name": "泰宗",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "6531",
+        "name": "愛普*",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "8046",
+        "name": "南電",
+        "trigger_info": "115年7月29日至115年7月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "3624",
+        "name": "光頡",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "4939",
+        "name": "亞電",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "6182",
+        "name": "合晶",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "6739",
+        "name": "竹陞科技",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "7714",
+        "name": "創泓科技",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-30",
+        "code": "7828",
+        "name": "創新服務",
+        "trigger_info": "115年07月29日至115年07月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
