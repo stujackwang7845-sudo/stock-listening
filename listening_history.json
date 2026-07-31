@@ -11464,5 +11464,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "6141",
+        "name": "柏承",
+        "trigger_info": "115年7月30日至115年7月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "6451",
+        "name": "訊芯-KY",
+        "trigger_info": "115年7月30日至115年7月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年7月30日至115年7月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "8261",
+        "name": "富鼎",
+        "trigger_info": "115年7月30日至115年7月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年07月30日至115年07月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年07月30日至115年07月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-07-31",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年07月30日至115年07月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
