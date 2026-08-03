@@ -11527,5 +11527,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-03",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年7月31日至115年8月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-03",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年7月31日至115年8月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-03",
+        "code": "3362",
+        "name": "先進光",
+        "trigger_info": "115年07月29日至115年08月03日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
