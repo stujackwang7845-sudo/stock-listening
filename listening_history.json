@@ -11554,5 +11554,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-04",
+        "code": "053859",
+        "name": "強茂統一61購02",
+        "trigger_info": "115年8月3日至115年8月4日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-04",
+        "code": "700683",
+        "name": "雍智統一6A購01",
+        "trigger_info": "115年08月03日至115年08月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
