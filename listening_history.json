@@ -11572,5 +11572,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-05",
+        "code": "039038",
+        "name": "富鼎統一6A購01",
+        "trigger_info": "115年8月4日至115年8月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-05",
+        "code": "068822",
+        "name": "富鼎統一69購01",
+        "trigger_info": "115年8月4日至115年8月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
