@@ -11590,5 +11590,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "2059",
+        "name": "川湖",
+        "trigger_info": "115年8月5日至115年8月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年8月5日至115年8月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "3037",
+        "name": "欣興",
+        "trigger_info": "115年8月5日至115年8月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年8月5日至115年8月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "3653",
+        "name": "健策",
+        "trigger_info": "115年8月5日至115年8月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-06",
+        "code": "6274",
+        "name": "台燿",
+        "trigger_info": "115年08月05日至115年08月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
