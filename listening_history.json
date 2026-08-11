@@ -11860,5 +11860,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-11",
+        "code": "2059",
+        "name": "川湖",
+        "trigger_info": "115年8月10日至115年8月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-11",
+        "code": "7711",
+        "name": "永擎",
+        "trigger_info": "115年8月10日至115年8月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-11",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年08月06日至115年08月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-11",
+        "code": "4931",
+        "name": "新盛力",
+        "trigger_info": "115年08月10日至115年08月11日連續二次<br>115年08月06日至115年08月11日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
