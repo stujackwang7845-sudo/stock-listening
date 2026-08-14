@@ -12004,5 +12004,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-14",
+        "code": "7711",
+        "name": "永擎",
+        "trigger_info": "115年8月13日至115年8月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-14",
+        "code": "7795",
+        "name": "長廣",
+        "trigger_info": "115年8月13日至115年8月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-14",
+        "code": "8033",
+        "name": "雷虎",
+        "trigger_info": "115年8月11日至115年8月14日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-14",
+        "code": "911608",
+        "name": "明輝-DR",
+        "trigger_info": "115年8月4日至115年8月14日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
