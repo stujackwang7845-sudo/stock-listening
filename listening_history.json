@@ -12040,5 +12040,14 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-17",
+        "code": "3498",
+        "name": "陽程",
+        "trigger_info": "115年08月14日至115年08月17日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
