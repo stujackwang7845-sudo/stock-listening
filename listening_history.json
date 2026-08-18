@@ -12049,5 +12049,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "6225",
+        "name": "天瀚",
+        "trigger_info": "115年8月17日至115年8月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "3455",
+        "name": "由田",
+        "trigger_info": "115年08月17日至115年08月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "3490",
+        "name": "單井",
+        "trigger_info": "115年08月17日至115年08月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年08月13日至115年08月18日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "5432",
+        "name": "新門",
+        "trigger_info": "115年08月17日至115年08月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年08月17日至115年08月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-18",
+        "code": "6538",
+        "name": "倉和",
+        "trigger_info": "115年08月17日至115年08月18日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
