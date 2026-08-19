@@ -12112,5 +12112,32 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-19",
+        "code": "6834",
+        "name": "天二科技",
+        "trigger_info": "115年8月7日至115年8月19日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-19",
+        "code": "700811",
+        "name": "光頡統一5C購01",
+        "trigger_info": "115年08月18日至115年08月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-19",
+        "code": "734783",
+        "name": "均華統一5C購01",
+        "trigger_info": "115年08月18日至115年08月19日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
