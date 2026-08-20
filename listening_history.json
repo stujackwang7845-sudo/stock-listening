@@ -12139,5 +12139,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-20",
+        "code": "035348",
+        "name": "強茂統一59購02",
+        "trigger_info": "115年8月19日至115年8月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-20",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年8月17日至115年8月20日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-20",
+        "code": "2493",
+        "name": "揚博",
+        "trigger_info": "115年8月19日至115年8月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-20",
+        "code": "6834",
+        "name": "天二科技",
+        "trigger_info": "115年8月10日至115年8月20日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
