@@ -12175,5 +12175,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "052706",
+        "name": "大量兆豐59購01",
+        "trigger_info": "115年8月20日至115年8月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "6225",
+        "name": "天瀚",
+        "trigger_info": "115年8月20日至115年8月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "3490",
+        "name": "單井",
+        "trigger_info": "115年08月20日至115年08月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "3625",
+        "name": "西勝",
+        "trigger_info": "115年08月20日至115年08月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "4304",
+        "name": "勝昱",
+        "trigger_info": "115年08月20日至115年08月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-21",
+        "code": "4971",
+        "name": "IET-KY",
+        "trigger_info": "115年08月18日至115年08月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
