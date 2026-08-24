@@ -12229,5 +12229,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "052176",
+        "name": "聯電統一61購01",
+        "trigger_info": "115年8月21日至115年8月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "2615",
+        "name": "萬海",
+        "trigger_info": "115年8月21日至115年8月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "3234",
+        "name": "光環",
+        "trigger_info": "115年08月12日至115年08月24日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "706991",
+        "name": "世紀*元大5A購01",
+        "trigger_info": "115年08月21日至115年08月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "709089",
+        "name": "世紀*元大5B購01",
+        "trigger_info": "115年08月21日至115年08月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "712412",
+        "name": "世紀*群益63購01",
+        "trigger_info": "115年08月21日至115年08月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-24",
+        "code": "712413",
+        "name": "世紀*群益63購02",
+        "trigger_info": "115年08月21日至115年08月24日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
