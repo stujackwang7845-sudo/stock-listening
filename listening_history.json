@@ -12292,5 +12292,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "067782",
+        "name": "國巨中信65購03",
+        "trigger_info": "115年8月24日至115年8月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "2486",
+        "name": "一詮",
+        "trigger_info": "115年8月20日至115年8月25日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "3362",
+        "name": "先進光",
+        "trigger_info": "115年08月20日至115年08月25日連續四次<br>115年08月13日至115年08月25日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "4416",
+        "name": "三圓",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "5314",
+        "name": "世紀*",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "629010",
+        "name": "良維十",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "702281",
+        "name": "精測元大5C購01",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "704696",
+        "name": "穩懋凱基59購06",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "706038",
+        "name": "聖暉*統一61購01",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "706958",
+        "name": "世紀*群益5A購01",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-25",
+        "code": "706967",
+        "name": "世紀*凱基5A購01",
+        "trigger_info": "115年08月24日至115年08月25日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
