@@ -12391,5 +12391,86 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "068041",
+        "name": "強茂統一63購02",
+        "trigger_info": "115年8月25日至115年8月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "6225",
+        "name": "天瀚",
+        "trigger_info": "115年8月25日至115年8月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "6949",
+        "name": "沛爾生醫-創",
+        "trigger_info": "115年8月25日至115年8月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "4304",
+        "name": "勝昱",
+        "trigger_info": "115年08月25日至115年08月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "4979",
+        "name": "華星光",
+        "trigger_info": "115年08月21日至115年08月26日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "705000",
+        "name": "世紀*國泰59購01",
+        "trigger_info": "115年08月25日至115年08月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "705986",
+        "name": "世紀*國票5A購01",
+        "trigger_info": "115年08月25日至115年08月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "709520",
+        "name": "世紀*凱基5C購01",
+        "trigger_info": "115年08月25日至115年08月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-26",
+        "code": "710963",
+        "name": "世紀*元大61購01",
+        "trigger_info": "115年08月25日至115年08月26日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
