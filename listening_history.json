@@ -12472,5 +12472,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年8月26日至115年8月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "3163",
+        "name": "波若威",
+        "trigger_info": "115年08月24日至115年08月27日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "3441",
+        "name": "聯一光",
+        "trigger_info": "115年08月26日至115年08月27日連續二次<br>115年08月24日至115年08月27日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "4188",
+        "name": "安克",
+        "trigger_info": "115年08月26日至115年08月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年08月24日至115年08月27日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-27",
+        "code": "6103",
+        "name": "合邦",
+        "trigger_info": "115年08月26日至115年08月27日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
