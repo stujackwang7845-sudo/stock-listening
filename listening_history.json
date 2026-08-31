@@ -12580,5 +12580,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "066185",
+        "name": "聯發科元大64購05",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "066186",
+        "name": "聯發科元大64購06",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "3406",
+        "name": "玉晶光",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "6805",
+        "name": "富世達",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "6933",
+        "name": "AMAX-KY",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "7788",
+        "name": "松川精密",
+        "trigger_info": "115年8月28日至115年8月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年08月28日至115年08月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "3629",
+        "name": "地心引力",
+        "trigger_info": "115年08月28日至115年08月31日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年08月19日至115年08月31日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-08-31",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年08月26日至115年08月31日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
