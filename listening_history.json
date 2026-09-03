@@ -12805,5 +12805,104 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "069544",
+        "name": "立隆電元大5B購05",
+        "trigger_info": "115年9月2日至115年9月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "2426",
+        "name": "鼎元",
+        "trigger_info": "115年8月24日至115年9月3日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年8月31日至115年9月3日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "3406",
+        "name": "玉晶光",
+        "trigger_info": "115年9月2日至115年9月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "6933",
+        "name": "AMAX-KY",
+        "trigger_info": "115年9月2日至115年9月3日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "5321",
+        "name": "美而快",
+        "trigger_info": "115年08月24日至115年09月03日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年08月24日至115年09月03日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "6510",
+        "name": "精測",
+        "trigger_info": "115年09月02日至115年09月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "704022",
+        "name": "金山電統一61購01",
+        "trigger_info": "115年09月02日至115年09月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "704556",
+        "name": "力旺凱基5A購01",
+        "trigger_info": "115年09月02日至115年09月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-03",
+        "code": "704898",
+        "name": "光頡統一5C購02",
+        "trigger_info": "115年09月02日至115年09月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
