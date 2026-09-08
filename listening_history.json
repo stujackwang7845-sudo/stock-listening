@@ -13021,5 +13021,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-08",
+        "code": "7610",
+        "name": "聯友金屬-創",
+        "trigger_info": "115年9月7日至115年9月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-08",
+        "code": "4304",
+        "name": "勝昱",
+        "trigger_info": "115年09月07日至115年09月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-08",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年08月27日至115年09月08日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-08",
+        "code": "6510",
+        "name": "精測",
+        "trigger_info": "115年09月07日至115年09月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-08",
+        "code": "6872",
+        "name": "浩宇生醫",
+        "trigger_info": "115年09月07日至115年09月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
