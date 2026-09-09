@@ -13066,5 +13066,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-09",
+        "code": "4979",
+        "name": "華星光",
+        "trigger_info": "115年09月04日至115年09月09日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-09",
+        "code": "6538",
+        "name": "倉和",
+        "trigger_info": "115年09月08日至115年09月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-09",
+        "code": "710655",
+        "name": "世紀*群益62購01",
+        "trigger_info": "115年09月08日至115年09月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-09",
+        "code": "712066",
+        "name": "雙鴻元大63購06",
+        "trigger_info": "115年09月08日至115年09月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-09",
+        "code": "7772",
+        "name": "耀穎",
+        "trigger_info": "115年09月08日至115年09月09日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
