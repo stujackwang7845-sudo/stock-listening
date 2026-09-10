@@ -13111,5 +13111,23 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-10",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年8月31日至115年9月10日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-10",
+        "code": "736736",
+        "name": "力旺統一61購01",
+        "trigger_info": "115年09月09日至115年09月10日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
