@@ -13129,5 +13129,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-11",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年9月1日至115年9月11日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-11",
+        "code": "5314",
+        "name": "世紀*",
+        "trigger_info": "115年09月10日至115年09月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-11",
+        "code": "6872",
+        "name": "浩宇生醫",
+        "trigger_info": "115年09月10日至115年09月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-11",
+        "code": "706124",
+        "name": "臺慶科國票61購01",
+        "trigger_info": "115年09月10日至115年09月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-11",
+        "code": "8227",
+        "name": "巨有科技",
+        "trigger_info": "115年09月10日至115年09月11日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
