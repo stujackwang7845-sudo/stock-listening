@@ -13174,5 +13174,14 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-14",
+        "code": "2305",
+        "name": "全友",
+        "trigger_info": "115年9月11日至115年9月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
