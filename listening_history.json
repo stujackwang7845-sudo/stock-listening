@@ -13192,5 +13192,50 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-16",
+        "code": "2305",
+        "name": "全友",
+        "trigger_info": "115年9月11日至115年9月16日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-16",
+        "code": "3441",
+        "name": "聯一光",
+        "trigger_info": "115年09月11日至115年09月16日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-16",
+        "code": "3467",
+        "name": "台灣精材",
+        "trigger_info": "115年09月15日至115年09月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-16",
+        "code": "8227",
+        "name": "巨有科技",
+        "trigger_info": "115年09月15日至115年09月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-16",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年09月11日至115年09月16日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
