@@ -13291,5 +13291,77 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "2305",
+        "name": "全友",
+        "trigger_info": "115年9月18日至115年9月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年9月16日至115年9月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "6715",
+        "name": "嘉基",
+        "trigger_info": "115年9月18日至115年9月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年9月16日至115年9月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "6140",
+        "name": "訊達",
+        "trigger_info": "115年09月18日至115年09月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "6218",
+        "name": "豪勉",
+        "trigger_info": "115年09月18日至115年09月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "6683",
+        "name": "雍智科技",
+        "trigger_info": "115年09月18日至115年09月21日連續二次<br>115年09月16日至115年09月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-21",
+        "code": "6945",
+        "name": "圓祥生技",
+        "trigger_info": "115年09月18日至115年09月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
