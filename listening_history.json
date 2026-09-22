@@ -13363,5 +13363,41 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-22",
+        "code": "6168",
+        "name": "宏齊",
+        "trigger_info": "115年9月21日至115年9月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-22",
+        "code": "2221",
+        "name": "大甲",
+        "trigger_info": "115年09月21日至115年09月22日連續二次<br>115年09月17日至115年09月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-22",
+        "code": "4924",
+        "name": "欣厚-KY",
+        "trigger_info": "115年09月21日至115年09月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-22",
+        "code": "7772",
+        "name": "耀穎",
+        "trigger_info": "115年09月21日至115年09月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
