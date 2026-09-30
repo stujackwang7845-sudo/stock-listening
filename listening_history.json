@@ -13723,5 +13723,68 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "2030",
+        "name": "彰源",
+        "trigger_info": "115年9月29日至115年9月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "2305",
+        "name": "全友",
+        "trigger_info": "115年9月16日至115年9月30日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "6456",
+        "name": "GIS-KY",
+        "trigger_info": "115年9月29日至115年9月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "6861",
+        "name": "睿生光電",
+        "trigger_info": "115年9月29日至115年9月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "6538",
+        "name": "倉和",
+        "trigger_info": "115年09月16日至115年09月30日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "8084",
+        "name": "巨虹",
+        "trigger_info": "115年09月29日至115年09月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-09-30",
+        "code": "8227",
+        "name": "巨有科技",
+        "trigger_info": "115年09月29日至115年09月30日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
