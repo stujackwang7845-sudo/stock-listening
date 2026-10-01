@@ -13786,5 +13786,59 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "2305",
+        "name": "全友",
+        "trigger_info": "115年9月17日至115年10月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年9月17日至115年10月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "6957",
+        "name": "裕慶-KY",
+        "trigger_info": "115年9月30日至115年10月1日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年9月17日至115年10月1日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "4174",
+        "name": "浩鼎",
+        "trigger_info": "115年09月30日至115年10月01日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-01",
+        "code": "6538",
+        "name": "倉和",
+        "trigger_info": "115年09月17日至115年10月01日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取"
     }
 ]
