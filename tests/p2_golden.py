@@ -455,6 +455,9 @@ def run_stage(stage, label):
             print(f"子程序失敗 rc={r.returncode}，見 {log}")
             print(r.stderr[-3000:])
             sys.exit(1)
+        # 這個情境的資料副本(每份約 190MB，從 snapshot 複製來的)跑完就用不到了；失敗時保留供除錯
+        prefix = {'dashboard': 'dash'}.get(stage, stage)
+        shutil.rmtree(os.path.join(OUT, 'work', f"{prefix}_{label}_{d}"), ignore_errors=True)
 
 
 def compare(stage, a, b):
