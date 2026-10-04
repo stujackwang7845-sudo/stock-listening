@@ -12,6 +12,7 @@ P2 golden test：把 QThread 內計算搬到 scripts/core 前後，輸出必須�
   uv run python tests/p2_golden.py forecast --label before
   uv run python tests/p2_golden.py forecast --label after
   uv run python tests/p2_golden.py compare --stage forecast before after
+  (stats 同理：stats --label before / compare --stage stats before after)
 """
 import argparse
 import copy
@@ -201,9 +202,79 @@ def run_forecast_one(label, date_str):
           f"新增外部呼叫 {tape.new_calls} 次(重播時應為 0)")
 
 
+# ---------------------------------------------------------------- stats
+STATS_SCENARIOS = ["offline", "online", "force_subset"]
+
+
+def patch_stats_manager(tape):
+    """DisposalStatsManager.calculate_price_changes 是搬移範圍的邊界，錄製/重播它的回傳值。"""
+    import core.disposal_stats_manager as dsm
+    Base = dsm.DisposalStatsManager
+    if getattr(Base, '_golden_patched', False):
+        return
+    orig = Base.calculate_price_changes
+
+    def taped(self, code, start_date, end_date, days_after=5, allow_download=True, *a, **kw):
+        key = ("price_changes", str(code), str(start_date), str(end_date), days_after, allow_download,
+               repr(a), repr(sorted(kw.items())))
+        return tape.call(key, lambda: orig(self, code, start_date, end_date, days_after=days_after,
+                                           allow_download=allow_download, *a, **kw))
+    Base.calculate_price_changes = taped
+    Base._golden_patched = True
+
+
+def run_stats_one(label, scenario):
+    data_dir = fresh_data_dir(f"stats_{label}_{scenario}")
+    setup_env(data_dir)
+
+    from PyQt6.QtCore import QCoreApplication
+    app = QCoreApplication.instance() or QCoreApplication(sys.argv)
+
+    tape = Tape()
+    patch_fetcher(tape)
+    patch_stats_manager(tape)
+    import ui.disposal_stats_page as sp
+    from core.disposal_database import DisposalDatabase
+    from core.runtime import get_paths
+
+    db = DisposalDatabase(get_paths().disposal_db)
+    records = db.get_all_records()
+    db.close()
+    if scenario == "offline":
+        w = sp.StatsWorker(records, allow_download=False, api_token=None, target_year="全部")
+    elif scenario == "online":
+        w = sp.StatsWorker(records, allow_download=True, api_token=None, target_year="2026")
+    else:
+        # 「更新選取資料」：最近公告的 40 筆，強制重算
+        w = sp.StatsWorker(records[:40], allow_download=True, api_token=None, force_refresh=True)
+
+    box = {"progress": []}
+    w.progress_update.connect(lambda m: box["progress"].append(m))
+    w.data_ready.connect(lambda rows: box.setdefault("rows", rows))
+    w.run()
+
+    con = sqlite3.connect(get_paths().disposal_db)
+    db_after = con.execute("SELECT id, calculated_stats FROM disposal_records ORDER BY id").fetchall()
+    con.close()
+
+    out_dir = os.path.join(OUT, 'stats', label)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, f"{scenario}_rows.json"), 'w', encoding='utf-8') as f:
+        f.write(json.dumps(box.get("rows"), ensure_ascii=False, default=str))
+    with open(os.path.join(out_dir, f"{scenario}_progress.json"), 'w', encoding='utf-8') as f:
+        f.write(json.dumps(box["progress"], ensure_ascii=False))
+    with open(os.path.join(out_dir, f"{scenario}_db_after.json"), 'w', encoding='utf-8') as f:
+        f.write(json.dumps(db_after, ensure_ascii=False))
+    tape.save()
+    rows = box.get("rows") or []
+    filled = sum(1 for r in rows if any(v is not None for v in (r.get("changes") or {}).values()))
+    print(f"[golden] stats {label} {scenario}: 輸入 {len(w.disposal_records)} 筆、輸出 {len(rows)} 筆、"
+          f"有漲跌幅 {filled} 筆；新增外部呼叫 {tape.new_calls} 次(重播時應為 0)")
+
+
 def run_stage(stage, label):
     import subprocess
-    for d in DATES:
+    for d in (STATS_SCENARIOS if stage == 'stats' else DATES):
         r = subprocess.run([sys.executable, os.path.abspath(__file__), f"_{stage}_one",
                             "--label", label, "--date", d], cwd=ROOT,
                            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
@@ -240,7 +311,7 @@ def compare(stage, a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['forecast', 'compare', '_forecast_one'])
+    ap.add_argument('cmd', choices=['forecast', 'stats', 'compare', '_forecast_one', '_stats_one'])
     ap.add_argument('--label')
     ap.add_argument('--stage')
     ap.add_argument('--date')
@@ -252,8 +323,12 @@ def main():
     ensure_snapshot()
     if args.cmd == 'forecast':
         run_stage('forecast', args.label)
+    elif args.cmd == 'stats':
+        run_stage('stats', args.label)
     elif args.cmd == '_forecast_one':
         run_forecast_one(args.label, args.date)
+    elif args.cmd == '_stats_one':
+        run_stats_one(args.label, args.date)
 
 
 if __name__ == '__main__':
