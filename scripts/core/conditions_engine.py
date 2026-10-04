@@ -17,7 +17,8 @@ from core.predictor import DispositionPredictor
 from core.utils import DateUtils
 
 # 快取裡的 calc_results 若不是這個版本算的，一律重算(舊版結果分區是錯的)
-CONDITIONS_VERSION = 2
+# v3(2026-10-05)：行情快取修正(Shioaji 量張→股、未收盤 K 棒)與 [3] 款量比較單位修正後重算
+CONDITIONS_VERSION = 3
 
 CLAUSE_1_8 = ['一', '二', '三', '四', '五', '六', '七', '八']
 

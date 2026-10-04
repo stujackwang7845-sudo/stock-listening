@@ -429,7 +429,8 @@ class DispositionCalculator:
                  target_vol_zhang = math.ceil(target_vol_shares / 1000)
 
                  curr_vol = history_df['Volume'].iloc[-1]
-                 if curr_vol > target_vol_zhang:
+                 # [Fix 2026-10-05] curr_vol 是股數，原本拿去跟「張」比，永遠判成已達標
+                 if curr_vol > target_vol_shares:
                       vol_target_text = f" + 成交量 > {target_vol_zhang}張"
                  else:
                       vol_target_text = f" + (需成交量 > {target_vol_zhang}張)"
