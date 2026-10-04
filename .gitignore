@@ -79,3 +79,6 @@ BUGREPORT_*.md
 
 # 本機 IDE 工作區設定
 *.code-workspace
+# 處置初犯推播的訊號紀錄（個人進出場資料，repo 是公開的）
+data/disposal_golden_signals.json
+data/disposal_golden_signals.tmp
