@@ -56,6 +56,7 @@ except ImportError:
     send_telegram = None
 
 PRICE_ROOT = Path(r"E:\Vibe Coding\Stock\DB\parquet_data\price_daily_raw")
+CORP_ROOT = Path(r"E:\Vibe Coding\Stock\DB\parquet_data\corporate_actions_raw")
 SIGNAL_LOG = PROJ / "data" / "disposal_golden_signals.json"
 REPORT_HTML = PROJ / "reports" / "latest_disposal_golden_push.html"
 MIN_LOTS = 100
@@ -144,17 +145,19 @@ def load_company():
 
 
 def load_today_volume():
-    """官方收盤行情：{code: (日期, 成交股數)}"""
+    """官方收盤行情：{code: (日期, 成交股數, 收盤價)}"""
     vol = {}
     for r in fetch_json("twse_quote"):
         try:
-            vol[str(r["Code"]).strip()] = (roc_to_date(r["Date"]), float(str(r["TradeVolume"]).replace(",", "")))
+            vol[str(r["Code"]).strip()] = (roc_to_date(r["Date"]), float(str(r["TradeVolume"]).replace(",", "")),
+                                           float(str(r["ClosingPrice"]).replace(",", "")))
         except Exception:
             pass
     for r in fetch_json("tpex_quote"):
         try:
             vol[str(r["SecuritiesCompanyCode"]).strip()] = (roc_to_date(r["Date"]),
-                                                           float(str(r["TradingShares"]).replace(",", "")))
+                                                           float(str(r["TradingShares"]).replace(",", "")),
+                                                           float(str(r["Close"]).replace(",", "")))
         except Exception:
             pass
     return vol
@@ -169,8 +172,8 @@ def prior_trading_days(start, n=5):
     return sorted(days)
 
 
-def load_parquet_volume(codes, days):
-    """DB 專案行情 parquet：{(code, date): 成交股數}"""
+def load_parquet_daily(codes, days):
+    """DB 專案行情 parquet：{(code, date): (成交股數, 收盤價)}"""
     out = {}
     months = {(d.year, d.month) for d in days}
     for mk in ["TWSE", "TPEX"]:
@@ -178,11 +181,11 @@ def load_parquet_volume(codes, days):
             f = PRICE_ROOT / f"market={mk}" / f"year={y}" / f"month={m}" / "data.parquet"
             if not f.exists():
                 continue
-            t = pq.ParquetFile(f).read(columns=["date", "symbol", "volume"]).to_pandas()
+            t = pq.ParquetFile(f).read(columns=["date", "symbol", "volume", "close"]).to_pandas()
             t["symbol"] = t["symbol"].astype(str).str.strip()
             t = t[t["symbol"].isin(codes)]
             for r in t.itertuples():
-                out[(r.symbol, r.date if isinstance(r.date, date) else r.date.date())] = float(r.volume)
+                out[(r.symbol, r.date if isinstance(r.date, date) else r.date.date())] = (float(r.volume), float(r.close))
     return out
 
 
@@ -191,7 +194,7 @@ def golden_check(d, company, pq_vol, today_vol):
     days = prior_trading_days(d["start"], 5)
     vols = []
     for day in days:
-        v = pq_vol.get((d["code"], day))
+        v = pq_vol.get((d["code"], day), (None,))[0]
         if v is None:
             tv = today_vol.get(d["code"])
             if tv and tv[0] == day:
@@ -219,25 +222,117 @@ def fmt_filter(g):
     return f"生技：{bio}｜KY：{ky}｜前5日均量：{vol}{note}"
 
 
-def fmt_stock(d, g, action):
+def load_corp_actions(codes, since, until):
+    """官方除權息事件(DB corporate_actions_raw)：{code: [(日期, 除權息前收盤, 參考價)]}"""
+    out = {}
+    for mk in ["TWSE", "TPEX"]:
+        for y in range(since.year, until.year + 1):
+            f = CORP_ROOT / f"market={mk}" / f"year={y}" / "data.parquet"
+            if not f.exists():
+                continue
+            t = pq.ParquetFile(f).read(columns=["date", "symbol", "before_price", "after_price"]).to_pandas()
+            t["symbol"] = t["symbol"].astype(str).str.strip()
+            t = t[t["symbol"].isin(codes)]
+            for r in t.itertuples():
+                dd = r.date if isinstance(r.date, date) else r.date.date()
+                if since < dd <= until and r.before_price and r.after_price:
+                    out.setdefault(r.symbol, []).append((dd, float(r.before_price), float(r.after_price)))
+    return out
+
+
+def calc_return(d, as_of, quotes, daily, corp):
+    """
+    處置首日收盤進場到最新收盤的還原報酬。
+    還原方式：原始價漲跌 × 持有期間官方除權息調整(除權息前收盤 ÷ 參考價)。
+    不直接用 DB 的 adj_close：它的還原因子曾誤判(6225 天瀚 2026-08-18)，且比原始行情晚一天入庫。
+    除權息當天收盤若超出參考價 ±10%(漲跌停不可能)，標記可疑並同時給原始價報酬。
+    """
+    code = d["code"]
+    q = quotes.get(code)
+
+    def close_on(day):
+        if q and q[0] == day:
+            return q[2]
+        v = daily.get((code, day))
+        return v[1] if v else None
+
+    entry = close_on(d["start"])
+    if entry is None:
+        return None
+    if q and q[0] == as_of:
+        cur, cur_date = q[2], as_of
+    else:
+        known = sorted(day for (c, day) in daily if c == code and d["start"] <= day <= as_of)
+        if not known:
+            return None
+        cur_date = known[-1]
+        cur = daily[(code, cur_date)][1]
+    raw = cur / entry - 1
+    factor, n_events, suspicious = 1.0, 0, False
+    for ev_date, before, after in corp.get(code, []):
+        if d["start"] < ev_date <= cur_date:
+            factor *= before / after
+            n_events += 1
+            c = close_on(ev_date)
+            if c is not None and not (after * 0.89 <= c <= after * 1.11):
+                suspicious = True
+    return dict(entry=entry, cur=cur, cur_date=cur_date, raw=raw * 100,
+                adj=((1 + raw) * factor - 1) * 100, n_events=n_events, suspicious=suspicious)
+
+
+def fmt_return(d, rr):
+    if rr is None:
+        return "　報酬：查無行情資料"
+    s = f"　進場 {rr['entry']:g}（{d['start']:%m/%d} 收盤）→ {rr['cur']:g}（{rr['cur_date']:%m/%d}）"
+    if rr["suspicious"]:
+        return (s + f"｜<b>原始價報酬 {rr['raw']:+.2f}%</b>\n"
+                f"　⚠️ 期間除權息資料可疑（換算還原為 {rr['adj']:+.2f}%，不採用），請自行確認")
+    s += f"｜<b>還原報酬 {rr['adj']:+.2f}%</b>"
+    if rr["n_events"]:
+        s += f"（期間有除權息，原始價 {rr['raw']:+.2f}%）"
+    return s
+
+
+def fmt_stock(d, g, action, rr=None, show_filter=True, show_return=False):
     head = "✅ 符合黃金濾網" if g["golden"] else "❌ 不符合黃金濾網"
     n_days = sum(1 for i in range((d["end"] - d["start"]).days + 1)
                  if DateUtils.is_trading_day(datetime.combine(d["start"] + timedelta(days=i), datetime.min.time())))
-    return (f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>（{d['market']}）{head}\n"
-            f"　處置 {d['start']:%m/%d}～{d['end']:%m/%d}（{n_days} 個交易日）→ {action}\n"
-            f"　{html.escape(fmt_filter(g))}")
+    lines = [f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>（{d['market']}）{head}",
+             f"　處置 {d['start']:%m/%d}～{d['end']:%m/%d}（{n_days} 個交易日）→ {action}"]
+    if show_return:
+        lines.append(fmt_return(d, rr))
+    if show_filter:
+        lines.append(f"　{html.escape(fmt_filter(g))}")
+    return "\n".join(lines)
 
 
-def build_message(today, next_td, entries, exits, n_repeat):
+def avg_line(label, items):
+    vals = [rr["adj"] for _, g, rr in items if rr is not None and not rr["suspicious"]]
+    gold = [rr["adj"] for _, g, rr in items if rr is not None and not rr["suspicious"] and g["golden"]]
+    if not vals:
+        return ""
+    s = f"　{label} {len(vals)} 檔平均還原報酬 {sum(vals)/len(vals):+.2f}%"
+    if gold:
+        s += f"；其中符合濾網 {len(gold)} 檔平均 {sum(gold)/len(gold):+.2f}%"
+    return s
+
+
+def build_message(today, next_td, entries, exits, holds, n_repeat):
     lines = [f"🔔 <b>處置新制初犯策略｜{today:%Y/%m/%d} 盤後</b>", ""]
     if entries:
         lines.append(f"🟢 <b>明日 {next_td:%m/%d} 處置首日 → 收盤買進</b>")
         for d, g in sorted(entries, key=lambda x: (not x[1]["golden"], x[0]["code"])):
             lines += [fmt_stock(d, g, f"{next_td:%m/%d} 收盤買進，{d['end']:%m/%d} 收盤賣出"), ""]
     if exits:
-        lines.append(f"🔴 <b>明日 {next_td:%m/%d} 處置最後一天 → 收盤賣出</b>")
-        for d, g in sorted(exits, key=lambda x: (not x[1]["golden"], x[0]["code"])):
-            lines += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出"), ""]
+        lines.append(f"🔴 <b>明日 {next_td:%m/%d} 處置最後一天 → 收盤賣出（目前報酬）</b>")
+        for d, g, rr in sorted(exits, key=lambda x: (not x[1]["golden"], x[0]["code"])):
+            lines += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
+        lines += [avg_line("預計出場", exits), ""]
+    if holds:
+        lines.append("📊 <b>持有中（已照策略進場）</b>")
+        for d, g, rr in sorted(holds, key=lambda x: (not x[1]["golden"], x[0]["end"], x[0]["code"])):
+            lines += [fmt_stock(d, g, f"持有至 {d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
+        lines += [avg_line("持有中", holds), ""]
     if n_repeat:
         lines.append(f"（明日另有 {n_repeat} 檔累犯開始處置，本策略不做）")
     lines += [
@@ -245,12 +340,13 @@ def build_message(today, next_td, entries, exits, n_repeat):
         "<blockquote expandable>📘 規則與可靠度\n"
         "• 只做初犯；處置第一天收盤買、最後一天收盤賣\n"
         "• 黃金濾網：非生技、非 KY、前 5 日均量 ≥ 100 張\n"
+        "• 報酬為還原報酬（含持有期間除權息調整），未扣手續費與證交稅（來回約 0.38%）\n"
         "• 新制初犯回測（8/10～10/02，57 筆）：勝率 77%、平均淨 +5.9%、最大虧損 -16.7%\n"
         "• 濾網是看著同一批虧損股挑出來的，前後半段驗證方向不一致；"
         "符合濾網不代表比較安全，部位請以單筆 -16% 估風險\n"
         "• 處置期間每 2 分鐘撮合，大額委託需預收款券</blockquote>",
     ]
-    return "\n".join(lines).strip()
+    return "\n".join(x for x in lines if x is not None).strip()
 
 
 def load_log():
@@ -282,29 +378,45 @@ def main():
     print(f"[{datetime.now()}] 今天 {today}，下一個交易日 {next_td}")
 
     disposals = load_disposals()
-    entries_raw = [d for d in disposals if d["start"] == next_td and d["offense"] == "初犯"]
-    exits_raw = [d for d in disposals if d["end"] == next_td and d["offense"] == "初犯" and d["start"] <= today]
+    first = [d for d in disposals if d["offense"] == "初犯"]
+    entries_raw = [d for d in first if d["start"] == next_td]
+    exits_raw = [d for d in first if d["end"] == next_td and d["start"] <= today]
+    holds_raw = [d for d in first if d["start"] <= today and d["end"] > next_td]
     n_repeat = sum(1 for d in disposals if d["start"] == next_td and d["offense"] == "累犯")
-    print(f"  官方處置公告(個股) {len(disposals)} 筆；明日進場初犯 {len(entries_raw)}、明日出場初犯 {len(exits_raw)}、明日累犯 {n_repeat}")
+    print(f"  官方處置公告(個股) {len(disposals)} 筆；明日進場初犯 {len(entries_raw)}、明日出場初犯 {len(exits_raw)}、"
+          f"持有中 {len(holds_raw)}、明日累犯 {n_repeat}")
 
     log = load_log()
+    meta = log.setdefault("_meta", {})
     key = lambda d: f"{d['code']}_{d['start']:%Y%m%d}"
     if not args.dry_run and not args.force_send:
         entries_raw = [d for d in entries_raw if not log.get(key(d), {}).get("entry_pushed_at")]
         exits_raw = [d for d in exits_raw if not log.get(key(d), {}).get("exit_pushed_at")]
-    if not entries_raw and not exits_raw and not args.force_send and not args.dry_run:
-        print("  沒有新的進出場訊號（或已推播過），靜默結束。")
-        return
+        new_signal = bool(entries_raw or exits_raw)
+        daily_update = bool(holds_raw) and meta.get("last_push_date") != str(today)
+        if not new_signal and not daily_update:
+            print("  沒有新的進出場訊號，今天的持股報酬也已推播過，靜默結束。")
+            return
 
     company = load_company()
-    today_vol = load_today_volume() if entries_raw else {}
-    targets = entries_raw + exits_raw
-    all_days = {day for d in targets for day in prior_trading_days(d["start"], 5)}
-    pq_vol = load_parquet_volume({d["code"] for d in targets}, all_days) if targets else {}
-    entries = [(d, golden_check(d, company, pq_vol, today_vol)) for d in entries_raw]
-    exits = [(d, golden_check(d, company, pq_vol, today_vol)) for d in exits_raw]
+    quotes = load_today_volume()
+    targets = entries_raw + exits_raw + holds_raw
+    codes = {d["code"] for d in targets}
+    days = {day for d in entries_raw + exits_raw + holds_raw for day in prior_trading_days(d["start"], 5)}
+    for d in exits_raw + holds_raw:
+        cur = d["start"]
+        while cur <= today:
+            days.add(cur)
+            cur += timedelta(days=1)
+    daily = load_parquet_daily(codes, days) if targets else {}
+    since = min((d["start"] for d in exits_raw + holds_raw), default=today)
+    corp = load_corp_actions(codes, since, today) if exits_raw or holds_raw else {}
 
-    msg = build_message(today, next_td, entries, exits, n_repeat)
+    entries = [(d, golden_check(d, company, daily, quotes)) for d in entries_raw]
+    exits = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in exits_raw]
+    holds = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in holds_raw]
+
+    msg = build_message(today, next_td, entries, exits, holds, n_repeat)
     print("\n" + msg + "\n")
     if args.dry_run:
         print("[dry-run] 未推播、未寫紀錄。")
@@ -320,15 +432,17 @@ def main():
     print(f"✅ 已推播，message_id={res.get('message_id')}")
 
     now = datetime.now().isoformat(timespec="seconds")
+    meta["last_push_date"] = str(today)
     for d, g in entries:
         rec = log.setdefault(key(d), {})
         rec.update(code=d["code"], name=d["name"], market=d["market"], announce=str(d["announce"]),
                    start=str(d["start"]), end=str(d["end"]), golden=g["golden"], is_bio=g["is_bio"],
                    is_ky=g["is_ky"], vol5_lots=g["vol5_lots"], vol_days=g["vol_days"], entry_pushed_at=now)
-    for d, g in exits:
+    for d, g, rr in exits:
         rec = log.setdefault(key(d), {})
         rec.update(code=d["code"], name=d["name"], market=d["market"], start=str(d["start"]),
-                   end=str(d["end"]), golden=rec.get("golden", g["golden"]), exit_pushed_at=now)
+                   end=str(d["end"]), golden=rec.get("golden", g["golden"]), exit_pushed_at=now,
+                   ret_before_exit=None if rr is None else round(rr["adj"], 2))
     save_log(log)
 
 
