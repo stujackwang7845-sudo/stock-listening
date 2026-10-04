@@ -46,6 +46,7 @@ from core.utils import DateUtils
 from core import cb_data, margin_futures_db, disposal_stats_analytics
 from core.runtime import get_paths
 from core.history_manager import HistoryManager
+from core import official_quotes  # noqa: F401  P3：雲端行情模組
 out = {
     "CacheManager": CacheManager().db_path,
     "MarketDataCache": MarketDataCache().db_path,
