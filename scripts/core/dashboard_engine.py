@@ -1710,3 +1710,394 @@ def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
         })
 
     return {"headers": headers, "date_cols": date_cols, "rows": rows}
+
+
+def compute_info_boxes(agg_data, display_date, history_manager, mf_db, cb_db):
+    """
+    原 Dashboard.update_info_boxes 的計算部分(2026-10-04 P2 搬出，不改邏輯)：官方聽牌清單
+    (listening_history 當天紀錄)，以及觀察區(聽牌/一進聽)、盤後處置公告、處置中、處置出關區
+    四個資訊框的內容 [(標題, HTML 字串)]。
+    """
+    # Generate Local Calendar corresponding to the DISPLAY date
+    local_calendar = DateUtils.get_market_calendar(display_date, past_days=8, future_days=9)
+    anchor_year = local_calendar["anchor_obj"].year
+    anchor_month = local_calendar["anchor_obj"].month
+    today_dt = dt.datetime(anchor_year, anchor_month, local_calendar["anchor_obj"].day)
+    
+    # [Crawler Integration] Fetch Official Attention List
+    # MODIFIED: Only use History Manager (GitHub synced data)
+    # Removed AttentionScraper fallback - users control updates via Quick Update button
+    try:
+         t_date = display_date
+         
+         # Only use History Manager (no fallback to live scraping)
+         history_records = []
+         if history_manager:
+             history_records = history_manager.get_listening_data(t_date)
+             
+         if history_records:
+             # Map History Records to Scraper Format
+             att_list = []
+             for r in history_records:
+                 code = str(r["code"])
+                 
+                 # FILTER: Skip Warrants (5~6 digits) and invalid float codes (e.g. 3354.0)
+                 if len(code) > 4 or "." in code:
+                     continue
+                 
+                 reason_txt = r.get("reason", "")
+                 if not reason_txt and r.get("trigger_info"):
+                     # Try to parse trigger info for reason
+                     reason_txt = "詳細請見聽牌紀錄" 
+                     
+                 # Source detection - Read from history record
+                 source = r.get("source")
+                 
+                 # [Fix] 從 agg_data 取得正確的 source（已在 Worker 中確認）
+                 if agg_data and code in agg_data and agg_data[code].get("source"):
+                     source = agg_data[code]["source"]
+                     
+                 # 防禦性補正：若 source 依然為空或 None，動態識別以防 UI 遺漏
+                 if not source or source == "None":
+                     # [效能優化] 完全移除同步網路請求 fallback
+                     # 原本會在 UI 主執行緒逐筆呼叫 StockFetcher().check_market_type()
+                     # 每筆 ~500ms，20 筆就要 10 秒以上，導致聽牌更新極慢
+                     # 改為信任 history record 或 agg_data 的 source 值，若無則預設為上市
+                     source = "上市"
+
+                 att_list.append({
+                     "code": code,
+                     "name": r["name"],
+                     "reason": reason_txt,
+                     "source": source
+                 })
+             today_attention_list = att_list
+         else:
+             # No history data - display empty
+             today_attention_list = []
+
+         today_attention_map = {item['code']: item['reason'] for item in today_attention_list}
+         today_attention_names = {item['code']: item['name'] for item in today_attention_list}
+    except Exception as e:
+         print(f"Attention Data Load Error: {e}")
+         today_attention_list = []
+         today_attention_map = {}
+         today_attention_names = {}
+         
+    # Lists
+    listening_twse = []
+    listening_tpex = []
+    one_step_twse = []
+    one_step_tpex = []
+    notice_twse = []
+    notice_tpex = []
+    active_data = {0: {"twse":[], "tpex":[]}, 1: {"twse":[], "tpex":[]}, 2: {"twse":[], "tpex":[]}}
+    exit_data = {0: {"twse":[], "tpex":[]}, 1: {"twse":[], "tpex":[]}, 2: {"twse":[], "tpex":[]}, 3: {"twse":[], "tpex":[]}, 4: {"twse":[], "tpex":[]}}
+    
+    # 歷史日期 (擴展到 30 天以支持 Rule 4: 30日內12次)
+    pred_history_dates = []
+    curr = display_date
+    count = 0
+    while count < 30:
+         if DateUtils.is_trading_day(curr):
+              pred_history_dates.insert(0, curr.strftime("%m/%d"))
+              count += 1
+         curr = curr - dt.timedelta(days=1)
+         
+    sorted_codes = sorted(list(agg_data.keys()), key=str)
+
+    # [Fix 2026-08-20] 一進聽(觀察區)計算需要知道「過去30個交易日內」是否有處置紀錄，
+    # 才能讓下面 predictor.py 的 cutoff_idx 邏輯正確歸零重算(進入處置後，累積次數重新
+    # 起算)——沒有這段的話，處置前的舊注意次數會一直被算進去，導致跟總覽頁
+    # (forecast_page.py，那邊有做這個處置紀錄查詢)算出不同的「一進聽」名單。
+    disp_map = {}
+    try:
+        from core.disposal_database import DisposalDatabase
+        _disp_db = DisposalDatabase()
+        for r in _disp_db.get_all_records():
+            disp_map.setdefault(str(r['code']), []).append(r)
+        _disp_db.close()
+    except Exception as e:
+        print(f"[Observer Box] disposal_records 讀取失敗: {e}")
+
+    for code in sorted_codes:
+        data = agg_data[code]
+        name = data["name"]
+        
+        if "購" in name or "售" in name: continue
+        if "DR" in name: continue
+        
+        # [Fix] Filter out warrants (5~6 digits) and invalid float codes (e.g. 3354.0)
+        if "." in str(code): continue
+        if len(str(code)) > 4: continue
+        
+        period = data.get("period", "")
+        disp_start_dt = DateUtils.parse_period_start(period)
+        disp_end_dt = DateUtils.parse_period_end(period)
+        
+        # 取得未來三天
+        future_dts = []
+        for d_str in local_calendar["future"]:
+             try:
+                 dm = d_str.split("/")
+                 m, d = int(dm[0]), int(dm[1])
+                 y = anchor_year
+                 if anchor_month == 12 and m == 1: y += 1
+                 elif anchor_month == 1 and m == 12: y -= 1
+                 future_dts.append(dt.datetime(y, m, d))
+             except:
+                 future_dts.append(None)
+        
+        # --- Observer/One Step Logic ---
+        # [Fix 2026-10-04] 改用 core/conditions_engine 的 build_history_items，跟總覽
+        # (ForecastWorker)同一份逐日資料組裝。原本外層有 `not is_disposed and not disp_start_dt`，
+        # 把處置中(或 period 欄位殘留舊處置期間)的股票整個跳過，但使用者 2026-09-29 已確認：
+        # 處置期間的注意次數照樣累計，還差2次一樣算一進聽(總覽一直是這樣做)，
+        # 導致 10/02 總覽 8 檔、儀表板 6 檔(少了處置中的 2030、8084)。
+        from core.conditions_engine import build_history_items, disposal_periods_from_records
+        _anchor_dt = dt.datetime(display_date.year, display_date.month, display_date.day)
+        hist_items = build_history_items(
+            data.get("clauses", {}),
+            disposal_periods_from_records(disp_map.get(str(code), []), _anchor_dt.date()),
+            pred_history_dates, _anchor_dt,
+        )
+        warning_msg, prob, min_needed = DispositionPredictor.analyze(hist_items, future_days=5)
+
+        # Check One Step Away (min_needed == 2)
+        # Note: min_needed == 1 means already "listening" (handled by history_manager)
+        # min_needed == 2 means "one step away from listening"
+        if min_needed == 2:
+             suffix = ""
+             if data.get("has_futures") or mf_db.has_futures(code): suffix += "(期)"
+             if cb_db.has_cb_now(code): suffix += "(CB)"
+             link = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+             src_display = data["source"]
+             if src_display in ("TWSE", "tse"): src_display = "上市"
+             elif src_display in ("TPEX", "otc", "OTC", "TPEX ", " TPEX"): src_display = "上櫃"
+             if src_display == "上市": one_step_twse.append(link)
+             else: one_step_tpex.append(link)
+        
+        # --- Notice Box Logic (Future Disposal) ---
+        # 盤後處置公告 = 當天公告、但尚未生效的處置
+        # Check 1: Existing Logic (is_disposed w/ Future Start)
+        is_future_start = False
+        if data.get("is_disposed", False) and disp_start_dt:
+             display_date = display_date
+             # [Fix] 只要生效日 > 當前顯示日期即視為「盤後公告」
+             # 不再嚴格要求 == 下一個交易日，避免過年假期跨日造成失效
+             import datetime as _dt
+             display_dt_only = _dt.date(display_date.year, display_date.month, display_date.day)
+             if disp_start_dt.date() > display_dt_only:
+                 is_future_start = True
+        
+        # Check 2: Concurrent Future Logic (New field)
+        future_period = data.get("future_period", "")
+        if future_period:
+            f_start = DateUtils.parse_period_start(future_period)
+            display_date = display_date
+            # [Fix] 只要生效日 > 當前顯示日期即視為「盤後公告」
+            # 不再嚴格要求 == 下一個交易日，避免過年假期跨日造成失效
+            import datetime as _dt
+            display_dt_only = _dt.date(display_date.year, display_date.month, display_date.day)
+            if f_start and f_start.date() > display_dt_only:
+                is_future_start = True
+
+        if is_future_start:
+             suffix = ""
+             if data.get("has_futures") or (mf_db and mf_db.has_futures(code)): suffix += "(期)"
+             if cb_db and cb_db.has_cb_now(code): suffix += "(CB)"
+             item_str = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+             src_notice = data.get("source", "")
+             if src_notice in ("TWSE", "tse", "上市"): src_notice = "上市"
+             elif src_notice in ("TPEX", "otc", "OTC", "上櫃", " TPEX"): src_notice = "上櫃"
+             if src_notice == "上市": notice_twse.append(item_str)
+             else: notice_tpex.append(item_str)
+
+        # --- Active Box Logic (處置中) ---
+        # 新邏輯：只看「明天」(future_dts[0]) 是這檔股票處置的「第幾天」
+        # 若是第 2 天 -> 放進 active_data[0]
+        # 若是第 3 天 -> 放進 active_data[1]
+        # 若是第 4 天 -> 放進 active_data[2]
+        # [Fix] 如果有新的盤後處置公告 (is_future_start)，代表舊的處置已被覆蓋或延後，不應顯示在原本的處置進度與出關區
+        if data.get("is_disposed", False) and not is_future_start and disp_start_dt and disp_end_dt and len(future_dts) > 0:
+            tmr_dt = future_dts[0]
+            if tmr_dt and disp_start_dt.date() <= tmr_dt.date() <= disp_end_dt.date():
+                # 計算明天是處置的第幾個「交易日」
+                disp_day_count = 0
+                curr_count_dt = disp_start_dt
+                while curr_count_dt.date() <= tmr_dt.date():
+                    if DateUtils.is_trading_day(curr_count_dt):
+                        disp_day_count += 1
+                    curr_count_dt += dt.timedelta(days=1)
+                    
+                # 判斷是否為第2, 3, 4天
+                target_idx = -1
+                if disp_day_count == 2: target_idx = 0
+                elif disp_day_count == 3: target_idx = 1
+                elif disp_day_count == 4: target_idx = 2
+                
+                if target_idx != -1:
+                    suffix = ""
+                    if data.get("has_futures") or mf_db.has_futures(code): suffix += "(期)"
+                    if cb_db.has_cb_now(code): suffix += "(CB)"
+                    item_str = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+                    
+                    src_active = data["source"]
+                    if src_active in ("TWSE", "tse"): src_active = "上市"
+                    elif src_active in ("TPEX", "otc", "OTC"): src_active = "上櫃"
+                    
+                    if src_active == "上市":
+                        active_data[target_idx]["twse"].append(item_str)
+                    else:
+                        active_data[target_idx]["tpex"].append(item_str)
+
+        # --- Exit Box Logic ---
+        if data.get("is_disposed", False) and not is_future_start and disp_end_dt:
+             # Future Dates from Local Calendar
+             future_dts = []
+             for d_str in local_calendar["future"]:
+                  try:
+                      dm = d_str.split("/")
+                      m, d = int(dm[0]), int(dm[1])
+                      y = anchor_year
+                      if anchor_month == 12 and m == 1: y += 1
+                      elif anchor_month == 1 and m == 12: y -= 1
+                      future_dts.append(dt.datetime(y, m, d))
+                  except:
+                      future_dts.append(None)
+             
+             target_idx = -1
+             if disp_end_dt.date() == today_dt.date(): target_idx = 0
+             elif len(future_dts)>0 and future_dts[0] and disp_end_dt.date() == future_dts[0].date(): target_idx = 1
+             elif len(future_dts)>1 and future_dts[1] and disp_end_dt.date() == future_dts[1].date(): target_idx = 2
+             elif len(future_dts)>2 and future_dts[2] and disp_end_dt.date() == future_dts[2].date(): target_idx = 3
+             elif len(future_dts)>3 and future_dts[3] and disp_end_dt.date() == future_dts[3].date(): target_idx = 4  # Added for 5-day advance notice
+             
+             # [DEBUG] Print exit logic
+             if target_idx != -1:
+                 print(f"[Exit] {code} {name} - End: {disp_end_dt.date()} | Today: {today_dt.date()} | target_idx: {target_idx}")
+             
+             if target_idx != -1 and target_idx in exit_data:
+                 suffix = ""
+                 if data.get("has_futures"): suffix += "(期)"
+                 if cb_db.has_cb_now(code): suffix += "(CB)"
+                 item_str = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+                 if data["source"] == "上市": exit_data[target_idx]["twse"].append(item_str)
+                 else: exit_data[target_idx]["tpex"].append(item_str)
+        elif data.get("is_disposed", False):
+            # [DEBUG] No end date
+            print(f"[Exit Debug] {code} {name} - is_disposed=True but disp_end_dt=None")
+
+    # Fill Official Listening (From Scraper)
+    listening_codes_set = set()
+    for item in today_attention_list:
+        c = item['code']
+        n = item['name']
+        src = item.get('source', '')
+        # 正規化 source 字串
+        if src in ("TWSE", "tse"): src = "上市"
+        elif src in ("TPEX", "otc", "OTC"): src = "上櫃"
+        has_futures_flag = (c in agg_data and agg_data[c].get('has_futures')) or mf_db.has_futures(c)
+
+        suffix = ""
+        if has_futures_flag: suffix += "(期)"
+        if cb_db.has_cb_now(c): suffix += "(CB)"
+        display_name = f"{n}{suffix}" if suffix else n
+        link = f"<a href='{c}' style='color: #E0E0E0; text-decoration: none;'>{c}&nbsp;{display_name}</a>"
+
+        if src == "上市": listening_twse.append(link)
+        elif src == "上櫃": listening_tpex.append(link)
+        # else: Source is "上市(條款)" or "上櫃(條款)" -> Skip Blue Box (Table Only)
+        listening_codes_set.add(c)
+    
+    # [Fix 2026-09-03 撤回] 這裡之前一度拿掉了「聽牌股不重複列入一進聽」的過濾器、
+    # 並把框名改成「今日注意(官方)」，理由是誤判 today_attention_list 只是「單日
+    # 觸發」而非真聽牌。後來查明：today_attention_list 的資料來源(TWSE
+    # notetrans + TPEx bulletin/warning)本來就是官方「累積注意次數已達/接近處置
+    # 標準」的正式聽牌清單，用詞本身沒錯。真正的根因是 attention_clauses 這張表
+    # 從 2026-08-20 之後到現在完全沒有新資料(下載這張表的 ClauseDownloadWorker
+    # 只能手動按鈕觸發，沒有自動更新)，導致本地累積次數嚴重低估，算出來的
+    # min_needed 才會把「其實只差最後一次(=1)」的股票誤判成「還差兩次(=2)」，
+    # 才會出現同一檔股票「看起來」同時聽牌又一進聽的假象。已回補
+    # attention_clauses 缺的資料、並把 ClauseDownloadWorker 併入開軟體自動更新
+    # 流程(見 auto_refresh_clauses_on_startup)。這裡改回聽牌與一進聽互斥、
+    # 框名改回「聽牌(官方)」，資料正確後兩者本來就不該重疊。
+    one_step_twse = [link for link in one_step_twse if not any(f"href='{c}'" in link for c in listening_codes_set)]
+    one_step_tpex = [link for link in one_step_tpex if not any(f"href='{c}'" in link for c in listening_codes_set)]
+
+    # Update UI Boxes
+    if not DateUtils.is_trading_day(display_date):
+         # Clear logic on non-trading days
+         obs_list = [("聽牌 (官方)", ""), ("     上市", ""), ("     上櫃", ""), ("一進聽 (預測)", ""), ("     上市", ""), ("     上櫃", "")]
+         notice_list = [("上市", ""), ("     ", ""), ("上櫃", ""), ("     ", "")]
+         # Exit list empty (handled below)
+         exit_data = {0: {"twse":[], "tpex":[]}, 1: {"twse":[], "tpex":[]}, 2: {"twse":[], "tpex":[]}, 3: {"twse":[], "tpex":[]}, 4: {"twse":[], "tpex":[]}}  # Added index 4 for 5-day notice
+         active_list = []
+    else:
+         obs_list = [
+            ("聽牌 (官方)", ""),
+            ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(listening_twse) if listening_twse else "無"),
+            ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(listening_tpex) if listening_tpex else "無"),
+            ("一進聽 (預測)", ""),
+            ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(one_step_twse) if one_step_twse else "無"),
+            ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(one_step_tpex) if one_step_tpex else "無")
+         ]
+         notice_list = [
+            ("上市", ""),
+            ("     ", "&nbsp;&nbsp;&nbsp;&nbsp;".join(notice_twse) if notice_twse else "無"),
+            ("上櫃", ""),
+            ("     ", "&nbsp;&nbsp;&nbsp;&nbsp;".join(notice_tpex) if notice_tpex else "無")
+         ]
+
+    
+    # Active Box Labels (處置中)
+    def safe_date(idx):
+         if idx < len(local_calendar["future"]): return local_calendar["future"][idx]
+         return "??"
+         
+    active_lbl_1 = f"明天({safe_date(0)}) 處置第二天"
+    active_lbl_2 = f"明天({safe_date(0)}) 處置第三天"
+    active_lbl_3 = f"明天({safe_date(0)}) 處置第四天"
+    
+    active_list = [
+        (active_lbl_1, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[0]["twse"]) if active_data[0]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[0]["tpex"]) if active_data[0]["tpex"] else "無"),
+        (active_lbl_2, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[1]["twse"]) if active_data[1]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[1]["tpex"]) if active_data[1]["tpex"] else "無"),
+        (active_lbl_3, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[2]["twse"]) if active_data[2]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(active_data[2]["tpex"]) if active_data[2]["tpex"] else "無")
+    ]
+    
+    
+    # Exit Box Labels
+    lbl_1 = f"明天({safe_date(0)})出關"
+    lbl_2 = f"後天({safe_date(1)})出關"
+    lbl_3 = f"大後天({safe_date(2)})出關"
+    lbl_4 = f"前四天({safe_date(4)})出關"  # Changed from 3 to 4 - show 1 day earlier
+    
+    exit_list = [
+        (lbl_1, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[0]["twse"]) if exit_data[0]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[0]["tpex"]) if exit_data[0]["tpex"] else "無"),
+        (lbl_2, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[1]["twse"]) if exit_data[1]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[1]["tpex"]) if exit_data[1]["tpex"] else "無"),
+        (lbl_3, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[2]["twse"]) if exit_data[2]["twse"] else "無"),
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[2]["tpex"]) if exit_data[2]["tpex"] else "無"),
+        (lbl_4, ""),
+        ("     上市", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[4]["twse"]) if exit_data[4]["twse"] else "無"),  # Changed from 3 to 4
+        ("     上櫃", "&nbsp;&nbsp;&nbsp;&nbsp;".join(exit_data[4]["tpex"]) if exit_data[4]["tpex"] else "無")  # Changed from 3 to 4
+    ]
+    
+
+    return {
+        "today_attention_list": today_attention_list,
+        "today_attention_map": today_attention_map,
+        "today_attention_names": today_attention_names,
+        "obs_list": obs_list, "notice_list": notice_list,
+        "active_list": active_list, "exit_list": exit_list,
+    }
