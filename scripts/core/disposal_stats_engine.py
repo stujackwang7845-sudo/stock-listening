@@ -426,3 +426,251 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
     
     print(f"DEBUG: StatsWorker finished. Sending {len(processed_data)} records via data_ready signal")
     return processed_data
+
+
+def normalize_period_format(period_raw):
+    """
+    標準化處置期間格式，避免格式不一致導致重複資料
+
+    範例：
+    - "114/8/29~114/9/11" → "114/08/29~114/09/11"
+    - "114/08/29~114/09/11" → "114/08/29~114/09/11" (不變)
+    - "1140829~1140911" → "114/08/29~114/09/11"
+      [Fix 2026-09-01] 舊版 TPEx OpenAPI 回傳的 period_raw 是這種不帶斜線的
+      緊湊格式(7碼數字：民國年3碼+月2碼+日2碼)，而新版 Web Portal 端點回傳
+      帶斜線的格式。同一次處置事件如果先後被兩種來源各存過一次，兩種格式
+      字串完全不同，這裡原本遇到緊湊格式會直接放棄正規化、原樣保留，導致
+      兩筆其實是同一事件的紀錄產生不同的去重鍵值，在畫面上重複顯示(4971/
+      3234/3362 等多檔都遇到)。這裡補上緊湊格式的解析，統一轉成同一種
+      斜線格式，兩種來源才會真正對到同一把鍵值。
+
+    Args:
+        period_raw: 原始處置期間字串
+
+    Returns:
+        標準化後的處置期間字串
+    """
+    if not period_raw or '~' not in period_raw:
+        return period_raw
+
+    try:
+        parts = period_raw.split('~')
+        normalized_parts = []
+
+        for part in parts:
+            part = part.strip()
+            # 分割日期部分：114/8/29 → ['114', '8', '29']
+            date_parts = part.split('/')
+            if len(date_parts) == 3:
+                year, month, day = date_parts
+                # 補零：'8' → '08', '29' → '29'
+                normalized = f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+                normalized_parts.append(normalized)
+            elif len(date_parts) == 1 and part.isdigit() and len(part) == 7:
+                # 緊湊格式：1140829 → 民國114年08月29日
+                year, month, day = part[:3], part[3:5], part[5:7]
+                normalized_parts.append(f"{year}/{month}/{day}")
+            else:
+                # 格式異常，保留原始值
+                normalized_parts.append(part)
+
+        return '~'.join(normalized_parts)
+    except Exception:
+        # 解析失敗，返回原始值
+        return period_raw
+
+def deduplicate_records(records):
+    """
+    去除重複記錄，保留資料較完整的版本
+
+    Args:
+        records: 記錄列表
+
+    Returns:
+        去重後的記錄列表
+    """
+    seen = {}
+    for record in records:
+        # [Fix 2026-08-27] 原本用 (Code, AnnounceDate) 當唯一鍵值，但資料庫裡
+        # 有大量(全庫掃過有3334組)同一次處置事件(相同 code+處置期間)、
+        # announce_date 卻因為來源不同、擷取時間不同而有一兩天落差或格式不同
+        # (如"2026/07/29" vs "2026-07-30")的紀錄，導致同一次處置在畫面上被
+        # 當成兩筆不同事件重複顯示(完全相同的處置期間、頻率、逐日漲跌%)。
+        # 改用 (Code, 標準化處置期間) 當鍵值——這才是真正代表「同一次處置事件」
+        # 的識別方式，且跟本檔案其他地方(on_data_ready 合併資料、更新自訂統計)
+        # 已經在用的 (code, normalize_period_format(period_raw)) 鍵值一致，不是
+        # 這次新發明的邏輯。
+        code = str(record.get("code", "")).strip()
+        period_raw = record.get("period_raw")
+
+        if period_raw and str(period_raw).strip():
+            period_key = normalize_period_format(str(period_raw).strip())
+        else:
+            # [Fix] period_raw 缺漏(全庫掃過約佔三分之一，多半是2010年以前沒有
+            # 解析出處置期間的舊資料)時，不能直接讓它們共用同一把「空字串」
+            # 鍵值——那樣同一檔股票所有沒有處置期間資料的舊紀錄會被誤判成
+            # 同一次事件、整批合併成一筆，吃掉真正不同次的歷史紀錄。這種情況
+            # 才退回用 announce_date 當鍵值(舊邏輯)，只有真的有處置期間可比對
+            # 時才用處置期間去重。
+            period_key = f"__no_period__{DateUtils.to_iso_date_str(record.get('announce_date', ''))}"
+
+        # Key definition
+        key = (code, period_key)
+
+        if key not in seen:
+            seen[key] = record
+        else:
+            # 保留資料較完整的版本 (比較 changes 數量)
+            # 如果 changes 數量一樣，保留較新的 (updated_at?) 目前沒 updated_at, 保留後面的?
+            # 假設資料庫是 append 的，後面的可能是新的?
+            # 但如果是重複抓取，內容可能差不多。
+
+            existing_changes = len(seen[key].get("changes", {}))
+            current_changes = len(record.get("changes", {}))
+
+            # Priority 1: More calculated data
+            if current_changes > existing_changes:
+                seen[key] = record
+            # [Fix 2026-08-28] Priority 1.5: changes 數量打平時，優先保留有 announce_date
+            # 的版本。改用「代碼+處置期間」去重後才發現：同一次處置常常有一筆
+            # announce_date=None 的紀錄(舊資料匯入時沒解析出公告日)混在裡面，
+            # changes 算出來的天數通常一樣(反正處置期間相同)，原本這裡打平時就是
+            # 誰先被迭代到就留誰，完全沒管公告日有沒有值，導致畫面上出現一堆
+            # 「公告日」欄位空白的列(6225/8033/4979等多檔都遇到)。
+            elif current_changes == existing_changes:
+                existing_ann = str(seen[key].get("announce_date") or "").strip()
+                current_ann = str(record.get("announce_date") or "").strip()
+                if not existing_ann and current_ann:
+                    seen[key] = record
+                elif existing_ann and current_ann:
+                    # [Fix 2026-08-30] 兩筆都有公告日但日期不一樣時，優先保留較早
+                    # 的那個。全庫掃過同一次處置事件常常同時存在兩種公告日紀錄：
+                    # 一筆是處置開始前一天(正確——依規定公告隔一個交易日才生效)，
+                    # 另一筆恰好等於處置開始日當天(可疑，很可能是某個資料來源沒有
+                    # 真的公告日欄位、退回用處置開始日頂替，實測上市/上櫃、各種
+                    # 股票都是同一個模式，公告不可能晚於自己生效的那天)。原本這裡
+                    # 完全沒比較「兩個都有值但不同」這種情況，誰先被迭代到就留誰，
+                    # 導致像4979這種案例畫面上顯示的公告日忽早忽晚、不一致。
+                    existing_iso = DateUtils.to_iso_date_str(existing_ann)
+                    current_iso = DateUtils.to_iso_date_str(current_ann)
+                    if current_iso and existing_iso and current_iso < existing_iso:
+                        seen[key] = record
+
+    return list(seen.values())
+
+
+def sort_change_columns(columns):
+    """排序漲跌幅欄位名稱"""
+    def sort_key(col):
+        if col == "-1": return (0, 0)
+        elif col == "處置日": return (1, 0)
+        elif col.startswith("+"):
+            try: return (2, int(col[1:]))
+            except: return (99, 0)
+        elif col == "處置結束": return (2, 999)
+        elif col == "出關日": return (3, 0)
+        elif col.startswith("出-"):
+            # 新增：出-5 → 出-4 → 出-3 → 出-2 → 出-1
+            try: return (3, int(col[2:]))  # 使用正數讓它從小到大排（出-5 先，出-1 後）
+            except: return (99, 0)
+        elif col.startswith("出+"):
+            try: return (4, int(col[2:]))
+            except: return (99, 0)
+        else: return (5, 0)
+    return sorted(columns, key=sort_key)
+
+
+def column_numeric_values(records, col_name):
+    """某個漲跌幅欄位的數值清單(原 DisposalStatsPage.add_statistics_rows 收集 values 的部分)。"""
+    values = []
+    for record in records:
+        change_value = record.get("changes", {}).get(col_name)
+        if change_value is not None:
+            if isinstance(change_value, (int, float)):
+                values.append(change_value)
+            elif isinstance(change_value, str):
+                try:
+                    val = float(change_value)
+                    values.append(val)
+                except ValueError:
+                    pass
+    return values
+
+
+def summary_stat_texts(values):
+    """
+    處置統計表底部 10 列(總計、平均、上漲%、下跌%、>9%、<-9%、期望值、獲利因子、風險報酬比、凱利倉位)
+    的顯示文字(原 DisposalStatsPage.add_statistics_rows 的計算，2026-10-05 P5 原樣搬出)。
+    values 為空回傳 None(畫面顯示 N/A)。網頁版 JS 要與這裡逐字相同。
+    """
+    if not values:
+        return None
+    texts = []
+    for stat_idx in range(10):
+        # 分離上漲和下跌數據
+        up_values = [v for v in values if v >= 0]
+        down_values = [v for v in values if v < 0]
+
+        if stat_idx == 0:  # 總計
+            stat_value = sum(values)
+            text = f"{stat_value:+.2f}%"
+        elif stat_idx == 1:  # 平均
+            stat_value = sum(values) / len(values)
+            text = f"{stat_value:+.2f}%"
+        elif stat_idx == 2:  # 上漲%
+            up_count = sum(1 for v in values if v >= 0)
+            stat_value = (up_count / len(values)) * 100
+            text = f"{stat_value:.1f}%"
+        elif stat_idx == 3:  # 下跌%
+            down_count = sum(1 for v in values if v < 0)
+            stat_value = (down_count / len(values)) * 100
+            text = f"{stat_value:.1f}%"
+        elif stat_idx == 4:  # >9%
+            count = sum(1 for v in values if v > 9)
+            stat_value = (count / len(values)) * 100
+            text = f"{stat_value:.1f}%"
+        elif stat_idx == 5:  # <-9%
+            count = sum(1 for v in values if v < -9)
+            stat_value = (count / len(values)) * 100
+            text = f"{stat_value:.1f}%"
+        elif stat_idx == 6:  # 期望值
+            if up_values and down_values:
+                avg_up = sum(up_values) / len(up_values)
+                avg_down = sum(down_values) / len(down_values)
+                win_rate = len(up_values) / len(values)
+                expected = win_rate * avg_up + (1 - win_rate) * avg_down
+                text = f"{expected:+.2f}%"
+            elif up_values:  # 全是上漲
+                expected = sum(up_values) / len(up_values)
+                text = f"{expected:+.2f}%"
+            else:  # 全是下跌
+                expected = sum(down_values) / len(down_values)
+                text = f"{expected:+.2f}%"
+        elif stat_idx == 7:  # 獲利因子
+            if up_values and down_values:
+                total_profit = sum(up_values)
+                total_loss = abs(sum(down_values))
+                profit_factor = total_profit / total_loss if total_loss > 0 else 99.99
+                text = f"{profit_factor:.2f}倍"
+            else:
+                text = "99.99倍"  # 全上漲或全下跌
+        elif stat_idx == 8:  # 風險報酬比
+            if up_values and down_values:
+                avg_up = sum(up_values) / len(up_values)
+                avg_down = abs(sum(down_values) / len(down_values))
+                rr_ratio = avg_up / avg_down if avg_down > 0 else 99.99
+                text = f"{rr_ratio:.2f}"
+            else:
+                text = "99.99"  # 全上漲或全下跌
+        else:  # 凱利倉位
+            if up_values and down_values:
+                avg_up = sum(up_values) / len(up_values)
+                avg_down = abs(sum(down_values) / len(down_values))
+                win_rate = len(up_values) / len(values)
+                kelly = (win_rate * avg_up - (1 - win_rate) * avg_down) / avg_up if avg_up > 0 else 0
+                kelly_pct = max(0, kelly * 100)  # 轉為百分比，負值顯示 0
+                text = f"{kelly_pct:.1f}%"
+            else:
+                text = "0.0%"  # 全上漲或全下跌都不建議（保守）
+        texts.append(text)
+    return texts
