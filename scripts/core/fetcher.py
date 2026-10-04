@@ -9,8 +9,9 @@ from core.finmind_client import FinMindClient
 from core.market_cache import MarketDataCache
 
 class StockFetcher:
-    def __init__(self, db_path="data/market_data.db", api_token=None):
-        self.db_path = db_path
+    def __init__(self, db_path=None, api_token=None):
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().market_db
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Accept": "application/json, text/javascript, */*; q=0.01",

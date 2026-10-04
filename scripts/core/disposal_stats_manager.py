@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import pandas as pd
 from core.utils import DateUtils
+from core.runtime import get_paths
 from core.cache import CacheManager
 from core.finmind_client import FinMindClient
 from core.cache import CacheManager
@@ -41,7 +42,7 @@ class DisposalStatsManager:
             self.fm_client = FinMindClient(None)
         
         # 初始化本地價格資料庫（優先使用）
-        self.price_db = price_db if price_db else PriceDatabase("stock_prices.db")
+        self.price_db = price_db if price_db else PriceDatabase(get_paths().prices_db)
         
         # 初始化市場數據快取 (用於股本等)
         self.market_cache = MarketDataCache()

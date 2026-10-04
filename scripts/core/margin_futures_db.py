@@ -15,7 +15,8 @@ from pathlib import Path
 from datetime import datetime
 
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "margin_futures.db"
+from core.runtime import get_paths
+DB_PATH = Path(get_paths().margin_futures_db)
 
 
 class MarginFuturesDatabase:

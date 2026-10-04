@@ -13,14 +13,15 @@ from typing import List, Dict, Optional, Tuple
 class DisposalDatabase:
     """處置資料庫管理類別"""
 
-    def __init__(self, db_path="data/disposal_history.db"):
+    def __init__(self, db_path=None):
         """
         初始化資料庫
         
         Args:
             db_path: 資料庫檔案路徑
         """
-        self.db_path = db_path
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().disposal_db
         self.conn = None
         self._init_database()
     

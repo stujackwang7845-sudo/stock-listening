@@ -5,8 +5,9 @@ import os
 from datetime import datetime
 
 class CacheManager:
-    def __init__(self, db_path="data/cache.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().cache_db
         self._init_db()
 
     def _init_db(self):

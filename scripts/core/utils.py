@@ -1,3 +1,4 @@
+from core.runtime import get_paths
 import re
 from datetime import datetime, timedelta
 import pandas as pd
@@ -77,7 +78,7 @@ class DateUtils:
         # 可依需求擴充
     }
     
-    _TWSE_CACHE_FILE = "data/twse_holidays.json"
+    _TWSE_CACHE_FILE = get_paths().twse_holidays_json
     _TWSE_HOLIDAYS_LOADED = False
 
     @classmethod

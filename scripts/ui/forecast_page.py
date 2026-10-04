@@ -167,7 +167,8 @@ class ForecastWorker(QThread):
         stop_short_data = {}
         try:
             import os, json
-            stop_short_path = r"e:\Vibe Coding\Stock\股期套利\data\stop_short.json"
+            from core.runtime import get_paths
+            stop_short_path = get_paths().stop_short_json
             if os.path.exists(stop_short_path):
                 with open(stop_short_path, "r", encoding="utf-8") as f:
                     stop_short_data = json.load(f)
@@ -1073,7 +1074,8 @@ class ForecastPage(QWidget):
             from core import database_clause_ext
             import datetime as dt
 
-            conn = sqlite3.connect("data/disposal_history.db")
+            from core.runtime import get_paths
+            conn = sqlite3.connect(get_paths().disposal_db)
             past_dates = []
             curr = anchor_dt
             count = 0

@@ -24,7 +24,8 @@ from core.measure_parser import MeasureParser
 from core.utils import DateUtils
 
 DEFAULT_PROJECT_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_DB_PATH = DEFAULT_PROJECT_DIR / "data" / "disposal_history.db"
+from core.runtime import data_dir_override, get_paths
+DEFAULT_DB_PATH = Path(get_paths().disposal_db) if data_dir_override() else DEFAULT_PROJECT_DIR / "data" / "disposal_history.db"
 DEFAULT_REPORT_DIR = DEFAULT_PROJECT_DIR / "reports"
 DEFAULT_PRICE_ROOT = Path(r"E:\Vibe Coding\Stock\DB\parquet_data\price_daily_raw")
 SUPPORTED_INTERVALS = (5, 20, 2)

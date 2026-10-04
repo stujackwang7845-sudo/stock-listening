@@ -21,10 +21,11 @@ class ClauseDownloadWorker(QThread):
     progress = pyqtSignal(str)  # 進度訊息
     finished = pyqtSignal(bool, str)  # (成功, 訊息)
     
-    def __init__(self, dates: List[datetime], db_path="data/disposal_history.db"):
+    def __init__(self, dates: List[datetime], db_path=None):
         super().__init__()
         self.dates = dates
-        self.db_path = db_path
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().disposal_db
     
     def run(self):
         """執行下載任務"""

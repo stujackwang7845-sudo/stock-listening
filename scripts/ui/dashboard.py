@@ -180,10 +180,11 @@ class ClausesGapFetchWorker(QThread):
     """
     finished_ok = pyqtSignal(int, str)  # (saved_count, error_msg)
 
-    def __init__(self, target_date, db_path="data/disposal_history.db"):
+    def __init__(self, target_date, db_path=None):
         super().__init__()
         self.target_date = target_date
-        self.db_path = db_path
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().disposal_db
 
     def run(self):
         import sqlite3
@@ -3902,7 +3903,8 @@ class Dashboard(QWidget):
             import datetime as dt
             
             # 連接資料庫
-            conn = sqlite3.connect("data/disposal_history.db")
+            from core.runtime import get_paths
+            conn = sqlite3.connect(get_paths().disposal_db)
             
             # 計算過去 30 個交易日 (支援 Rule 4: 30日內12次)
             past_dates = []

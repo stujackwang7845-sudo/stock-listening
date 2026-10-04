@@ -4,8 +4,9 @@ import os
 from datetime import datetime
 
 class MarketDataCache:
-    def __init__(self, db_path="data/market_data.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        from core.runtime import get_paths
+        self.db_path = db_path or get_paths().market_db
         self._init_db()
 
     def _init_db(self):

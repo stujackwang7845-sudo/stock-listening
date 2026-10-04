@@ -29,6 +29,13 @@ class FinMindClient:
         FALLBACK_TOKENS = [t.strip() for t in tokens_str.split(",") if t.strip()]
 
     def __init__(self, token=None):
+        from core.runtime import no_finmind
+        if no_finmind():
+            # 雲端不用 FinMind：不登入、斷路器直接打開，所有查詢回傳 None
+            self.tokens, self.current_token_idx, self.token = [], 0, None
+            self.api, self.max_retries, self.api_timeout = None, 0, 0
+            self.api_exhausted = True
+            return
         self.tokens = []
         if token:
             self.tokens.append(token)

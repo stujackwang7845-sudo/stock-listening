@@ -16,6 +16,9 @@ class HistoryManager:
 
     def _resolve_path(self):
         import sys
+        from core.runtime import data_dir_override, get_paths
+        if data_dir_override():
+            return get_paths().listening_json
         
         # Candidates to check
         candidates = []

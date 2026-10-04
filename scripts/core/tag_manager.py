@@ -3,11 +3,12 @@ import json
 import os
 from typing import Dict, List, Optional
 from datetime import datetime
+from core.runtime import get_paths
 
 class TagManager:
     """Tag 管理器 - 負責標籤的建立、編輯、刪除與持久化"""
     
-    FILE_PATH = "data/tags_config.json"
+    FILE_PATH = get_paths().tags_json
     
     # Material Design Icons 風格的 Unicode 符號集
     AVAILABLE_ICONS = {

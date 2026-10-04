@@ -30,6 +30,10 @@ class ShioajiClient:
 
     def _ensure_connected(self):
         """改為檢查 Gateway 是否存活"""
+        from core.runtime import no_shioaji
+        if no_shioaji():
+            self._login_error = "DISPO_NO_SHIOAJI：已停用 Gateway"
+            return False
         if self._connected:
             return True
         try:

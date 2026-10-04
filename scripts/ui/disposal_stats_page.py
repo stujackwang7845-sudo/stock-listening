@@ -16,6 +16,7 @@ from PyQt6.QtGui import QColor, QBrush
 from datetime import datetime, timedelta
 import re
 from core.utils import DateUtils
+from core.runtime import get_paths
 from core.finmind_client import FinMindClient
 from core.fetcher import StockFetcher  # [New] Import Fetcher
 
@@ -76,11 +77,11 @@ class StatsWorker(QThread):
         fm_client = FinMindClient(self.api_token) if self.api_token else None
         
         # [Fix] 初始化 Fetcher 用於交易日驗證 (使用相同的 API Token)
-        fetcher = StockFetcher(db_path="stock_prices.db", api_token=self.api_token)
+        fetcher = StockFetcher(db_path=get_paths().prices_db, api_token=self.api_token)
         self.stats_manager = DisposalStatsManager(fm_client=fm_client, fetcher=fetcher)
         
         # [New] Worker 自行連接 DB 用於讀寫緩存
-        worker_db = DisposalDatabase("data/disposal_history.db")
+        worker_db = DisposalDatabase(get_paths().disposal_db)
 
         # [Fix 2026-09-16] disposal_records 是用 get_all_records() 取得的，那裡是
         # ORDER BY announce_date DESC(最新公告排最前面)——這對表格顯示很合理，但
@@ -480,7 +481,7 @@ class CapitalWorker(QThread):
         fm_client = FinMindClient(self.api_token) if self.api_token else None
         
         # [Fix] 傳入 fetcher for consistency
-        fetcher = StockFetcher(db_path="stock_prices.db", api_token=self.api_token)
+        fetcher = StockFetcher(db_path=get_paths().prices_db, api_token=self.api_token)
         manager = DisposalStatsManager(fm_client=fm_client, fetcher=fetcher)
         
         total = len(self.codes)
@@ -512,7 +513,7 @@ class DisposalStatsPage(QWidget):
         self.cache_manager = CacheManager()
         
         # 初始化資料庫
-        self.disposal_db = DisposalDatabase("data/disposal_history.db")
+        self.disposal_db = DisposalDatabase(get_paths().disposal_db)
         self.all_records = []
         self.filtered_data = []
         

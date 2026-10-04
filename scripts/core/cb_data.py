@@ -12,7 +12,8 @@ from typing import Dict, List, Optional
 
 
 # CB CSV 的固定路徑（CB SummaryList 專案的輸出檔案）
-CB_CSV_PATH = r"E:\Vibe Coding\CB\SummaryList\cb_data.csv"
+from core.runtime import get_paths
+CB_CSV_PATH = get_paths().cb_csv
 
 
 class CBDatabase:
