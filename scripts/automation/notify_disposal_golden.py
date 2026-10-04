@@ -306,37 +306,62 @@ def fmt_stock(d, g, action, rr=None, show_filter=True, show_return=False):
     return "\n".join(lines)
 
 
-def avg_line(label, items):
+def avg_summary(items):
+    """區塊標題用的摘要：平均還原報酬（排除資料可疑的），另列符合濾網者。"""
     vals = [rr["adj"] for _, g, rr in items if rr is not None and not rr["suspicious"]]
     gold = [rr["adj"] for _, g, rr in items if rr is not None and not rr["suspicious"] and g["golden"]]
     if not vals:
         return ""
-    s = f"　{label} {len(vals)} 檔平均還原報酬 {sum(vals)/len(vals):+.2f}%"
-    if gold:
-        s += f"；其中符合濾網 {len(gold)} 檔平均 {sum(gold)/len(gold):+.2f}%"
+    s = f"，平均 {sum(vals)/len(vals):+.2f}%"
+    if gold and len(gold) != len(vals):
+        s += f"（符合濾網 {len(gold)} 檔 {sum(gold)/len(gold):+.2f}%）"
     return s
+
+
+def section(title, body_lines):
+    """
+    Telegram 可展開引用區塊：收合時只看得到第一行(標題＋摘要)，點「展開」才看明細。
+    Telegram 不支援真正的整塊收合，這是最接近的作法。
+    """
+    body = "\n".join(body_lines).strip()
+    return f"<blockquote expandable><b>{title}</b>\n\n{body}</blockquote>"
 
 
 def build_message(today, next_td, entries, exits, holds, n_repeat):
     lines = [f"🔔 <b>處置新制初犯策略｜{today:%Y/%m/%d} 盤後</b>", ""]
-    if entries:
-        lines.append(f"🟢 <b>明日 {next_td:%m/%d} 處置首日 → 收盤買進</b>")
-        for d, g in sorted(entries, key=lambda x: (not x[1]["golden"], x[0]["code"])):
-            lines += [fmt_stock(d, g, f"{next_td:%m/%d} 收盤買進，{d['end']:%m/%d} 收盤賣出"), ""]
-    if exits:
-        lines.append(f"🔴 <b>明日 {next_td:%m/%d} 處置最後一天 → 收盤賣出（目前報酬）</b>")
-        for d, g, rr in sorted(exits, key=lambda x: (not x[1]["golden"], x[0]["code"])):
-            lines += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
-        lines += [avg_line("預計出場", exits), ""]
+
+    # 1. 持有中
     if holds:
-        lines.append("📊 <b>持有中（已照策略進場）</b>")
+        body = []
         for d, g, rr in sorted(holds, key=lambda x: (not x[1]["golden"], x[0]["end"], x[0]["code"])):
-            lines += [fmt_stock(d, g, f"持有至 {d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
-        lines += [avg_line("持有中", holds), ""]
-    if n_repeat:
-        lines.append(f"（明日另有 {n_repeat} 檔累犯開始處置，本策略不做）")
+            body += [fmt_stock(d, g, f"持有至 {d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
+        lines += [section(f"📊 持有中｜{len(holds)} 檔{avg_summary(holds)}", body), ""]
+    else:
+        lines += ["📊 <b>持有中｜無</b>", ""]
+
+    # 2. 預計出場
+    if exits:
+        body = []
+        for d, g, rr in sorted(exits, key=lambda x: (not x[1]["golden"], x[0]["code"])):
+            body += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
+        lines += [section(f"🔴 預計出場（明日 {next_td:%m/%d} 收盤賣）｜{len(exits)} 檔{avg_summary(exits)}", body), ""]
+    else:
+        lines += [f"🔴 <b>預計出場（明日 {next_td:%m/%d}）｜無</b>", ""]
+
+    # 3. 預計進場
+    if entries:
+        n_gold = sum(1 for _, g in entries if g["golden"])
+        body = []
+        for d, g in sorted(entries, key=lambda x: (not x[1]["golden"], x[0]["code"])):
+            body += [fmt_stock(d, g, f"{next_td:%m/%d} 收盤買進，{d['end']:%m/%d} 收盤賣出"), ""]
+        if n_repeat:
+            body.append(f"（另有 {n_repeat} 檔累犯明日開始處置，本策略不做）")
+        lines += [section(f"🟢 預計進場（明日 {next_td:%m/%d} 收盤買）｜{len(entries)} 檔，符合濾網 {n_gold} 檔", body), ""]
+    else:
+        extra = f"（累犯 {n_repeat} 檔不做）" if n_repeat else ""
+        lines += [f"🟢 <b>預計進場（明日 {next_td:%m/%d}）｜無</b>{extra}", ""]
+
     lines += [
-        "",
         "<blockquote expandable>📘 規則與可靠度\n"
         "• 只做初犯；處置第一天收盤買、最後一天收盤賣\n"
         "• 黃金濾網：非生技、非 KY、前 5 日均量 ≥ 100 張\n"
@@ -347,6 +372,23 @@ def build_message(today, next_td, entries, exits, holds, n_repeat):
         "• 處置期間每 2 分鐘撮合，大額委託需預收款券</blockquote>",
     ]
     return "\n".join(x for x in lines if x is not None).strip()
+
+
+def split_message(msg, limit=4000):
+    """Telegram 單則上限 4096 字：太長就以區塊為單位拆成多則（區塊之間以空行＋<blockquote 開頭分隔）。"""
+    if len(msg) <= limit:
+        return [msg]
+    parts = msg.split("\n\n<blockquote")
+    blocks = [parts[0]] + ["<blockquote" + p for p in parts[1:]]
+    chunks, cur = [], ""
+    for b in blocks:
+        if cur and len(cur) + len(b) + 2 > limit:
+            chunks.append(cur)
+            cur = b
+        else:
+            cur = f"{cur}\n\n{b}" if cur else b
+    chunks.append(cur)
+    return chunks
 
 
 def load_log():
@@ -427,9 +469,10 @@ def main():
     if send_telegram is None:
         print("[ERROR] 找不到 send_telegram 模組，未推播。")
         sys.exit(1)
-    res = send_telegram(msg, parse_mode="HTML")
-    # send_telegram 只在 Telegram 回 ok 時才回傳(回傳值就是 result 本身)，失敗會丟例外
-    print(f"✅ 已推播，message_id={res.get('message_id')}")
+    for c in split_message(msg):
+        res = send_telegram(c, parse_mode="HTML")
+        # send_telegram 只在 Telegram 回 ok 時才回傳(回傳值就是 result 本身)，失敗會丟例外
+        print(f"✅ 已推播（{len(c)} 字），message_id={res.get('message_id')}")
 
     now = datetime.now().isoformat(timespec="seconds")
     meta["last_push_date"] = str(today)
