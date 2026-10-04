@@ -20,6 +20,7 @@ from core.cache import CacheManager
 from core.scraper_attention import AttentionScraper
 from core.disposal_database import DisposalDatabase
 from core.price_database import PriceDatabase
+from core.predictor import DispositionPredictor
 
 
 def sync_listening_and_disposals(history_manager, target_dt, target_date_str, fetcher, parser, progress):
@@ -1099,3 +1100,613 @@ def merge_clauses_from_db(agg_data, target_date):
         print(f"[Clauses] 從資料庫載入條款失敗: {e}")
         import traceback
         traceback.print_exc()
+
+
+def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
+                           today_attention_map, today_attention_names, mf_db, cb_db):
+    """
+    原 Dashboard.populate_table 的計算部分(2026-10-04 P2 搬出，不改邏輯)：決定哪些股票上表、
+    排序、每列每欄要顯示的值。桌面版 populate_table 只依回傳值建 Qt 元件。
+    calendar = DateUtils.get_market_calendar(display_date, past_days=9, future_days=9)
+    today_attention_map/names：官方聽牌清單 {code: reason} / {code: name}
+    回傳 {"headers", "date_cols", "rows"}，rows 已依機率(大→小)、代號排序。
+    """
+    # [Fix 2026-08-28] 「處置頻率」欄要一併標出目前這次是初犯還是累犯，跟
+    # forecast_page.py 的處置中清單一致。初犯/累犯判定要用
+    # ForecastWorker._predict_exact_disposal_frequency()——直接沿用同一套已經
+    # 驗證過的演算法(看最近30個營業日內是否已有其他處置紀錄)，不要在這裡另外
+    # 重寫一份，避免兩邊邏輯漂移。這裡先把處置紀錄整批查一次、按代碼分組，
+    # 供下面逐列呼叫時查表用，不要每列各自查一次 DB(上百列會變成上百次DB往返)。
+    _disp_map_for_offense = {}
+    try:
+        from core.disposal_database import DisposalDatabase
+        _disp_db_for_offense = DisposalDatabase()
+        for r in _disp_db_for_offense.get_all_records():
+            _disp_map_for_offense.setdefault(str(r['code']), []).append(r)
+        _disp_db_for_offense.close()
+    except Exception as e:
+        print(f"[populate_table] disposal_records 讀取失敗(初犯/累犯標示將略過): {e}")
+
+    # [Crawler Integration] Fetch Official Attention List
+    # [Crawler Integration] Fetch Official Attention List - ALREADY DONE in update_info_boxes
+    # today_attention_map should be ready
+    
+    # Identify date columns (Initial Guess)
+    raw_date_cols = calendar["past"] + [calendar["current"]]
+    
+    # 歷史日期 (擴展到 30 天以支持 Rule 4: 30日內12次)
+    raw_pred_history_dates = []
+    # [Fix] 使用當前顯示日期作為預測基準，而非固定為系統最後交易日
+    # 這解決了切換歷史日期時，30日內12次規則 window 偏差的問題
+    curr = display_date
+    count = 0
+    while count < 30:
+         if DateUtils.is_trading_day(curr):
+              raw_pred_history_dates.insert(0, curr.strftime("%m/%d"))
+              count += 1
+         curr = curr - dt.timedelta(days=1)
+         
+    # --- Dynamic Holiday Detection (DISABLED) ---
+    # valid_dates = set()
+    # for code, info in agg_data.items():
+    #     clauses = info.get("clauses", {})
+    #     for date_str, clause_val in clauses.items():
+    #         if clause_val: 
+    #             valid_dates.add(date_str)
+                
+    # Filter date_cols
+    # Use raw_date_cols directly to ensure user sees all Trading Days (even if data is empty)
+    current_date_str = calendar["current"]
+    date_cols = raw_date_cols
+    
+    # Filter pred_history_dates (Must keep order)
+    pred_history_dates = raw_pred_history_dates
+    
+    # if not date_cols: date_cols = raw_date_cols
+    # if not pred_history_dates: pred_history_dates = raw_pred_history_dates
+
+    # Sort by code
+    valid_keys = [str(k) for k in agg_data.keys() if isinstance(k, str) or isinstance(k, int)]
+    sorted_codes = sorted(valid_keys)
+    
+    final_rows = [] 
+    
+    anchor_year = calendar["anchor_obj"].year
+    anchor_month = calendar["anchor_obj"].month
+    anchor_date = calendar["anchor_obj"]
+    today_dt = dt.datetime(anchor_date.year, anchor_date.month, anchor_date.day)
+    
+    # Prepare Future Datetimes for Exit Calculation
+    # future_dates[0] is Tomorrow, [1] is Day After, etc.
+    future_dts = []
+    for d_str in calendar["future"]:
+         try:
+             # Rough Parse assuming near anchor year
+             dm = d_str.split("/")
+             m, d = int(dm[0]), int(dm[1])
+             y = anchor_year
+             if anchor_month == 12 and m == 1: y += 1
+             elif anchor_month == 1 and m == 12: y -= 1
+             future_dts.append(dt.datetime(y, m, d))
+         except:
+             future_dts.append(None)
+
+    # For Exit Box
+    # Groups: 0->Tomorrow Free, 1->Day After Free, 2->3rd Day Free
+    # Key: 0, 1, 2. Value: { "twse": [], "tpex": [] }
+    exit_data = {
+        0: {"twse": [], "tpex": []},
+        1: {"twse": [], "tpex": []},
+        2: {"twse": [], "tpex": []}
+    }
+    
+    # For Observer Box
+    listening_twse = []
+    listening_tpex = []
+    one_step_twse = []
+    one_step_tpex = []
+    
+    # For Disposition Notice Box (Newly Announced)
+    notice_twse = []
+    notice_tpex = []
+    
+    # [Fix] Identify stocks that MUST be shown:
+    # 1. Stocks on the Official Listening List for the displayed date (from listening_history.json)
+    # 2. All stocks in agg_data (they came from _build_local_agg_data = attention stocks, must show)
+    force_show_codes = set(agg_data.keys())  # 所有 agg_data 裡的股票都是注意股，應強制顯示
+    if history_manager is not None:
+        try:
+            recs = history_manager.get_listening_data(display_date)
+            for r in recs:
+                force_show_codes.add(str(r['code']))
+        except: pass
+
+    for code in sorted(list(force_show_codes), key=str):
+        data = agg_data.get(code, {
+            "name": today_attention_names.get(code, ""),
+            "source": today_attention_map.get(code, "上市"),
+            "clauses": {},
+            "is_disposed": False,
+            "has_futures": mf_db.has_futures(code) if mf_db is not None else False
+        })
+        name = data["name"]
+        
+        # 1. Filter Warrants and Invalid Float Codes
+        if "." in str(code): continue
+        if len(str(code)) > 4: continue
+        if "購" in name or "售" in name: continue
+        # 2. Filter DR (Unless Disposed/Notice)
+        if "DR" in name:
+             # Check if this DR stock has important status to show
+             is_disp = data.get("is_disposed", False)
+             has_period = bool(data.get("period", ""))
+             if not (is_disp or has_period):
+                 continue
+        
+        # Calculate Prediction
+        # Parse Disposition Start/End Date if available
+        # Parse Disposition Start/End Date
+        # Prioritize explicit data from DB (e.g. for future announcements)
+        p_start_val = data.get("period_start")
+        p_end_val = data.get("period_end")
+
+        disp_start_dt = None
+        if p_start_val:
+            try: disp_start_dt = datetime.strptime(str(p_start_val), "%Y-%m-%d")
+            except Exception: disp_start_dt = DateUtils.parse_period_start(str(p_start_val))
+        else:
+            period = data.get("period", "")
+            disp_start_dt = DateUtils.parse_period_start(period)
+
+        disp_end_dt = None
+        if p_end_val:
+            try: disp_end_dt = datetime.strptime(str(p_end_val), "%Y-%m-%d")
+            except: disp_end_dt = DateUtils.parse_period_end(str(p_end_val))
+        else:
+             period = data.get("period", "") or data.get("future_period", "")
+             disp_end_dt = DateUtils.parse_period_end(period)
+        
+
+        hist_items = []
+        clauses_map = data["clauses"].copy()  # 複製以避免修改原始資料
+        
+        # [Fix] 我們不再強制從 clauses_map 中刪除第九款以上或「注」，以供 30日12次 正確預測。
+        # 在後續組裝 hist_items 時，會分別計算 is_any (1~8) 與 is_any_all (所有)。
+        
+        # [Fix] 移除對 history_manager.history 的重複遍歷。
+        # 相關合併邏輯已移動到 load_data_for_date 中的 _merge_clauses_from_listening_history 完成。
+        # 這大幅提升了 O(N^2) 的渲染效能。
+        pass 
+
+        
+        for d in pred_history_dates:
+             # Resolve Year for d (MM/DD)
+            try:
+                dm = d.split("/")
+                d_month = int(dm[0])
+                d_day = int(dm[1])
+                
+                eff_year = anchor_year
+                if anchor_month == 1 and d_month == 12:
+                    eff_year -= 1
+                elif anchor_month == 12 and d_month == 1:
+                    eff_year += 1
+                d_dt = datetime(eff_year, d_month, d_day)
+            except Exception as e:
+                d_dt = None
+
+            c_str = clauses_map.get(d, "")
+            
+            # If currently disposed, ignore clauses BEFORE disposition start
+            should_reset = False
+            if disp_start_dt and disp_start_dt.date() <= today_dt.date():
+                # [Fix] 處置生效日(Start Date)的盤後注意算「新週期第一次」
+                # 範例: 4/21~4/23 連續3天第一款 → 4/24 進處置
+                #       4/24 盤後又被注意 → 新週期第一次
+                #       4/25 再被注意 → 新週期第二次
+                # 所以只清空「嚴格小於」處置起始日的觸發紀錄
+                if d_dt and d_dt.date() < disp_start_dt.date(): # Exclusive Reset
+                    should_reset = True
+                    
+            if should_reset:
+                c_str = "" # Reset
+            
+
+
+            is_c1 = "一" in c_str
+            valid_any_list = [c for c in c_str.split(',') if c.strip() in ['一', '二', '三', '四', '五', '六', '七', '八']]
+            is_any = len(valid_any_list) > 0
+            is_any_all = len(c_str.strip()) > 0
+            hist_items.append({"is_clause1": is_c1, "is_any": is_any, "is_any_all": is_any_all})
+            
+        # Limit prediction to next 5 days (Trading Week) matches user expectation for 10-day window
+        warning_msg, prob, min_needed = DispositionPredictor.analyze(hist_items, future_days=5)
+        
+        # if code == "2408":
+        #     print(f"DEBUG 2408 Prediction Result: msg='{warning_msg}', prob={prob}, needed={min_needed}", flush=True)
+
+        # --- Override for Already Disposed Stocks ---
+        # If stock is ALREADY in disposition (active), and Predictor says "Will Enter" (needed <= 0),
+        # it means it has accumulated streaks DURING disposition.
+        # We should NOT predict "Entering" (Red) because it's already in.
+        # Instead, show nothing (Blank) as per user request to avoid confusion.
+        # If Predictor says "Next X days" (Extension?), we keep it.
+        if data.get("is_disposed", False) and disp_start_dt and disp_start_dt.date() <= today_dt.date():
+            if min_needed <= 0: # Predicted "Enter" with high prob
+                 warning_msg = "" # Suppress
+                 prob = 0 # Lower priority
+
+        # Collect Observer Data (Only for non-disposed)
+        if not data.get("is_disposed", False) and not disp_start_dt:
+            code_name = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}</a>"
+            if min_needed == 1:
+                # Auto-Save to History
+                # [User Request] Disable "Smart" Auto-Save/Add. 
+                # Listening Zone must strictly follow GitHub download.
+                # try:
+                #     rec_date = display_date.strftime("%Y-%m-%d")
+                #     rec = {
+                #         "date": rec_date,
+                #         "code": code,
+                #         "name": name,
+                #         "trigger_info": json.dumps(clauses_map, ensure_ascii=False),
+                #         "is_disposed_next_day": False # Default
+                #     }
+                #     self.history_manager.add_record(rec)
+                # except Exception as e:
+                #     print(f"History Save Error: {e}")
+
+                # if data["source"] == "上市": listening_twse.append(code_name)
+                # else: listening_tpex.append(code_name)
+                # pass
+                
+                pass 
+                
+                # [Fix] Disable calculated add to Listening Zone.
+                # if data["source"] == "上市": listening_twse.append(code_name)
+                # else: listening_tpex.append(code_name)
+
+            elif min_needed == 2:
+                # [Fix] 6949 Duplicate Issue
+                # check if it's already in the "Listening" lists (Official or Predicted)
+                # Note: code_name = f"<a href='{code}' ...>{code}&nbsp;{name}</a>"
+                
+                is_in_listening = False
+                # Check calculated listening list (official listening via history_manager)
+                for item in listening_twse + listening_tpex:
+                    if f"{code}&nbsp;" in item:
+                         is_in_listening = True
+                         break
+                
+                # [Fix] 注意：不能因為股票在 today_attention_map（注意條款官方清單）就視為「已聽牌」
+                # today_attention_map 只是「注意股」，不等於「進聽牌」
+                # 只有在 listening_history 中才算正式進聽
+
+                if not is_in_listening:
+                    if data["source"] == "上市": one_step_twse.append(code_name)
+                    else: one_step_tpex.append(code_name)
+        
+        # --- New Disposition Override ---
+        # [Fix] Check if Future Start (Notice) even if is_disposed=False
+        if disp_start_dt and (data.get("is_disposed", False) or disp_start_dt.date() > today_dt.date()):
+             # Only override message for FUTURE/NEWLY ANNOUNCED (Start > Today)
+             if disp_start_dt.date() > today_dt.date():
+                 prob = 100
+                 if not warning_msg or "此後" not in warning_msg:
+                     warning_msg = f"已進入處置 (生效日: {disp_start_dt.strftime('%m/%d')})"
+
+             if disp_start_dt > today_dt:
+                 suffix = "(期)" if data.get("has_futures") else ""
+                 item_str = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+                 if data["source"] == "上市": notice_twse.append(item_str)
+                 else: notice_tpex.append(item_str)
+        
+        # Check for Exit (only if disposed and has end date)
+        if data.get("is_disposed", False) and disp_end_dt:
+             target_idx = -1
+             if today_dt and disp_end_dt.date() == today_dt.date():
+                 target_idx = 0 # End Today -> Free Tomorrow
+             elif len(future_dts) > 0 and future_dts[0] and disp_end_dt.date() == future_dts[0].date():
+                 target_idx = 1 # End Tomorrow -> Free Day After
+             elif len(future_dts) > 1 and future_dts[1] and disp_end_dt.date() == future_dts[1].date():
+                 target_idx = 2 # End Day After -> Free 3rd Day
+                 
+             if target_idx != -1:
+                 suffix = ""
+                 if data.get("has_futures"): suffix += "(期)"
+                 if cb_db.has_cb_now(code): suffix += "(CB)"
+                 item_str = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+                 if data["source"] == "上市": exit_data[target_idx]["twse"].append(item_str)
+                 else: exit_data[target_idx]["tpex"].append(item_str)
+
+        has_visible_clause = False
+        for d in date_cols:
+            if clauses_map.get(d, ""):
+                has_visible_clause = True
+                break
+        
+        # If No Warning AND No Visible Clauses -> Skip (Noise)
+        # EXCEPTION: If it is in force_show_codes (Official Listening List), SHOW IT even if no clauses visible locally
+        should_force = code in force_show_codes
+        
+        if not warning_msg and not has_visible_clause and not data.get("is_disposed", False) and not should_force:
+            continue
+
+        # [New 2026-09-28] 聽牌股(明天注意就進處置)額外說明：若明天沒被注意，
+        # 之後最容易進處置的條件(四條規則挑最容易的)，例如 3450 聯鈞
+        # 「9/29逃過處置 : 2天內2次注意 才會進處置」。處置中的股票也要顯示(處置生效日起
+        # 重新累計，例如 2305 處置中又連4次注意)；只有已公告但處置還沒開始的不顯示，
+        # 因為那段期間的累計會在生效日歸零。
+        # 在這個(第一個)迴圈算好存進 final_rows，避免第二個迴圈讀到殘留變數。
+        escape_line = ""
+        _upcoming_disposal = disp_start_dt is not None and disp_start_dt.date() > today_dt.date()
+        if min_needed == 1 and warning_msg and not _upcoming_disposal:
+            try:
+                _esc = DispositionPredictor.escape_tomorrow_requirement(hist_items)
+                if _esc:
+                    _next_day = today_dt + dt.timedelta(days=1)
+                    while not DateUtils.is_trading_day(_next_day):
+                        _next_day += dt.timedelta(days=1)
+                    _kind = "第一款注意" if _esc["clause1"] else "注意"
+                    escape_line = (f"{_next_day.month}/{_next_day.day}逃過處置 : "
+                                   f"{_esc['days']}天內{_esc['hits']}次{_kind} 才會進處置")
+            except Exception as e:
+                print(f"[populate_table] {code} 逃過處置說明計算失敗: {e}")
+
+        final_rows.append((code, data, warning_msg, prob, min_needed, escape_line))
+
+    # Update Headers (simplified)
+    headers = ["股票", "名稱", "類別", "處置頻率", "處置天數", "融券", "期貨", "CB"]
+    display_date_cols = []
+    if date_cols:
+        for i, d in enumerate(date_cols):
+            if i == len(date_cols) - 1:
+                display_date_cols.append(f"{d} (今)")
+            else:
+                display_date_cols.append(d)
+    headers.extend(display_date_cols)
+    headers.extend(calendar["future"]) 
+    headers.append("機率") 
+    headers.append("處置預測") 
+    headers.append("Original_ID") # Add Hidden Column
+
+    # Sort by Probability (Desc), then Code (Asc)
+    final_rows.sort(key=lambda x: (-x[3], x[0]))
+    print(f"[populate_table] agg_data={len(agg_data)} force_show={len(force_show_codes)} final_rows={len(final_rows)}", flush=True)
+
+    rows = []
+    for (code, data, warning_msg, prob, min_needed, escape_line) in final_rows:
+        is_disposed = data.get("is_disposed", False)
+
+        # [Fix] 優先使用最新的「未來處置公告」來顯示 Tooltip 與頻率
+        f_period = data.get("future_period", "")
+        f_measure = data.get("future_measure", "")
+        
+        period = f_period if f_period else data.get("period", "")
+        measure = f_measure if f_measure else data.get("measure", "")
+        
+        tooltip_txt = f"處置期間: {period}\n處置措施: {measure}" if (is_disposed or f_period) else ""
+
+        is_listening = False
+
+        if not is_disposed and min_needed == 1:
+            is_listening = True
+
+        # Source
+        source_raw = data["source"].replace("(條款)", "").strip()
+        # 正規化 source 字串（確保只顯示「上市」或「上櫃」）
+        if source_raw in ("TWSE", "tse"): source_raw = "上市"
+        elif source_raw in ("TPEX", "otc", "OTC"): source_raw = "上櫃"
+
+        # Disposition Frequency (Col 3)
+        from core.measure_parser import MeasureParser
+        measure = measure or ""
+        freq_text = ""
+        if is_disposed:
+            ref_date_str = display_date.strftime("%Y-%m-%d")
+            freq_text = MeasureParser.get_effective_frequency(measure, ref_date_str)
+
+            # [Fix 2026-08-28] 附上初犯/累犯標示，跟 forecast_page.py 的處置中清單一致
+            # [Fix 2026-09-04] _predict_exact_disposal_frequency() 本質是「預測」函式：
+            # 給一個 anchor_date，它問的是「如果從 anchor_date(+days_until_trigger)算起
+            # 觸發一次新處置，那次新處置會是初犯還是累犯」。這裡是 is_disposed=True 分支
+            # (股票已經在處置中)，之前誤傳「今天」當 anchor_date——對一支已經在9/2開始
+            # 處置、今天(例如9/4)還在處置期間內的股票，這樣算出來的 predicted_start_date
+            # 會是「今天之後的下一個交易日」(例如9/5)，而9/2那筆處置本身正好落在這個
+            # 假設的「下一次」之前，於是被誤判成「這支股票之前發生過處置」，讓正在進行
+            # 中的這次處置自己被貼上「累犯」──但它問的其實是一個不存在的假設情境
+            # (今天又觸發一次新處置)，不是「這次正在進行的處置」本身的初犯/累犯。
+            # 已進處置的股票，正確的初犯/累犯判定基準是「這次處置自己的 period_start」，
+            # 不是「今天」。改成把 anchor_date 換成 disp_start_dt 前一個交易日，讓函式內部
+            # 算出的 predicted_start_date 剛好等於這次處置真正的 period_start，才能正確
+            # 判定「這次」處置是初犯還是累犯。
+            #
+            # [Fix 2026-09-04 之二，真正的根因] populate_table() 其實有兩個獨立迴圈：
+            # 第一個迴圈(逐檔計算 warning_msg/min_needed，組成 final_rows)裡才會算出
+            # 正確的 disp_start_dt(每檔各自的處置起始日)；但那個變數只是迴圈內的區域
+            # 變數，並沒有存進 final_rows 的 tuple 裡。這裡是第二個迴圈(逐列畫表格，
+            # for row, (code, data, ...) in enumerate(final_rows))，讀到的 disp_start_dt
+            # 其實是「第一個迴圈跑完後殘留的最後一筆值」，跟目前這一列的 code 完全無關
+            # ——這才是真機測試 3406/6933 一直显示「累犯」、但獨立单元測試都正確算出
+            # 「初犯」的真正原因(獨立測試用的是自己重建的單一 dict，沒有這種殘留變數
+            # 的問題，所以測不出來)。修法：在這個迴圈裡用 data(這個變數才是正確、
+            # 隨列而變的)重新算一次 disp_start_dt，不要沿用外層迴圈殘留的舊值。
+            try:
+                from core.forecast_engine import predict_exact_disposal_frequency
+                _row_p_start_val = data.get("period_start")
+                if _row_p_start_val:
+                    try:
+                        _row_disp_start_dt = datetime.strptime(str(_row_p_start_val), "%Y-%m-%d")
+                    except Exception:
+                        _row_disp_start_dt = DateUtils.parse_period_start(str(_row_p_start_val))
+                else:
+                    _row_disp_start_dt = DateUtils.parse_period_start(data.get("period", ""))
+
+                if _row_disp_start_dt:
+                    _anchor_date_only = DateUtils.get_last_trading_day(
+                        _row_disp_start_dt - dt.timedelta(days=1)
+                    ).date()
+                else:
+                    _anchor_date_only = dt.date(anchor_date.year, anchor_date.month, anchor_date.day)
+                _enter_freq = predict_exact_disposal_frequency(
+                    code, source_raw, _anchor_date_only, _disp_map_for_offense, days_until_trigger=0
+                )
+                if "累犯" in _enter_freq:
+                    freq_text = f"{freq_text}累犯"
+                elif "初犯" in _enter_freq:
+                    freq_text = f"{freq_text}初犯"
+            except Exception as e:
+                print(f"[populate_table] {code} 初犯/累犯標示計算失敗: {e}")
+        elif min_needed in (1, 2):
+            # [Fix 2026-08-31] 聽牌股(min_needed==1，只差最後一次注意就進處置)與
+            # 一進聽股票(min_needed==2，最快兩次注意就進處置)尚未真的進處置，沒有
+            # 實際頻率可顯示，但可以假設「明天(聽牌)/後天(一進聽)進處置」預先估算
+            # 屆時是初犯還是累犯，標「(預計)」避免跟已生效的處置混淆。
+            try:
+                from core.forecast_engine import predict_exact_disposal_frequency
+                _anchor_date_only = dt.date(anchor_date.year, anchor_date.month, anchor_date.day)
+                _days_until_trigger = 0 if min_needed == 1 else 1
+                _predicted_freq = predict_exact_disposal_frequency(
+                    code, source_raw, _anchor_date_only, _disp_map_for_offense,
+                    days_until_trigger=_days_until_trigger
+                )
+                if _predicted_freq:
+                    freq_text = f"{_predicted_freq}(預計)"
+            except Exception as e:
+                print(f"[populate_table] {code} 預計初犯/累犯標示計算失敗: {e}")
+
+        # [New] Disposal Day Count (Col 4) - 顯示「第X天/共Y天」
+        # 只在已經進處置(is_disposed)且有明確起訖日時才顯示，跟「處置頻率」欄
+        # 用同一個 is_disposed 條件，語意一致；還沒開始生效(尚未到起始日)
+        # 或缺起訖日資料時留空。
+        #
+        # [Fix 2026-09-10] 這裡是 populate_table() 的第二個迴圈(逐列畫表格)，
+        # disp_start_dt/disp_end_dt 是第一個迴圈(逐檔計算 warning_msg 那段)的
+        # 區域變數、沒有存進 final_rows，在這裡讀到的其實是第一個迴圈跑完後
+        # 殘留的最後一筆值，跟目前這一列的 code 無關(跟先前初犯/累犯欄位
+        # 踩到的是同一個坑，見上面 2026-09-04 的說明)。改成直接用 data 重新
+        # 算一次這一列自己的起訖日，不要沿用外層迴圈殘留的舊值。
+        days_text = ""
+        _row_p_start_val = data.get("period_start")
+        if _row_p_start_val:
+            try:
+                _row_disp_start_dt = datetime.strptime(str(_row_p_start_val), "%Y-%m-%d")
+            except Exception:
+                _row_disp_start_dt = DateUtils.parse_period_start(str(_row_p_start_val))
+        else:
+            _row_disp_start_dt = DateUtils.parse_period_start(data.get("period", ""))
+
+        _row_p_end_val = data.get("period_end")
+        if _row_p_end_val:
+            try:
+                _row_disp_end_dt = datetime.strptime(str(_row_p_end_val), "%Y-%m-%d")
+            except Exception:
+                _row_disp_end_dt = DateUtils.parse_period_end(str(_row_p_end_val))
+        else:
+            _row_disp_end_dt = DateUtils.parse_period_end(data.get("period", "") or data.get("future_period", ""))
+
+        if is_disposed and _row_disp_start_dt and _row_disp_end_dt:
+            def _count_trading_days_inclusive(s_dt, e_dt):
+                if not s_dt or not e_dt or s_dt.date() > e_dt.date():
+                    return 0
+                n = 0
+                cur = s_dt
+                while cur.date() <= e_dt.date():
+                    if DateUtils.is_trading_day(cur):
+                        n += 1
+                    cur += dt.timedelta(days=1)
+                return n
+
+            total_days = _count_trading_days_inclusive(_row_disp_start_dt, _row_disp_end_dt)
+            if today_dt.date() < _row_disp_start_dt.date():
+                days_text = ""  # 已公告但還沒生效，跟「處置頻率」欄一起留空
+            else:
+                effective_today = _row_disp_end_dt if today_dt.date() > _row_disp_end_dt.date() else today_dt
+                current_day = _count_trading_days_inclusive(_row_disp_start_dt, effective_today)
+                if total_days > 0:
+                    days_text = f"第{current_day}天/共{total_days}天"
+
+        # Short Selling Status (Col 5) - 改從 mf_db 讀取
+        can_short = mf_db.is_margin_stock(code)
+        # Fallback: 若 DB 沒有資料，用 agg_data 的記錄
+        if not can_short:
+            can_short = data.get("can_short", False)
+        has_futures = mf_db.has_futures(code)
+        has_cb = cb_db.has_cb_now(code)
+
+        # 日期欄：條款 HTML 與排序值
+        date_cells = []
+        for d in date_cols:
+            clause_str = data["clauses"].get(d, "")
+            
+            html_parts = []
+            if clause_str:
+                clauses = clause_str.split(",")
+                for c in clauses:
+                    c = c.strip()
+                    if c in ["注", "九", "十", "十一", "十二"]:
+                        continue # [Fix] 表格中不顯示這些無特定含意的條款，減少畫面雜亂
+                    elif c == "一":
+                        html_parts.append(f"<span style='color: #FF4444; font-weight: bold;'>{c}</span>")
+                    else:
+                        html_parts.append(f"<span style='color: #4da6ff;'>{c}</span>")
+            
+            final_html = ",".join(html_parts)
+
+            # Add Sort Item (Hidden value for sorting)
+            sort_val = 0
+            if "一" in clause_str: sort_val = 2
+            elif clause_str: sort_val = 1
+            date_cells.append({"date": d, "html": final_html, "sort": sort_val})
+
+        highlight_date = None
+        # --- Highlight 10th Trading Day from First Attention ---
+        full_timeline = pred_history_dates + calendar["future"]
+        
+        # Find FIRST hit in full_timeline
+        first_hit_idx = -1
+        for idx, d_str in enumerate(full_timeline):
+            # Check clauses (clauses_map has history+current)
+            # Note: 'data["clauses"]' only has Past/Current data.
+            c_str = data["clauses"].get(d_str, "")
+            if c_str:
+                first_hit_idx = idx
+                break
+        
+        if first_hit_idx != -1:
+            target_idx = first_hit_idx + 9 # 1st + 9 days = 10th day
+            if target_idx < len(full_timeline):
+                target_date = full_timeline[target_idx]
+                highlight_date = target_date
+
+        # Prediction (Restored QLabel with WordWrap)
+        # [Crawler Integration] Check Official Reason
+        official_reason = today_attention_map.get(code, "")
+        
+        # Prioritize Official Reason if available
+        final_msg = warning_msg
+        is_official = False
+        
+        if official_reason:
+            final_msg = official_reason # Show official reason directly
+            is_official = True
+        elif is_listening:
+             # Keep existing prediction logic if no official reason
+             pass
+
+        if escape_line:
+            # 官方原因可能是 rich text，換行要用 <br>；純文字用 \n
+            _sep = "<br>" if ("<" in final_msg and ">" in final_msg) else "\n"
+            final_msg = f"{final_msg}{_sep}{escape_line}" if final_msg else escape_line
+
+        rows.append({
+            "code": code, "data": data, "name": data["name"],
+            "warning_msg": warning_msg, "prob": prob, "min_needed": min_needed, "escape_line": escape_line,
+            "is_disposed": is_disposed, "is_listening": is_listening, "tooltip": tooltip_txt,
+            "source": source_raw, "freq_text": freq_text, "freq_tip": measure, "days_text": days_text,
+            "can_short": can_short, "has_futures": has_futures, "has_cb": has_cb,
+            "date_cells": date_cells, "highlight_date": highlight_date,
+            "final_msg": final_msg, "is_official": is_official,
+        })
+
+    return {"headers": headers, "date_cols": date_cols, "rows": rows}
