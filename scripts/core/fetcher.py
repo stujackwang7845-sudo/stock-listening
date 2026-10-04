@@ -625,6 +625,12 @@ class StockFetcher:
                     if sj_client.is_connected or sj_client._ensure_connected():
                         sj_df = sj_client.get_kbars(code, start_fetch_date)
                         if sj_df is not None and not sj_df.empty:
+                            # [Fix 2026-10-05] Shioaji K棒成交量單位是「張」，快取與 calculator
+                            # 60均量一律用「股」(FinMind/官方行情皆為股數)，不換算會混單位
+                            # (與官方比對發現本機快取 1.19 萬筆量是張)
+                            if 'Volume' in sj_df.columns:
+                                sj_df = sj_df.copy()
+                                sj_df['Volume'] = sj_df['Volume'] * 1000
                             new_df = sj_df
                             print(f"[Fetcher] Shioaji kbars({code}): {len(new_df)} 筆")
                 except Exception as e:
@@ -645,6 +651,12 @@ class StockFetcher:
                         std_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
                         avail = [c for c in std_cols if c in fm_df.columns]
                         new_df = fm_df[avail]
+
+                # [Fix 2026-10-05] 只存到「最後一個已收盤交易日」為止。盤中呼叫時 Shioaji
+                # 會回傳當天還沒收盤的 K 棒，存進去後下次因 last_date >= target_date 不再重抓，
+                # 半天的開高低收與成交量就永久留在快取(與官方比對發現約 2.4 萬筆價格不符)
+                if new_df is not None and not new_df.empty:
+                    new_df = new_df[pd.to_datetime(new_df.index).normalize() <= target_date]
 
                 if new_df is not None and not new_df.empty:
                     # 存入快取
