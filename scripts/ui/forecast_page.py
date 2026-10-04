@@ -155,6 +155,7 @@ class ForecastWorker(QThread):
 
         # 官方聽牌清單 (code set)
         official_set = set(item["code"] for item in self.attention_list)
+        official_reason_map = {item["code"]: item.get("trigger_info", "") for item in self.attention_list}
 
         # [Fix] 確保所有聽牌代碼都能進入迴圈處理，即使不在 agg_data 內
         valid_codes = set(c for c in self.agg_data.keys() if len(str(c)) == 4 and "." not in str(c))
@@ -518,37 +519,9 @@ class ForecastWorker(QThread):
                 except:
                     pass
 
-            hist_items = []
-            for d in pred_dates_30:
-                c_str = filtered_clauses.get(d, "")
-                # [Fix 2026-09-01] c_str 是「只保留第1~8款」過濾後的版本，官方
-                # 已列入注意但 ClauseParser 解析不出具體款別的日子（例如泛稱的
-                # 「注意」、或「等九個營業日已有五次」這種非標準措辭）在這裡永遠
-                # 是空字串。rule2/3/4 問的是「有沒有觸發任一款」不是「哪一款」，
-                # 所以 is_any_all 改用未過濾的原始 clauses_map，只要當天官方有任何
-                # 注意紀錄就算「有觸發」；is_clause1/is_any 維持用過濾後的 c_str，
-                # 因為這兩者需要明確知道是不是第一款/哪幾款。
-                raw_c_str = clauses_map.get(d, "")
-                try:
-                    d_date = datetime.strptime(f"{anchor_dt.year}/{d}", "%Y/%m/%d").date()
-                    if d_date > anchor_dt.date():
-                        d_date = datetime.strptime(f"{anchor_dt.year - 1}/{d}", "%Y/%m/%d").date()
-                except:
-                    d_date = None
-
-                is_disp = False
-                if d_date:
-                    for ps, pe in disposal_periods:
-                        if ps <= d_date <= pe:
-                            is_disp = True
-                            break
-
-                hist_items.append({
-                    "is_clause1": "一" in c_str,
-                    "is_any": len(c_str) > 0,
-                    "is_any_all": len(raw_c_str.strip()) > 0,
-                    "is_disposed": is_disp,
-                })
+            # [2026-10-04] 逐日 history_items 組裝搬到 core/conditions_engine.py，跟儀表板共用
+            from core.conditions_engine import build_history_items
+            hist_items = build_history_items(clauses_map, disposal_periods, pred_dates_30, anchor_dt)
 
             trigger_progress = DispositionPredictor.get_trigger_progress(hist_items)
             _, _, min_needed = DispositionPredictor.analyze(hist_items, future_days=5)
@@ -611,82 +584,30 @@ class ForecastWorker(QThread):
                 if "1467" in code or "南緯" in name:
                     print(f"[ForecastWorker] Processing {code} - {name}, should_calc={should_calc}")
                 
+                from core.conditions_engine import compute_stock_conditions, CONDITIONS_VERSION
                 cached_res = data.get("calc_results", [])
-                has_cache = bool(cached_res) and cached_res != ["無法取得歷史股價"]
-                
+                # [Fix 2026-10-04] 舊版快取的分區是錯的(沒傳還差次數，全部當成進處置)，
+                # 版本不符就重算，不沿用。
+                has_cache = (bool(cached_res) and cached_res != ["無法取得歷史股價"]
+                             and data.get("calc_ver") == CONDITIONS_VERSION)
+
                 if self.is_history and has_cache:
                     # 快取優先：如果是歷史日期且已有計算結果，直接取用，不重新執行耗時的 API 下載與重算
                     calc_results = data.get("calc_results", [])
                     exclusion_lines = data.get("exclusion_lines", [])
                 else:
                     try:
-                        from core.calculator import DispositionCalculator
-                        from core.fetcher import StockFetcher
-                        fetcher = StockFetcher()
-
-                        # [Fix 2026-09-30] has_c2_disp_60 從未計算過，calculate_conditions()
-                        # 收不到就用預設值 False，導致排除條件框「2.前60日曾因第二款進處置」
-                        # 永遠顯示「否」，跟 Dashboard 的 CalcWorker(有做這段即時 API 查詢)對不上
-                        # (2305 案例：Dashboard 顯示「是」，這裡顯示「否」)。比照 dashboard.py 的
-                        # check_exclusion_rules 前置計算(Rule B)，用同一支
-                        # fetch_stock_disposition_history API、同樣的關鍵字判斷，確保兩邊一致。
-                        has_c2_disp_60 = False
-                        try:
-                            d90_ago = anchor_dt - timedelta(days=90)
-                            s_date = d90_ago.strftime("%Y%m%d")
-                            e_date = anchor_dt.strftime("%Y%m%d")
-                            cutoff_60 = (anchor_dt - timedelta(days=60)).strftime("%Y%m%d")
-                            hist_disp = fetcher.fetch_stock_disposition_history(code, s_date, e_date, source)
-                            rows_d = []
-                            if isinstance(hist_disp, dict) and 'data' in hist_disp:
-                                rows_d = hist_disp['data']
-                            elif isinstance(hist_disp, list):
-                                rows_d = hist_disp
-                            for r in rows_d:
-                                found_date = ""
-                                if isinstance(r, list):
-                                    if len(r) > 2:
-                                        found_date = str(r[1])
-                                        if str(r[2]).strip() != code:
-                                            continue
-                                elif isinstance(r, dict):
-                                    found_date = str(r.get("Date", ""))
-                                    c = r.get("Code", "") or r.get("code", "") or r.get("StkNo", "")
-                                    if c and str(c).strip() != code:
-                                        continue
-                                found_date = found_date.replace(".", "/")
-                                ad_date = ""
-                                if "/" in found_date:
-                                    ps = found_date.split('/')
-                                    if len(ps) == 3:
-                                        ad_date = f"{int(ps[0]) + 1911}{ps[1].zfill(2)}{ps[2].zfill(2)}"
-                                if ad_date and ad_date >= cutoff_60:
-                                    r_str = str(r)
-                                    if "第二款" in r_str or "第2款" in r_str or ("款" in r_str and "二" in r_str) or \
-                                       "第二次處置" in r_str or "六個營業日" in r_str:
-                                        has_c2_disp_60 = True
-                                        break
-                        except Exception as e:
-                            print(f"[ForecastWorker] {code} has_c2_disp_60 查詢失敗(不影響其他計算): {e}")
-
-                        # [Fix] 避免 ForecastWorker 大量觸發慢速的 FinMind API 下載，設定 allow_fetch=False
-                        # 但為了確保官方聽牌區不出現空白，針對聽牌股票允許強制從網路下載
-                        allow_fetch_flag = should_calc
-                        history_df, shares_outstanding = fetcher.fetch_stock_history(code, source, allow_fetch=allow_fetch_flag)
-                        if history_df is not None and not history_df.empty:
-                            import pandas as pd
-                            # filter by index which is Date
-                            history_df = history_df[pd.to_datetime(history_df.index).date <= anchor_dt.date()]
-                            
-                            c_lines, is_clause2_risk, exc_lines = DispositionCalculator.calculate_conditions(
-                                history_df, source=source, stock_name=name, has_c1_30=has_c1_30,
-                                has_c2_disp_60=has_c2_disp_60, shares_outstanding=shares_outstanding
-                            )
-                            calc_results = c_lines
-                            exclusion_lines = exc_lines
-                        else:
-                            calc_results = ["無法取得歷史股價"]
-                            exclusion_lines = []
+                        # [Fix 2026-10-04] 跟儀表板 CalculationWorker 呼叫同一支核心函式，
+                        # 還差次數由 trigger_progress + 官方聽牌原因決定(見 conditions_engine.py)。
+                        cond = compute_stock_conditions(
+                            code, source, name, anchor_dt,
+                            clauses_map=clauses_map,
+                            disp_records=disp_map.get(code, []),
+                            official_reason=official_reason_map.get(code, ""),
+                        )
+                        calc_results = cond["lines"]
+                        exclusion_lines = cond["exclusion_lines"]
+                        is_clause2_risk = cond["is_clause2_risk"]
                     except Exception as e:
                         import traceback
                         err = traceback.format_exc()
@@ -750,6 +671,9 @@ class ForecastWorker(QThread):
             if code in self.agg_data:
                 self.agg_data[code]["calc_results"] = calc_results
                 self.agg_data[code]["exclusion_lines"] = exclusion_lines
+                if should_calc:
+                    from core.conditions_engine import CONDITIONS_VERSION
+                    self.agg_data[code]["calc_ver"] = CONDITIONS_VERSION
                 self.agg_data[code]["min_needed"] = min_needed
                 self.agg_data[code]["trigger_progress"] = trigger_progress
                 # [Fix 2026-08-22] enter_freq(如"2分初犯"/"25分累犯")之前只存在這次執行的
@@ -1134,6 +1058,7 @@ class ForecastPage(QWidget):
                         "code": code, "name": r.get("name", ""),
                         "reason": r.get("reason", ""),
                         "source": r.get("source", "上市"),
+                        "trigger_info": r.get("official_reason") or r.get("trigger_info", ""),
                     })
 
             print(f"[ForecastPage] agg_data={len(agg_data)} 支, 從 history 補齊 {enriched_count} 筆 clauses")
@@ -1344,8 +1269,10 @@ class ForecastPage(QWidget):
                 # 過濾非條件行
                 plain = re.sub(r'<[^>]+>', ' ', txt).strip()
                 if '最新收盤' in plain: continue
-                if '進處置:' in plain or '進處置：' in plain: continue
-                if '達以下任一' in plain: continue
+                # [2026-10-04] 保留「進處置:」「達以下任一則聽牌:」分區標題，跟儀表板一致，
+                # 才看得出哪些款是明天達到就進處置、哪些只是進聽牌。去掉開頭空行保持緊湊。
+                if '進處置:' in plain or '達以下任一' in plain:
+                    txt = re.sub(r'^(<br>)+', '', txt)
                 if '無 (' in plain and '全部條件' in plain: continue
                 # 保留原始 HTML (含 <b> 標記)
                 html_parts.append(txt)

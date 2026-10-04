@@ -1172,7 +1172,8 @@ class Dashboard(QWidget):
                             stock_name = name_item.text()
                         break
             
-            self.calc_worker = CalculationWorker(code, source, stock_name=stock_name, target_date=self.current_display_date)
+            self.calc_worker = CalculationWorker(code, source, stock_name=stock_name, target_date=self.current_display_date,
+                                                 agg_entry=getattr(self, 'agg_data', {}).get(code))
             self.calc_worker.result_ready.connect(self.update_conditions)
             self.calc_worker.start()
             
@@ -1237,12 +1238,12 @@ class Dashboard(QWidget):
             html_content = "<br>".join(calc_lines)
             
             # 2. Exclusion Logic
-            html_content += "<br><br><div style='color: #FF4444; font-weight: bold; margin-bottom: 5px; font-size: 20px;'>排除條件:</div>"
-            
+            # [2026-10-04] 排除條件改由 conditions_engine 產出(已含「排除條件:」標題)，跟總覽同一份
             if excl_lines:
-                 html_content += "<div style='color: #DDDDDD; font-size: 16px; font-weight: bold; line-height: 1.5;'>" + "<br>".join(excl_lines) + "</div>"
+                 html_content += "<br>" + "<br>".join(excl_lines)
             else:
-                 html_content += "<div style='color: #888888;'>無資料</div>"
+                 html_content += "<br><br><div style='color: #FF4444; font-weight: bold; margin-bottom: 5px; font-size: 20px;'>排除條件:</div>"
+                 html_content += "<div style='color: #888888;'>無</div>"
             
             full_html = f"<html><body>{html_content}</body></html>"
             self.condition_lbl.setHtml(full_html)
@@ -4238,304 +4239,55 @@ from core.utils import DateUtils
 class CalculationWorker(QThread):
     result_ready = pyqtSignal(tuple) # (calc_lines, excl_lines)
     
-    def __init__(self, code, source, stock_name=None, target_date=None):
+    def __init__(self, code, source, stock_name=None, target_date=None, agg_entry=None):
         super().__init__()
         self.code = code
         self.source = source
         self.stock_name = stock_name
         self.target_date = target_date
+        self.agg_entry = agg_entry
         
     def run(self):
-        fetcher = StockFetcher()
-        # Fetch 180 days for calculation (Need 60-90 days ref)
-        df, shares = fetcher.fetch_stock_history(self.code, self.source, period="180d")
-        
-        if df is None or df.empty:
-            self.result_ready.emit((self.code, (["無法取得歷史股價"], []))) # Fix tuple unpacking
-            return
-            
-        # [Fix] Apply 18:00 cutoff logic OR Historical Date Logic
-        # Truncate dataframe to ensure we don't peek into "Future" relative to view date
-        if self.target_date:
-             cutoff_date = self.target_date
-        else:
-             cutoff_date = DateUtils.get_last_trading_day()
-        # Convert cutoff_date (datetime) to pd.Timestamp for comparison
-        cutoff_ts = pd.Timestamp(cutoff_date)
-        # Ensure we cover the whole cutoff day (normalize happens in fetcher usually, but safe check)
-        cutoff_ts = cutoff_ts.normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-        
-        if df.index.max() > cutoff_ts:
-             df = df[df.index <= cutoff_ts]
-             
-        if df.empty:
-            self.result_ready.emit((self.code, (["資料截斷後為空"], [])))
-            return
-
-        needed_c1 = 1
-        needed_any = 1
-        
-        # Calculate needed counts from history (from Cache)
+        # [Fix 2026-10-04] 改呼叫 core/conditions_engine.compute_stock_conditions，跟處置預測總覽
+        # 同一支函式、同一份資料(attention_clauses 逐日條款 + 處置紀錄 + 官方聽牌原因)。
+        # 舊寫法逐日即時查 API 自己湊還差次數：查不到就算錯，且「30日內曾有第一款」就把
+        # 第一款硬設成還差1次(第一款要連續3日才進處置)，跟總覽結果對不起來。
+        from core.conditions_engine import compute_stock_conditions
         try:
-             cache = CacheManager()
-             
-             # [Fix] Use Target Date for "Today" reference in history calculation
-             today = self.target_date if self.target_date else dt.datetime.now()
-             
-             history_items = []
-             
-             has_c1_30 = False
-             has_c2_disp_60 = False
-             
-             # --- Live History Check (User Requirement: Website Source) ---
-             try:
-                 d60_ago = today - dt.timedelta(days=90)
-                 s_date = d60_ago.strftime("%Y%m%d")
-                 e_date = today.strftime("%Y%m%d")
-                 cutoff_30 = (today - dt.timedelta(days=30)).strftime("%Y%m%d")
-                 cutoff_60 = (today - dt.timedelta(days=60)).strftime("%Y%m%d")
-                 
-                 # 1. Attention (Rule A)
-                 live_att_map = {} 
+            anchor = self.target_date if self.target_date else DateUtils.get_last_trading_day()
+            anchor_dt = dt.datetime(anchor.year, anchor.month, anchor.day)
 
-                 hist_att = None
-                 for _attempt in range(3):
-                     try:
-                         hist_att = fetcher.fetch_stock_attention_history(self.code, s_date, e_date, self.source)
-                         if hist_att:
-                             break
-                         time.sleep(0.5)
-                     except Exception as e:
-                         print(f"Fetch Att Attempt {_attempt+1} failed: {e}")
-                         time.sleep(0.5)
-                         
-                 if hist_att:
-                     rows = []
-                     if isinstance(hist_att, dict):
-                         if 'data' in hist_att: rows = hist_att['data'] # TWSE
-                         elif 'tables' in hist_att and len(hist_att['tables'])>0: rows = hist_att['tables'][0].get('data', []) # TPEX
-                     elif isinstance(hist_att, list): rows = hist_att
-                     
-                     for r in rows:
-                         found_date = ""
-                         if isinstance(r, list) and len(r)>5: found_date = str(r[5])
-                         elif isinstance(r, dict): found_date = str(r.get("Date", ""))
-                         
-                         if isinstance(r, list) and len(r)>1 and str(r[1]).strip() == self.code:
-                             pass
-                         else:
-                             # TPEX check?
-                             if isinstance(r, dict):
-                                 c = r.get("Code", "") or r.get("code", "") or r.get("StkNo", "")
-                                 if str(c).strip() == self.code: pass
-                                 else: continue
-                             else:
-                                 continue 
-                         
-                         ad_date = ""
-                         found_date = found_date.replace(".", "/")
-                         if "/" in found_date:
-                             ps = found_date.split('/')
-                             if len(ps)==3: 
-                                 ad_date = f"{int(ps[0])+1911}{ps[1].zfill(2)}{ps[2].zfill(2)}"
-                         
-                         if ad_date:
-                             live_att_map[ad_date] = str(r)
-                             if ad_date >= cutoff_30:
-                                 r_str = str(r)
-                                 if "第一款" in r_str or "第1款" in r_str:
-                                     has_c1_30 = True
-                 
-                 # 2. Disposition (Rule B)
-                 hist_disp = fetcher.fetch_stock_disposition_history(self.code, s_date, e_date, self.source)
-                 if hist_disp:
-                     rows_d = []
-                     if isinstance(hist_disp, dict) and 'data' in hist_disp: rows_d = hist_disp['data']
-                     elif isinstance(hist_disp, list): rows_d = hist_disp
-                     
-                     for r in rows_d:
-                         found_date = ""
-                         if isinstance(r, list):
-                             # [Fix] TWSE Disposition API: Index 1=Date, Index 2=Code
-                             if len(r) > 2:
-                                 found_date = str(r[1])
-                                 if str(r[2]).strip() != self.code:
-                                     continue
-                         elif isinstance(r, dict): 
-                             found_date = str(r.get("Date", ""))
-                             if str(r.get("code", "")).strip() != self.code: 
-                                  c = r.get("Code", "") or r.get("code", "") or r.get("StkNo", "")
-                                  if c and str(c).strip() != self.code:
-                                      continue
-                         
-                         ad_date = ""
-                         found_date = found_date.replace(".", "/")
-                         if "/" in found_date:
-                             ps = found_date.split('/')
-                             if len(ps)==3: ad_date = f"{int(ps[0])+1911}{ps[1].zfill(2)}{ps[2].zfill(2)}"
-                             
-                         if ad_date and ad_date >= cutoff_60:
-                             r_str = str(r)
-                             if "第二款" in r_str or "第2款" in r_str or ("款" in r_str and "二" in r_str) or \
-                                "第二次處置" in r_str or "六個營業日" in r_str:
-                                 has_c2_disp_60 = True
-                                 break
-             except Exception as e:
-                 print(f"Live Check Error: {e}")
-             
-             # --- End Live Check ---
-
-             
-             # Look back 60 days (Extended for Rule B)
-             # [Fix] Range must include 0 (Today) to count today's live data in accumulation
-             for i in range(60, -1, -1):
-                 d = today - dt.timedelta(days=i)
-                 d_str = d.strftime("%Y%m%d")
-                 data = cache.get_daily_data(d_str)
-                 
-                 # [Fix] Inject live data if present (Ensure Today is counted)
-                 if d_str in live_att_map:
-                     if not data: data = []
-                     # Check if we already have this stock
-                     target = next((x for x in data if x.get("code") == self.code), None)
-                     if target:
-                         # Force update reason from live source (Cache might be stale/empty reason)
-                         target["reason"] = live_att_map[d_str]
-                         # if self.code == "2408": print(f"[DEBUG] Updated Cache Reason for {d_str}")
-                     else:
-                         # Append mock object
-                         data.append({"code": self.code, "reason": live_att_map[d_str]})
-                         # if self.code == "2408": print(f"[DEBUG] Injected Live Data for {d_str}")
-
-                 found_for_day = False
-                 if data:
-                     target = next((x for x in data if x.get("code") == self.code), None)
-                     if target:
-                         # Parse Reason from Cache (Fix for missing boolean flags)
-                         raw_reason = str(target.get("reason", ""))
-                         c_str = ClauseParser.parse_clauses(raw_reason)
-                         
-                         is_c1 = ("一" in c_str)
-                         # [Fix] If in live_att_map, it IS an attention, so counts as 'Any' even if parser fails
-                         is_any = (len(c_str) > 0) or (d_str in live_att_map)
-                         
-                         # Check 30-day window for Rule A (Clause 1)
-                         if i <= 30 and is_c1:
-                             has_c1_30 = True
-                             
-                         # Check 60-day window for Rule B (Disposition via Clause 2)
-                         # Logic: Check if "處置" and ("二" or "2") in reason text
-                         if "處置" in raw_reason and ("二" in raw_reason or "2" in raw_reason):
-                             has_c2_disp_60 = True
-                         
-                         history_items.append({
-                             "date": d_str,
-                             "is_clause1": is_c1,
-                             "is_any": is_any
-                         })
-                         found_for_day = True
-                 
-                 # If not found but IS a trading day, append Empty Record (Break Streak)
-                 if not found_for_day:
-                     if DateUtils.is_trading_day(d):
-                         history_items.append({
-                             "date": d_str,
-                             "is_clause1": False,
-                             "is_any": False
-                         })
-             
-             # Now calculate status
-             if history_items:
-                  needed_c1, needed_any = DispositionPredictor.get_status_counts(history_items)
-             else:
-                  # No history found (Safe default)
-                  needed_c1, needed_any = 3, 5
-                  
-        except Exception as e:
-             print(f"Worker History Error: {e}")
-             needed_c1, needed_any = 3, 5
-        
-        # IMPORTANT FIX: 如果從 API 找到第一款記錄（has_c1_30=True），
-        # 但 cache 沒有歷史（needed_c1=3 預設值），則調整為 needed_c1=1
-        # 這樣可以正確處理新進入聽牌區的股票
-        if has_c1_30 and needed_c1 > 1:
-            print(f"[DEBUG] {self.code} has_c1_30=True，調整 needed_c1: {needed_c1} -> 1")
-            needed_c1 = 1
-
-        # [Fix 2026-09-17] needed_c1 有上面那段「即時 API 找不到就用 has_c1_30 校正」的
-        # 保護，但 needed_any（連5日/10日6次/30日12次任一款）沒有同等保護——這裡的
-        # history_items 是靠 fetch_stock_attention_history() 即時逐日查詢組出來的，
-        # 這個 API 若某幾天查不到資料(官方端不穩定、或該股票查詢紀錄本身不完整)，
-        # 對應天數就會被誤標成「當天沒有任一款觸發」，導致 streak_any/window_any
-        # 被低估、needed_any 被高估。已確認的實例：3441 官方是「連5日任一款」聽牌
-        # (rule2 needed=1)，但這裡舊邏輯算出 needed_any 偏高，讓 calculate_conditions()
-        # 的 [2]~[8] 款因為 needed_any 沒通過 <=2 的門檻而完全不顯示，使用者只看得到
-        # [1]，誤以為只有第一款會觸發，但官方「聽牌」定義是「任一款都會觸發」。
-        # 改成：拿 dashboard/forecast 那條已經驗證過的可靠路徑(agg_data 快取裡的
-        # trigger_progress，來源是 attention_clauses 資料庫，不受即時 API 查詢不穩定
-        # 影響)算出的 needed_any 來校正，兩者取「較急迫(較小)」的那個，只會讓顯示
-        # 更完整，不會讓真的還沒接近的股票被誤判成聽牌。
-        try:
-            _cache_date = self.target_date if self.target_date else DateUtils.get_last_trading_day()
-            _cache_date_str = _cache_date.strftime("%Y%m%d")
-            _cached_agg = cache.get_agg_data(_cache_date_str)
-            if _cached_agg and self.code in _cached_agg:
-                _tp = _cached_agg[self.code].get("trigger_progress")
-                if _tp:
-                    _cached_needed_any = min(
-                        _tp.get("rule2", {}).get("needed", 99),
-                        _tp.get("rule3", {}).get("needed", 99),
-                        _tp.get("rule4", {}).get("needed", 99),
-                    )
-                    if _cached_needed_any < needed_any:
-                        print(f"[DEBUG] {self.code} 即時查詢算出的 needed_any={needed_any} 比快取"
-                              f"trigger_progress算出的{_cached_needed_any}保守，改用快取的值")
-                        needed_any = _cached_needed_any
-        except Exception as e:
-            print(f"[DEBUG] {self.code} 校正 needed_any 失敗(不影響原本結果): {e}")
-
-        # Calculate
-        lines, is_clause2_risk, _excl_lines = DispositionCalculator.calculate_conditions(
-            df, self.source, shares, needed_c1=needed_c1, needed_any=needed_any, stock_name=self.stock_name
-        )
-        
-        # Calculate Exclusion (Pass History Flags + Clause 2 Risk)
-        # 修正: 聽牌狀態 (needed_any <= 1 或 needed_c1 <= 1) 下，必須強制計算並顯示排除條件
-        # 即使目前預測漲幅未達標，或系統對 needed_any 計算較保守(如 2)，
-        # 只要有一款聽牌，用戶就需要看到排除條件以求安心。
-        should_check_exclusion = is_clause2_risk or (needed_any <= 2) or (needed_c1 <= 2)
-        if self.code == "2408":
-            print(f"[DEBUG 2408] needed_c1={needed_c1}, needed_any={needed_any}, is_risk={is_clause2_risk}, should={should_check_exclusion}")
-            print(f"Live Att Map Keys: {list(live_att_map.keys())}")
-            
-            # Print history item dates to see what was counted
-            # We didn't store dates in history_items, but we can reconstruct or simple count
-            print(f"History Items Count: {len(history_items)}")
+            disp_records = []
             try:
-                print(f"Last 10 Items: {[(x.get('date'), x.get('is_any')) for x in history_items[-10:]]}")
+                ddb = DisposalDatabase()
+                disp_records = ddb.get_disposal_by_code(self.code)
+                ddb.close()
             except Exception as e:
-                print(f"Debug Items Error: {e}")
-        
-        # [8046 Case Fix]
-        # 如果進處置的主要原因是 [1-1] (差價條款)，通常是因為下跌或震盪觸發，與漲幅過大(第二款)無關。
-        # 此時若 is_clause2_risk 為 False (即漲幅未達標)，則不應顯示排除條件，避免混淆。
-        is_risk_diff_clause = False
-        for line in lines:
-            if "[1-1]" in line:
-                is_risk_diff_clause = True
-                break
-                
-        if is_risk_diff_clause and not is_clause2_risk:
-             should_check_exclusion = False
-        
-        # print(f"[DEBUG_EXCL] Code={self.code}, is_risk={is_clause2_risk}, needed={needed_any}, needed_c1={needed_c1}, should={should_check_exclusion}")
-        
-        excl_lines = self.check_exclusion_rules(df, has_c1_30, has_c2_disp_60, should_check_exclusion)
-        
-        # print(f"[DEBUG_EXCL] Result Lines: {len(excl_lines)}")
-        
+                print(f"[CalcWorker] {self.code} 讀處置紀錄失敗: {e}")
+
+            official_reason = ""
+            try:
+                for r in HistoryManager().get_listening_data(anchor_dt):
+                    if str(r.get("code")) == self.code:
+                        official_reason = str(r.get("official_reason") or r.get("trigger_info", ""))
+                        break
+            except Exception as e:
+                print(f"[CalcWorker] {self.code} 讀官方聽牌原因失敗: {e}")
+
+            cond = compute_stock_conditions(
+                self.code, self.source, self.stock_name, anchor_dt,
+                clauses_map=(self.agg_entry or {}).get("clauses") or {},
+                disp_records=disp_records,
+                official_reason=official_reason,
+            )
+            lines, excl_lines = cond["lines"], cond["exclusion_lines"]
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            lines, excl_lines = [f"計算錯誤: {str(e)[:40]}"], []
+
         # Emit (Code, ResultTuple) to avoid cache poisoning
-        self.result_ready.emit((self.code, (lines, excl_lines)))     
+        self.result_ready.emit((self.code, (lines, excl_lines)))
 
     def check_exclusion_rules(self, df, has_c1_30=False, has_c2_disp_60=False, is_clause2_risk=False):
         """

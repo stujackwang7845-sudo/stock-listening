@@ -333,18 +333,28 @@ class DispositionCalculator:
         rise_eval1 = _eval_direction(final_t1, False, limit_up_price, limit_down_price, last_close)
         drop_eval1 = _eval_direction(final_t1_drop, True, limit_up_price, limit_down_price, last_close)
 
+        # [Fix 2026-10-04] 第一款本身也算「一至八款任一款」，所以第一款明天觸發會不會進處置，
+        # 要看「連3日第一款」與「連5日/10日6次/30日12次」哪條比較急，取較小的那個。
+        # 例：10日內已5次但第一款沒連續(needed_c1=3, needed_any=1)，明天中第一款一樣湊滿6次進處置。
+        needed_c1_eff = min(needed_c1, needed_any)
+
         for _direction1, _ev1 in _choose_directions(rise_eval1, drop_eval1):
-             if _ev1["must_enter"]:
-                 must_enter = True
              _label1 = active_clause_label if _direction1 == "rise" else active_clause_label_drop
+             _status_target1 = _ev1['status_target']
+             if _ev1["must_enter"]:
+                 if needed_c1_eff <= 1:
+                     must_enter = True
+                 else:
+                     # 明天必定達到第一款，但還差2次才進處置 → 只是必定進聽牌
+                     _status_target1 = _status_target1.replace("必進處置", "必聽牌")
              msg = (
                  f"<b>{_label1} {source_label}</b>"
-                 f"<br>{_ev1['status_target']} {_ev1['status_gap']}<br>"
+                 f"<br>{_status_target1} {_ev1['status_gap']}<br>"
              )
 
-             if needed_c1 <= 1:
+             if needed_c1_eff <= 1:
                  disposition_lines.append(msg)
-             elif needed_c1 <= 2:
+             elif needed_c1_eff <= 2:
                  listening_lines.append(msg)
 
         # [2] 長期漲幅條款
@@ -626,11 +636,12 @@ class DispositionCalculator:
         results_lines.append(f"最新收盤: {last_close}  漲停價: {limit_up_price:.2f}  跌停價: {limit_down_price:.2f}")
 
         if disposition_lines:
-            results_lines.append("<br><b>進處置:</b>")
+            # [2026-10-04] 標題講清楚是「明天達到」的後果，避免把一進聽股誤讀成已經聽牌
+            results_lines.append("<br><b>明日達以下任一 → 進處置:</b>")
             results_lines.extend(disposition_lines)
-            
+
         if listening_lines:
-            results_lines.append("<br><b>達以下任一則聽牌:</b>")
+            results_lines.append("<br><b>明日達以下任一 → 變聽牌（還不會進處置）:</b>")
             results_lines.extend(listening_lines)
             
         if not disposition_lines and not listening_lines:

@@ -171,6 +171,14 @@ class HistoryManager:
                 # Ideally we respect local changes (tags/comments).
                 # But fetcher data (trigger_info) might be better?
                 # Let's update trigger_info if widely different?
+                # [2026-10-04] 本機紀錄的 trigger_info 常是自己解析的 {"10/02": "一"}，
+                # 看不出官方是因哪條規則聽牌。GitHub 那份是官方原文(連續二次/九個營業日已有五次…)，
+                # 另存成 official_reason 欄位給 conditions_engine 用；只新增欄位，不動既有資料。
+                remote_ti = record.get("trigger_info", "")
+                if (isinstance(remote_ti, str) and ("連續" in remote_ti or "營業日已有" in remote_ti)
+                        and existing.get("official_reason") != remote_ti):
+                    existing["official_reason"] = remote_ti
+                    return True
                 return False # Assume local is up to date or same
 
         # If not found, append
