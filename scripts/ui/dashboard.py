@@ -27,7 +27,7 @@ from core.margin_futures_db import MarginFuturesDatabase
 from core.dashboard_engine import (
     build_agg_data, merge_disposal_status_from_db, build_local_agg_data,
     merge_clauses_from_listening_history, merge_clauses_from_db, compute_dashboard_rows,
-    compute_info_boxes,
+    compute_info_boxes, fill_attention_clauses_gap,
 )
 
 class SortableWidgetItem(QTableWidgetItem):
@@ -192,84 +192,10 @@ class ClausesGapFetchWorker(QThread):
         self.db_path = db_path or get_paths().disposal_db
 
     def run(self):
-        import sqlite3
-        from datetime import timedelta
-        from core.scraper_twse_notice import NoticeFetcher
-        from core.clause_parser import ClauseNumberParser
-        from core import database_clause_ext
-        from core.utils import DateUtils
-
+        # 計算本體在 core/dashboard_engine.fill_attention_clauses_gap(2026-10-05 P4 搬出)，
+        # 這裡只負責執行緒與訊號
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-
-            # 找出表裡目前最新的公告日，只回補「最新公告日+1」到「顯示日期」這段
-            cursor.execute("SELECT MAX(announce_date) FROM attention_clauses")
-            row = cursor.fetchone()
-            latest = row[0] if row else None
-
-            target_date_only = self.target_date.date() if hasattr(self.target_date, 'date') else self.target_date
-
-            if latest:
-                try:
-                    start_date = datetime.strptime(latest, "%Y-%m-%d").date() + timedelta(days=1)
-                except Exception:
-                    start_date = None
-            else:
-                start_date = None
-
-            if start_date is None:
-                # 表是空的或解析失敗，退回跟手動按鈕一樣的預設範圍(往前 8 個交易日)
-                dates = []
-                if DateUtils.is_trading_day(target_date_only):
-                    dates.append(target_date_only)
-                count = 0
-                test_date = target_date_only - timedelta(days=1)
-                while count < 8:
-                    if DateUtils.is_trading_day(test_date):
-                        dates.append(test_date)
-                        count += 1
-                    test_date -= timedelta(days=1)
-                dates.reverse()
-            else:
-                dates = []
-                d = start_date
-                while d <= target_date_only:
-                    if DateUtils.is_trading_day(d):
-                        dates.append(d)
-                    d += timedelta(days=1)
-
-            if not dates:
-                conn.close()
-                self.finished_ok.emit(0, "")
-                return
-
-            all_records = []
-            for date in dates:
-                date_dt = datetime(date.year, date.month, date.day)
-                data = NoticeFetcher.fetch_notice(date_dt)
-                if not data:
-                    continue
-                for item in data:
-                    code = item.get('code', '').strip()
-                    if not code or len(code) != 4:
-                        continue
-                    reason = item.get('reason', '')
-                    clauses = ClauseNumberParser.parse(reason)
-                    if not clauses:
-                        clauses = [0]
-                    for clause_num in clauses:
-                        all_records.append({
-                            'announce_date': date.strftime('%Y-%m-%d'),
-                            'code': code,
-                            'name': item.get('name', ''),
-                            'source': item.get('source', 'TWSE'),
-                            'clause_number': clause_num,
-                            'reason': reason
-                        })
-
-            saved_count = database_clause_ext.save_attention_clauses(conn, all_records) if all_records else 0
-            conn.close()
+            saved_count = fill_attention_clauses_gap(self.target_date, self.db_path)
             self.finished_ok.emit(saved_count, "")
         except Exception as e:
             self.finished_ok.emit(0, str(e))

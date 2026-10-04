@@ -82,3 +82,6 @@ BUGREPORT_*.md
 # 處置初犯推播的訊號紀錄（個人進出場資料，repo 是公開的）
 data/disposal_golden_signals.json
 data/disposal_golden_signals.tmp
+
+# 雲端每日總控輸出(GitHub Pages 用 deploy-pages 部署，不進 git 歷史)
+site/
