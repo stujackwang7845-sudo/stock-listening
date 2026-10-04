@@ -1894,66 +1894,33 @@ class Dashboard(QWidget):
                      future_dts.append(None)
             
             # --- Observer/One Step Logic ---
-            if not data.get("is_disposed", False) and not disp_start_dt:
-                # Calc Prediction for One-Step using clause analysis
-                hist_items = []
-                clauses_map = data.get("clauses", {})
+            # [Fix 2026-10-04] 改用 core/conditions_engine 的 build_history_items，跟總覽
+            # (ForecastWorker)同一份逐日資料組裝。原本外層有 `not is_disposed and not disp_start_dt`，
+            # 把處置中(或 period 欄位殘留舊處置期間)的股票整個跳過，但使用者 2026-09-29 已確認：
+            # 處置期間的注意次數照樣累計，還差2次一樣算一進聽(總覽一直是這樣做)，
+            # 導致 10/02 總覽 8 檔、儀表板 6 檔(少了處置中的 2030、8084)。
+            from core.conditions_engine import build_history_items, disposal_periods_from_records
+            _anchor_dt = dt.datetime(self.current_display_date.year, self.current_display_date.month, self.current_display_date.day)
+            hist_items = build_history_items(
+                data.get("clauses", {}),
+                disposal_periods_from_records(disp_map.get(str(code), []), _anchor_dt.date()),
+                pred_history_dates, _anchor_dt,
+            )
+            warning_msg, prob, min_needed = DispositionPredictor.analyze(hist_items, future_days=5)
 
-                # [Fix 2026-08-20] 找出過去30個交易日內、已在當前顯示日(含)以前結束的處置期間，
-                # 標記對應日期 is_disposed=True，讓 predictor.py 的 cutoff_idx 正確截斷處置前的
-                # 舊紀錄，與 forecast_page.py 算法一致。
-                disposal_periods = []
-                for r in disp_map.get(str(code), []):
-                    ps_str = r.get('period_start')
-                    pe_str = r.get('period_end')
-                    if ps_str and pe_str:
-                        try:
-                            ps_dt = datetime.strptime(ps_str, "%Y-%m-%d").date()
-                            pe_dt = datetime.strptime(pe_str, "%Y-%m-%d").date()
-                            if ps_dt <= self.current_display_date.date():
-                                disposal_periods.append((ps_dt, pe_dt))
-                        except:
-                            pass
-
-                # [Fix] 支援完整條款以供 30日12次 預測正確執行
-                for d in pred_history_dates:
-                     c_str = clauses_map.get(d, "")
-                     valid_any_list = [c for c in c_str.split(',') if c.strip() in ['一', '二', '三', '四', '五', '六', '七', '八']]
-                     is_any = len(valid_any_list) > 0
-                     is_any_all = len(c_str.strip()) > 0
-
-                     is_disp_day = False
-                     try:
-                         dm = d.split("/")
-                         d_month, d_day = int(dm[0]), int(dm[1])
-                         eff_year = anchor_year
-                         if anchor_month == 1 and d_month == 12: eff_year -= 1
-                         elif anchor_month == 12 and d_month == 1: eff_year += 1
-                         d_date = dt.date(eff_year, d_month, d_day)
-                         for ps, pe in disposal_periods:
-                             if ps <= d_date <= pe:
-                                 is_disp_day = True
-                                 break
-                     except:
-                         pass
-
-                     hist_items.append({"is_clause1": "一" in c_str, "is_any": is_any, "is_any_all": is_any_all, "is_disposed": is_disp_day})
-
-                warning_msg, prob, min_needed = DispositionPredictor.analyze(hist_items, future_days=5)
-
-                # Check One Step Away (min_needed == 2)
-                # Note: min_needed == 1 means already "listening" (handled by history_manager)
-                # min_needed == 2 means "one step away from listening"
-                if min_needed == 2:
-                     suffix = ""
-                     if data.get("has_futures") or self.mf_db.has_futures(code): suffix += "(期)"
-                     if self.cb_db.has_cb_now(code): suffix += "(CB)"
-                     link = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
-                     src_display = data["source"]
-                     if src_display in ("TWSE", "tse"): src_display = "上市"
-                     elif src_display in ("TPEX", "otc", "OTC", "TPEX ", " TPEX"): src_display = "上櫃"
-                     if src_display == "上市": one_step_twse.append(link)
-                     else: one_step_tpex.append(link)
+            # Check One Step Away (min_needed == 2)
+            # Note: min_needed == 1 means already "listening" (handled by history_manager)
+            # min_needed == 2 means "one step away from listening"
+            if min_needed == 2:
+                 suffix = ""
+                 if data.get("has_futures") or self.mf_db.has_futures(code): suffix += "(期)"
+                 if self.cb_db.has_cb_now(code): suffix += "(CB)"
+                 link = f"<a href='{code}' style='color: #E0E0E0; text-decoration: none;'>{code}&nbsp;{name}{suffix}</a>"
+                 src_display = data["source"]
+                 if src_display in ("TWSE", "tse"): src_display = "上市"
+                 elif src_display in ("TPEX", "otc", "OTC", "TPEX ", " TPEX"): src_display = "上櫃"
+                 if src_display == "上市": one_step_twse.append(link)
+                 else: one_step_tpex.append(link)
             
             # --- Notice Box Logic (Future Disposal) ---
             # 盤後處置公告 = 當天公告、但尚未生效的處置
