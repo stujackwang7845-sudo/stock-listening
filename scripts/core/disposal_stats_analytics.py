@@ -317,7 +317,11 @@ def load_prices(
     if not frames:
         return {}
 
-    merged = pd.concat(frames, ignore_index=True)
+    return _price_map_from_frame(pd.concat(frames, ignore_index=True))
+
+
+def _price_map_from_frame(merged: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """(date, symbol, open, close) 長表 → {symbol: 依日期排序、去重、去掉無效價的 open/close}。"""
     merged["date"] = pd.to_datetime(merged["date"], errors="coerce")
     merged["open"] = pd.to_numeric(merged["open"], errors="coerce")
     merged["close"] = pd.to_numeric(merged["close"], errors="coerce")
@@ -369,13 +373,16 @@ def _record_metrics(row: pd.Series) -> Optional[dict[str, float | bool]]:
     }
 
 
-def compute_event(
+def event_stage_prices(
     event: DisposalEvent,
     prices: pd.DataFrame,
     post_days: int = DEFAULT_POST_DAYS,
     max_t: int = DEFAULT_MAX_T,
-) -> Optional[dict[str, dict[str, float | bool]]]:
-    """計算單一處置事件在各階段的統計值。
+) -> dict[str, tuple]:
+    """單一處置事件各階段對到的 (前一交易日收盤, 開盤, 收盤)，缺資料的階段不在結果裡。
+    (2026-10-05 P5 從 compute_event 抽出，網頁版匯出原始價格、在瀏覽器用同一公式算指標)
+
+    以下為原 compute_event 的說明：
 
     [Fix] T1..Tn 的天數編號改成沿著「實際日曆 + 交易日曆」逐日往前推算，
     不再用 prices 裡的資料列位置差計算。原本用位置差的寫法有個問題：只要
@@ -388,14 +395,14 @@ def compute_event(
     """
 
     if prices.empty:
-        return None
+        return {}
 
     dates = pd.DatetimeIndex(prices.index)
     start_ts = pd.Timestamp(event.period_start)
 
     start_idx = dates.searchsorted(start_ts, side="left")
     if start_idx >= len(dates):
-        return None
+        return {}
 
     # [Fix 2026-08-25] T-1 的目標日期改成跟 T1..Tn/Exit 一樣，先用交易日曆往前推算
     # 實際日曆日期，再依日期查價格(add_by_date)，不要用 start_idx - 1 這種在 prices
@@ -406,17 +413,14 @@ def compute_event(
     while not DateUtils.is_trading_day(t_minus_1_date):
         t_minus_1_date -= timedelta(days=1)
 
-    out: dict[str, dict[str, float | bool]] = {}
+    out: dict[str, tuple] = {}
 
     def add_by_index(label: str, idx: int) -> None:
         if idx < 1 or idx >= len(dates):
             return
 
-        row = prices.iloc[idx].copy()
-        row["prev_close"] = prices.iloc[idx - 1]["close"]
-        metrics = _record_metrics(row)
-        if metrics is not None:
-            out[label] = metrics
+        row = prices.iloc[idx]
+        out[label] = (prices.iloc[idx - 1]["close"], row["open"], row["close"])
 
     def add_by_date(label: str, target_date: date) -> None:
         """依實際日期(而非在 prices 裡的位置序號)查找該日資料，缺資料就跳過。"""
@@ -452,6 +456,24 @@ def compute_event(
                 steps += 1
         add_by_date(f"Exit+{offset}", post_date)
 
+    return out
+
+
+def compute_event(
+    event: DisposalEvent,
+    prices: pd.DataFrame,
+    post_days: int = DEFAULT_POST_DAYS,
+    max_t: int = DEFAULT_MAX_T,
+) -> Optional[dict[str, dict[str, float | bool]]]:
+    """計算單一處置事件在各階段的統計值(階段對齊見 event_stage_prices)。"""
+
+    out: dict[str, dict[str, float | bool]] = {}
+    for label, (prev_close, open_price, close_price) in event_stage_prices(
+        event, prices, post_days=post_days, max_t=max_t
+    ).items():
+        metrics = _record_metrics(pd.Series({"open": open_price, "close": close_price, "prev_close": prev_close}))
+        if metrics is not None:
+            out[label] = metrics
     return out or None
 
 
@@ -843,3 +865,107 @@ def save_disposal_stats_reports(
     md_path.write_text(render_markdown_report(dataset), encoding="utf-8")
 
     return tuple(csv_paths) + (md_path,)
+
+
+# ---------------------------------------------------------------------------
+# 網頁版(2026-10-05 P5)：統計圖表的逐事件階段價格匯出
+# 網頁端依時間窗口篩事件，再用 _record_metrics 同一套公式彙總，必須與 aggregate_interval 一致。
+# ---------------------------------------------------------------------------
+
+def load_prices_from_market_db(symbols: Iterable[str], db_path: Path | str) -> dict[str, pd.DataFrame]:
+    """同 load_prices，但讀 market_data.db 的 price_history(雲端的官方日行情)。"""
+
+    symbol_set = {clean_code(symbol) for symbol in symbols if str(symbol).strip()}
+    if not symbol_set or not Path(db_path).exists():
+        return {}
+    conn = sqlite3.connect(str(db_path))
+    try:
+        frame = pd.read_sql("SELECT stock_id AS symbol, date, open, close FROM price_history", conn)
+    finally:
+        conn.close()
+    frame["symbol"] = frame["symbol"].astype(str).map(clean_code)
+    frame = frame[frame["symbol"].isin(symbol_set)]
+    if frame.empty:
+        return {}
+    return _price_map_from_frame(frame)
+
+
+def bucket_rules(bucket: BucketKey, post_days: int = DEFAULT_POST_DAYS,
+                 min_sample: int = DEFAULT_MIN_SAMPLE, max_t: int = DEFAULT_MAX_T) -> tuple[int, int]:
+    """(min_sample, max_t)：與 build_disposal_stats_dataset 各分桶的設定相同。"""
+
+    if isinstance(bucket, str):
+        try:
+            return 0, int(bucket.split("天", 1)[0])
+        except (ValueError, IndexError):
+            return 0, max_t
+    if bucket == 2:
+        return 0, 7
+    return min_sample, max_t
+
+
+def export_event_stages(
+    *,
+    db_path: Path | str,
+    prices_loader,
+    as_of: date,
+    post_days: int = DEFAULT_POST_DAYS,
+    max_t: int = DEFAULT_MAX_T,
+    keep: Optional[dict] = None,
+    recompute_since: Optional[date] = None,
+) -> dict:
+    """
+    全部處置事件(不篩窗口)＋分桶＋各階段 [前一交易日收盤, 開盤, 收盤]。
+    prices_loader(symbols) → {symbol: DataFrame}；家裡用 load_prices(parquet)，雲端用
+    load_prices_from_market_db。keep 是上一版匯出：period_end 早於 recompute_since 的事件
+    沿用 keep 的價格(雲端只有約 90 個交易日的行情，舊事件不能重算)。
+    """
+
+    events = load_events(db_path=db_path)
+    all_periods_by_code = load_all_period_starts_by_code(db_path=db_path)
+    duration_buckets = bucket_by_duration_offense(events.get(2, []), all_periods_by_code)
+    bucket_of = {(e.code, e.period_start, e.period_end): key
+                 for key, bucket_events in duration_buckets.items() for e in bucket_events}
+
+    kept = {}
+    for row in (keep or {}).get("events", []):
+        kept[(row["i"], row["c"], row["s"], row["e"])] = row["p"]
+
+    need = set()
+    for interval, interval_events in events.items():
+        for ev in interval_events:
+            key = (interval, ev.code, ev.period_start.isoformat(), ev.period_end.isoformat())
+            if key in kept and recompute_since is not None and ev.period_end < recompute_since:
+                continue
+            need.add(ev.code)
+    prices = prices_loader(need) if need else {}
+
+    rows = []
+    for interval, interval_events in events.items():
+        for ev in interval_events:
+            key = (interval, ev.code, ev.period_start.isoformat(), ev.period_end.isoformat())
+            if ev.code not in need or key in kept and recompute_since is not None and ev.period_end < recompute_since:
+                stage = kept.get(key, {})
+            else:
+                stage = {}
+                frame = prices.get(ev.code)
+                if frame is not None and not frame.empty:
+                    for label, (prev_close, open_price, close_price) in event_stage_prices(
+                        ev, frame, post_days=post_days, max_t=max_t
+                    ).items():
+                        triple = [float(prev_close), float(open_price), float(close_price)]
+                        if _record_metrics(pd.Series({"open": triple[1], "close": triple[2],
+                                                      "prev_close": triple[0]})) is not None:
+                            stage[label] = triple
+            rows.append({
+                "i": interval, "b": bucket_of.get((ev.code, ev.period_start, ev.period_end)) if interval == 2 else None,
+                "c": ev.code, "n": ev.name, "s": key[2], "e": key[3], "p": stage,
+            })
+
+    return {
+        "as_of": as_of.isoformat(),
+        "labels": _build_stage_labels(max_t, post_days),
+        "rule_change_date": RULE_CHANGE_DATE.isoformat(),
+        "events": rows,
+    }
+

@@ -45,7 +45,7 @@ def run_one(mode):
         delattr(fetcher_mod.StockFetcher, "fetch_stock_history")
     sys.path.insert(0, os.path.join(g.SCRIPTS, 'cloud'))
     import run_daily
-    run_daily.run_daily(DATE, data_dir, os.path.join(OUT, mode), skip_quotes=True)
+    run_daily.run_daily(DATE, data_dir, os.path.join(OUT, mode), skip_quotes=True, skip_stats=True)
     print(f"[p4] {mode} 新增外部呼叫 {tape.new_calls} 次")
 
 

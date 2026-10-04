@@ -26,7 +26,8 @@ def update_disposal_from_web(target_year=None, progress_callback=None):
     
     fetcher = StockFetcher()
     parser = StockParser()
-    db = DisposalDatabase("data/disposal_history.db")
+    from core.runtime import get_paths  # P5：雲端 DISPO_DATA_DIR
+    db = DisposalDatabase(get_paths().disposal_db)
     
     total_imported = 0
     

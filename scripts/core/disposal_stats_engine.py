@@ -674,3 +674,54 @@ def summary_stat_texts(values):
                 text = "0.0%"  # 全上漲或全下跌都不建議（保守）
         texts.append(text)
     return texts
+
+
+def export_disposal_table(processed_records, cb_db=None, mf_db=None, as_of=None):
+    """
+    處置統計頁的網頁版資料(2026-10-05 P5)：compute_stats_rows 的結果去重後，轉成欄位陣列。
+    篩選(只顯示4碼、日期、頻率/天數/初犯累犯)、排序、底部 10 列統計都在網頁端做，
+    與 DisposalStatsPage.apply_filters / populate_table / add_statistics_rows 相同規則。
+    name 已含 (CB)/(期) 後綴(同 populate_table)；v 依 columns 對齊，缺值為 null；
+    h 是該列 headers 在 header_sets 的編號(表格欄位 = 篩選後各列 headers 的聯集)。
+    """
+    records = deduplicate_records(processed_records)
+    columns = sort_change_columns(list({c for r in records for c in (r.get("headers") or [])}))
+    col_index = {c: i for i, c in enumerate(columns)}
+    header_sets, header_index = [], {}
+    rows = []
+    for r in records:
+        code = r.get("code", "")
+        ann = DateUtils.to_iso_date_str(r.get("announce_date", ""))
+        suffix = ""
+        if cb_db:
+            try:
+                if cb_db.had_cb_on(code, ann):
+                    suffix += "(CB)"
+            except Exception:
+                pass
+        if mf_db:
+            try:
+                if mf_db.has_futures(code):
+                    suffix += "(期)"
+            except Exception:
+                pass
+        hs = tuple(col_index[c] for c in (r.get("headers") or []) if c in col_index)
+        if hs not in header_index:
+            header_index[hs] = len(header_sets)
+            header_sets.append(list(hs))
+        changes = r.get("changes") or {}
+        values = [None] * len(columns)
+        for c, v in changes.items():
+            if c in col_index:
+                values[col_index[c]] = v
+        rows.append([ann, code, f"{r.get('name', '')}{suffix}", r.get("capital"), r.get("freq_text", ""),
+                     r.get("duration_text", ""), r.get("offense_text", ""), r.get("start_date", ""),
+                     r.get("end_date", ""), header_index[hs], values])
+    return {
+        "as_of": as_of.isoformat() if as_of else None,
+        "fields": ["announce_date", "code", "name", "capital", "freq", "duration", "offense",
+                   "start_date", "end_date", "h", "v"],
+        "columns": columns,
+        "header_sets": header_sets,
+        "rows": rows,
+    }

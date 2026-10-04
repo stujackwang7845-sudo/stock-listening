@@ -11,7 +11,12 @@
      (桌面版的 ListeningFetchWorker 抓的是同一支 AttentionScraper，已含在這一步)
   4. on_data_ready 的三個合併 → compute_info_boxes → compute_dashboard_rows
   5. build_forecast_inputs + run_forecast(punish_df=None：雲端不連 Shioaji，用本地處置紀錄)
-輸出 <out>/data/day/YYYYMMDD.json(總覽與儀表板共用同一份) 與 <out>/data/index.json(最近 30 天)。
+  6. 處置統計(對照 DisposalStatsPage.auto_refresh_on_startup)：update_disposal_from_web 抓最新處置公告
+     → compute_stats_rows 補算漲跌幅 → export_disposal_table
+  7. 統計圖表：export_event_stages，舊事件沿用狀態資料夾的 event_stages.json(家裡電腦用 parquet
+     匯出的種子，scripts/cloud/seed_event_stages.py)，近 60 天結束的事件用官方行情重算
+輸出 <out>/data/day/YYYYMMDD.json(總覽與儀表板共用同一份)、<out>/data/index.json(最近 30 天)、
+<out>/data/stats/disposals.json、<out>/data/stats/event_stages.json。
 
 雲端不呼叫 FinMind/Shioaji：本程式一啟動就設 DISPO_NO_FINMIND=1、DISPO_NO_SHIOAJI=1。
 """
@@ -21,7 +26,7 @@ import os
 import sys
 import time
 import traceback
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 SCRIPTS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX_DAYS = 30
@@ -75,7 +80,7 @@ class StepLog:
             return None
 
 
-def run_daily(date_str, data_dir, out_dir, quote_days=90, skip_quotes=False):
+def run_daily(date_str, data_dir, out_dir, quote_days=90, skip_quotes=False, skip_stats=False):
     _setup_env(data_dir)
     from core.runtime import get_paths
     from core import official_quotes
@@ -152,6 +157,9 @@ def run_daily(date_str, data_dir, out_dir, quote_days=90, skip_quotes=False):
         return run_forecast(agg_f, date_str, attention_list, mf_db, cb_db, punish_df=None)
     forecast = log.run("處置預測", _forecast)
 
+    if not skip_stats:
+        _run_stats(log, D, data_dir, out_dir, paths, cb_db, mf_db)
+
     status = "ok" if log.ok else "partial"
     day = {
         "date": date_str,
@@ -166,6 +174,42 @@ def run_daily(date_str, data_dir, out_dir, quote_days=90, skip_quotes=False):
     _update_index(out_dir, date_str, status)
     print(f"[run_daily] {date_str} 完成，狀態 {status}", flush=True)
     return day
+
+
+def _run_stats(log, D, data_dir, out_dir, paths, cb_db, mf_db):
+    """處置統計、統計圖表兩頁的資料(畫面保留全部歷史)。失敗不影響當天快照。"""
+    from core.disposal_database import DisposalDatabase
+    from core.disposal_stats_engine import compute_stats_rows, export_disposal_table
+    from core.disposal_stats_analytics import export_event_stages, load_prices_from_market_db
+
+    def _disposals():
+        import update_disposal_from_web
+        update_disposal_from_web.update_disposal_from_web(target_year=None)
+        db = DisposalDatabase(paths.disposal_db)
+        records = db.get_all_records()
+        db.close()
+        processed = compute_stats_rows(records, allow_download=True)
+        export = export_disposal_table(processed, cb_db=cb_db, mf_db=mf_db, as_of=D.date())
+        _write_json(os.path.join(out_dir, "data", "stats", "disposals.json"), export)
+        return len(export["rows"])
+    log.run("處置統計", _disposals, required=False)
+
+    def _stages():
+        seed = os.path.join(data_dir, "event_stages.json")
+        keep = None
+        if os.path.exists(seed):
+            with open(seed, encoding="utf-8") as f:
+                keep = json.load(f)
+        export = export_event_stages(
+            db_path=paths.disposal_db,
+            prices_loader=lambda symbols: load_prices_from_market_db(symbols, paths.market_db),
+            as_of=D.date(), keep=keep, recompute_since=D.date() - timedelta(days=60))
+        _write_json(seed, export)
+        _write_json(os.path.join(out_dir, "data", "stats", "event_stages.json"), export)
+        if keep is None:
+            raise RuntimeError("狀態資料夾沒有 event_stages.json 種子，舊事件沒有價格(先在家裡跑 seed_event_stages.py)")
+        return len(export["events"])
+    log.run("統計圖表", _stages, required=False)
 
 
 def _update_index(out_dir, date_str, status):
@@ -187,8 +231,9 @@ def main(argv=None):
     p.add_argument("--out", default="site", help="網頁輸出根目錄")
     p.add_argument("--quote-days", type=int, default=90)
     p.add_argument("--skip-quotes", action="store_true", help="不抓官方行情(測試用)")
+    p.add_argument("--skip-stats", action="store_true", help="不更新處置統計/統計圖表(測試用)")
     a = p.parse_args(argv)
-    day = run_daily(a.date, a.data_dir, a.out, a.quote_days, a.skip_quotes)
+    day = run_daily(a.date, a.data_dir, a.out, a.quote_days, a.skip_quotes, a.skip_stats)
     return 0 if day["status"] == "ok" else 2
 
 
