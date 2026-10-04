@@ -272,9 +272,176 @@ def run_stats_one(label, scenario):
           f"有漲跌幅 {filled} 筆；新增外部呼叫 {tape.new_calls} 次(重播時應為 0)")
 
 
+# ---------------------------------------------------------------- dashboard
+DASH_SCENARIOS = ([f"cached_{d}" for d in DATES] + [f"fallback_{d}" for d in DATES] + ["worker"])
+
+FETCHER_NET_METHODS = ["fetch_twse_margin_list", "fetch_tpex_margin_list", "fetch_taifex_futures_list",
+                       "fetch_twse_disposition", "fetch_tpex_disposition", "fetch_twse_attention",
+                       "fetch_tpex_attention", "check_market_type"]
+
+
+def patch_dashboard_net(tape, calls):
+    """儀表板 HistoryWorker 的對外呼叫：逐日注意股/融券/期貨/處置名單錄製重播；GitHub 同步改 no-op。"""
+    import core.fetcher as fetcher_mod
+    Base = fetcher_mod.StockFetcher
+    for m in FETCHER_NET_METHODS:
+        orig = getattr(Base, m)
+        if getattr(orig, '_golden', False):
+            continue
+
+        def make(orig, m):
+            def taped(self, *a, **kw):
+                key = ("fetcher", m, repr(a), repr(sorted(kw.items())))
+                return tape.call(key, lambda: orig(self, *a, **kw), sleep=0.6)
+            taped._golden = True
+            return taped
+        setattr(Base, m, make(orig, m))
+
+    from core.scraper_attention import AttentionScraper
+    orig_fd = AttentionScraper.fetch_data
+
+    def fetch_data(date_obj=None):
+        key = ("attention_scraper", date_obj.strftime("%Y-%m-%d") if date_obj else None)  # get_last_trading_day() 帶時分秒，只取日期
+        return tape.call(key, lambda: orig_fd(date_obj), sleep=0.6)
+    AttentionScraper.fetch_data = staticmethod(fetch_data)
+
+    from core.history_manager import HistoryManager
+
+    def no_sync(self, *a, **kw):
+        calls.append("sync_from_github")
+        return None
+    HistoryManager.sync_from_github = no_sync
+
+
+def _flag(x):
+    return getattr(x, 'value', x)
+
+
+def dump_table(t):
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QColor
+    fmt = QColor.NameFormat.HexArgb
+    out = {
+        "cols": t.columnCount(), "rows": t.rowCount(),
+        "headers": [(t.horizontalHeaderItem(i).text() if t.horizontalHeaderItem(i) else None)
+                    for i in range(t.columnCount())],
+        "hidden": [t.isColumnHidden(i) for i in range(t.columnCount())],
+        "sorting": t.isSortingEnabled(),
+        "cells": [],
+    }
+    for r in range(t.rowCount()):
+        row = {"h": t.rowHeight(r), "c": []}
+        for c in range(t.columnCount()):
+            it = t.item(r, c)
+            w = t.cellWidget(r, c)
+            cell = {}
+            if it is not None:
+                cell["item"] = {
+                    "cls": type(it).__name__, "t": it.text(), "tip": it.toolTip(),
+                    "bg": [it.background().style().name, it.background().color().name(fmt)],
+                    "fg": [it.foreground().style().name, it.foreground().color().name(fmt)],
+                    "u": repr(it.data(Qt.ItemDataRole.UserRole)),
+                    "d": repr(it.data(Qt.ItemDataRole.DisplayRole)),
+                    "al": _flag(it.textAlignment()),
+                }
+            if w is not None:
+                cell["w"] = {"cls": type(w).__name__, "t": w.text(), "ss": w.styleSheet(),
+                             "al": _flag(w.alignment()), "ww": w.wordWrap(),
+                             "tif": _flag(w.textInteractionFlags())}
+            row["c"].append(cell)
+        out["cells"].append(row)
+    return out
+
+
+def run_dashboard_one(label, scenario):
+    data_dir = fresh_data_dir(f"dash_{label}_{scenario}")
+    setup_env(data_dir)
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+    if scenario.startswith("fallback_"):
+        d = scenario.split("_", 1)[1]
+        con = sqlite3.connect(os.path.join(data_dir, "cache.db"))
+        con.execute("DELETE FROM agg_cache WHERE date_str=?", (d,))
+        con.execute("DELETE FROM dashboard_summary WHERE date_str=?", (d,))
+        con.commit()
+        con.close()
+
+    from PyQt6.QtWidgets import QApplication
+    app = QApplication.instance() or QApplication(sys.argv)
+
+    tape = Tape()
+    calls = []
+    patch_fetcher(tape)
+    patch_dashboard_net(tape, calls)
+    import ui.dashboard as dashmod
+
+    box_log = []
+    orig_update = dashmod.InfoBox.update_items
+
+    def rec_update(self, items):
+        box_log.append((id(self), copy.deepcopy(list(items.items()) if isinstance(items, dict) else list(items))))
+        return orig_update(self, items)
+    dashmod.InfoBox.update_items = rec_update
+    dashmod.HistoryWorker.start = lambda self: self.run()
+
+    dash = dashmod.Dashboard(auto_start=False)
+    status = []
+    dash.status_message_updated.connect(lambda m: status.append(m))
+    box_log.clear()
+
+    if scenario == "worker":
+        target = dash.current_display_date
+        dash.start_worker(force_refresh=True)
+        d = target.strftime("%Y%m%d")
+    else:
+        d = scenario.split("_", 1)[1]
+        dash.load_data_for_date(datetime.strptime(d, "%Y%m%d"))
+
+    names = {}
+    for attr in ("observer_box", "disposition_box", "disp_active_box", "disp_exit_box"):
+        if hasattr(dash, attr):
+            names[id(getattr(dash, attr))] = attr
+    from core.cache import CacheManager
+    cm = CacheManager()
+    con = sqlite3.connect(os.path.join(data_dir, "disposal_history.db"))
+    cols = [r[1] for r in con.execute("PRAGMA table_info(disposal_records)") if not r[1].endswith("_at")]  # created_at/updated_at 是寫入當下時間
+    disp_rows = con.execute(f"SELECT {','.join(cols)} FROM disposal_records ORDER BY id").fetchall()
+    con.close()
+    con = sqlite3.connect(os.path.join(data_dir, "cache.db"))
+    daily = con.execute("SELECT date_str, data_json FROM daily_cache ORDER BY date_str").fetchall()
+    con.close()
+    with open(os.path.join(data_dir, "listening_history.json"), encoding="utf-8") as f:
+        listening_txt = f.read()
+
+    out = {
+        "table": dump_table(dash.grid_table),
+        "boxes": [[names.get(i, "?"), items] for i, items in box_log],
+        "status": status,
+        "calls": calls,
+        "today_attention_list": getattr(dash, "today_attention_list", None),
+        "today_attention_map": getattr(dash, "today_attention_map", None),
+        "today_attention_names": getattr(dash, "today_attention_names", None),
+        "self_agg_data": dash.agg_data,
+        "calendar": {k: (v.strftime("%Y-%m-%d") if k == "anchor_obj" else v)  # anchor_obj 帶當下時分秒
+                     for k, v in (getattr(dash, "calendar", None) or {}).items()},
+    }
+    out_dir = os.path.join(OUT, 'dashboard', label)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, f"{scenario}_ui.json"), 'w', encoding='utf-8') as f:
+        f.write(dump(out))
+    with open(os.path.join(out_dir, f"{scenario}_store.json"), 'w', encoding='utf-8') as f:
+        f.write(dump({"agg_cache": cm.get_agg_data(d), "summary": cm.get_dashboard_summary(d),
+                      "daily_cache": daily, "disposal_records": disp_rows}))
+    with open(os.path.join(out_dir, f"{scenario}_listening.json"), 'w', encoding='utf-8') as f:
+        f.write(listening_txt)
+    tape.save()
+    print(f"[golden] dashboard {label} {scenario}: 表格 {dash.grid_table.rowCount()} 列、資訊框更新 "
+          f"{len(box_log)} 次；新增外部呼叫 {tape.new_calls} 次(重播時應為 0)")
+
+
 def run_stage(stage, label):
     import subprocess
-    for d in (STATS_SCENARIOS if stage == 'stats' else DATES):
+    for d in {'stats': STATS_SCENARIOS, 'dashboard': DASH_SCENARIOS}.get(stage, DATES):
         r = subprocess.run([sys.executable, os.path.abspath(__file__), f"_{stage}_one",
                             "--label", label, "--date", d], cwd=ROOT,
                            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
@@ -311,7 +478,7 @@ def compare(stage, a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['forecast', 'stats', 'compare', '_forecast_one', '_stats_one'])
+    ap.add_argument('cmd', choices=['forecast', 'stats', 'dashboard', 'compare', '_forecast_one', '_stats_one', '_dashboard_one'])
     ap.add_argument('--label')
     ap.add_argument('--stage')
     ap.add_argument('--date')
@@ -327,6 +494,10 @@ def main():
         run_stage('stats', args.label)
     elif args.cmd == '_forecast_one':
         run_forecast_one(args.label, args.date)
+    elif args.cmd == 'dashboard':
+        run_stage('dashboard', args.label)
+    elif args.cmd == '_dashboard_one':
+        run_dashboard_one(args.label, args.date)
     elif args.cmd == '_stats_one':
         run_stats_one(args.label, args.date)
 
