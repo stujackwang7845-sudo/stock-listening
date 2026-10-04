@@ -10,6 +10,13 @@ wheels/
 .venv
 .env
 
+# Secrets & credentials
+accounts.json
+*.pfx
+
+# Databases (regenerable via fetchers/cache)
+*.db
+
 # Backups & Temp
 temp/
 2026*/
@@ -23,3 +30,52 @@ verify_*.py
 # Scraper artifacts
 *.html
 verification_result.txt
+
+# Secrets：所有 *.env（例如 laptop_env_template.env 內含真實 token）
+*.env
+
+# 舊版專案完整副本（內含寫死的 FinMind token，不可公開）
+no1282930/
+
+# 備份檔、SQLite 暫存檔
+*.bak
+*.bak_*
+*.bak-*
+*.db-wal
+*.db-shm
+*.db.bak*
+*.corrupt
+
+# 一次性腳本、暫存、本機工具設定
+/temp_*.py
+/test_*.py
+scripts/temp_*.py
+scripts/test_forecast.py
+scripts/=
+temp_out.txt
+crash_log*.txt
+task.md
+overview.json
+*.spec
+scratch/
+scripts_backup/
+reports/
+.vscode/
+.gemini/
+.geminiignore
+.claude/
+
+# data/ 底下：本機工作檔與除錯 dump（雲端排程只寫根目錄 listening_history.json）
+data/listening_history*.json
+data/debug_*.json
+data/*_dump.json
+data/temp_*.json
+data/01.png
+
+# 個人開發筆記，留在本機不公開
+knowhow.md
+SKILLS.MD
+BUGREPORT_*.md
+
+# 本機 IDE 工作區設定
+*.code-workspace

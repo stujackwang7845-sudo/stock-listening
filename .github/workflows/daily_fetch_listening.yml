@@ -29,9 +29,8 @@ jobs:
         
     - name: Run Fetch Script
       run: |
-        # Set PYTHONPATH to current directory so 'core' module is found
-        export PYTHONPATH=$PYTHONPATH:.
-        python automation/daily_fetch.py
+        # daily_fetch.py 會自己把 scripts/ 加進 sys.path，core 模組在 scripts/core/
+        python scripts/automation/daily_fetch.py
         
     - name: Commit and Push changes
       run: |
