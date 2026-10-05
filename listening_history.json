@@ -13930,5 +13930,55 @@
         "is_disposed_next_day": false,
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取"
+    },
+    {
+        "date": "2026-10-05",
+        "code": "3094",
+        "name": "聯傑",
+        "trigger_info": "115年9月21日至115年10月5日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-05",
+        "code": "3518",
+        "name": "柏騰",
+        "trigger_info": "115年10月2日至115年10月5日連續二次<br>115年9月30日至115年10月5日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-05",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年10月02日至115年10月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-05",
+        "code": "5013",
+        "name": "強新",
+        "trigger_info": "115年10月02日至115年10月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-05",
+        "code": "8084",
+        "name": "巨虹",
+        "trigger_info": "115年10月02日至115年10月05日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
