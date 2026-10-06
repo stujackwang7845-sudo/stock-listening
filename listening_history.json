@@ -13980,5 +13980,125 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "1709",
+        "name": "和益",
+        "trigger_info": "115年9月22日至115年10月6日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "2340",
+        "name": "台亞",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "2466",
+        "name": "冠西電",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "3701",
+        "name": "大眾控",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "6225",
+        "name": "天瀚",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "6957",
+        "name": "裕慶-KY",
+        "trigger_info": "115年10月5日至115年10月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "3441",
+        "name": "聯一光",
+        "trigger_info": "115年10月05日至115年10月06日連續二次<br>115年10月01日至115年10月06日連續四次<br>115年09月22日至115年10月06日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "4174",
+        "name": "浩鼎",
+        "trigger_info": "115年10月05日至115年10月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "4760",
+        "name": "勤凱",
+        "trigger_info": "115年10月05日至115年10月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "5205",
+        "name": "中茂",
+        "trigger_info": "115年10月05日至115年10月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-06",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年10月01日至115年10月06日連續四次<br>115年09月22日至115年10月06日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
