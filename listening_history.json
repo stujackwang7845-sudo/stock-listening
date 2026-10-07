@@ -14100,5 +14100,65 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "2033",
+        "name": "佳大",
+        "trigger_info": "115年10月6日至115年10月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "6672",
+        "name": "騰輝電子-KY",
+        "trigger_info": "115年10月6日至115年10月7日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "8021",
+        "name": "尖點",
+        "trigger_info": "115年10月2日至115年10月7日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年08月26日至115年10月07日等二十九個營業日已有十一次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "6488",
+        "name": "環球晶",
+        "trigger_info": "115年10月06日至115年10月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-07",
+        "code": "6708",
+        "name": "天擎",
+        "trigger_info": "115年10月06日至115年10月07日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
