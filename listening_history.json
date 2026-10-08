@@ -14160,5 +14160,65 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "2492",
+        "name": "華新科",
+        "trigger_info": "115年10月7日至115年10月8日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "4556",
+        "name": "旭然",
+        "trigger_info": "115年10月07日至115年10月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "5013",
+        "name": "強新",
+        "trigger_info": "115年10月07日至115年10月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "5228",
+        "name": "鈺鎧",
+        "trigger_info": "115年10月07日至115年10月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "8084",
+        "name": "巨虹",
+        "trigger_info": "115年10月07日至115年10月08日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-08",
+        "code": "8111",
+        "name": "立碁",
+        "trigger_info": "115年10月05日至115年10月08日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
