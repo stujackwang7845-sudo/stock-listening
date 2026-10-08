@@ -170,7 +170,7 @@ def sync_listening_and_disposals(history_manager, target_dt, target_date_str, fe
                                          period_raw, measure, reason, updated_at)
                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                                     """, (
-                                        "上市", item.get("date") or start, item.get("code"), item.get("name"),
+                                        "上市", item.get("ann_date") or item.get("date") or start, item.get("code"), item.get("name"),
                                         start, end, item.get("period"), item.get("measure"), item.get("reason")
                                     ))
                                 except:
@@ -191,7 +191,7 @@ def sync_listening_and_disposals(history_manager, target_dt, target_date_str, fe
                                          period_raw, measure, reason, updated_at)
                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                                     """, (
-                                        "上櫃", item.get("date") or start, item.get("code"), item.get("name"),
+                                        "上櫃", item.get("ann_date") or item.get("date") or start, item.get("code"), item.get("name"),
                                         start, end, item.get("period"), item.get("measure"), item.get("reason")
                                     ))
                                 except:
@@ -756,7 +756,9 @@ def merge_disposal_status_from_db(agg_data, target_date, history_manager):
 
         # Sort all collected records by announce_date DESC, then period_start DESC
         # So the FIRST record we see for a code is the NEWEST (most recently announced/started)
-        def safe_date(d): return d if d else "0000-00-00"
+        # [Fix 2026-10-09] 公告日格式混用(2026/10/08、2026-10-06、20261008)，直接比字串時
+        # "/" 會排在 "-" 前面而錯序；統一轉 YYYY-MM-DD 再排，才能確實「以最新公告為準」
+        def safe_date(d): return DateUtils.to_iso_date_str(d) if d else "0000-00-00"
         all_disposals.sort(key=lambda x: (safe_date(x.get('announce_date')), safe_date(x.get('period_start'))), reverse=True)
 
         seen_codes = set()

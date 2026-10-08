@@ -540,7 +540,29 @@ def run_forecast(agg_data, date_str, attention_list, mf_db, cb_db, punish_df=Non
             is_in_local_active = any(str(r['code']) == str(code) for r in local_active_records_list)
             db_rec = None
             
+            # [Fix 2026-10-09] 處置期間還沒結束就又公告下一次處置(期間重疊或緊接，例：6672
+            # 10/06~10/13 處置中，10/08 再公告 10/12~10/16)。使用者規則：一律以最新公告為準，
+            # 天數依新期間重新計算、30 個營業日內再次處置顯示累犯。原本只要本機有「進行中」
+            # 的處置就直接用它，已公告但還沒生效的下一次處置被忽略，出關日也算錯。
+            newer_rec = None
             if is_in_local_active:
+                _cur = next((r for r in local_active_records_list if str(r['code']) == str(code)), None)
+                _cur_start = (_cur or {}).get('period_start') or ""
+                _anchor_iso = anchor_dt.strftime("%Y-%m-%d")
+                for _r in disp_map.get(str(code), []):
+                    _ann = DateUtils.to_iso_date_str(_r.get('announce_date'))
+                    _ps = _r.get('period_start') or ""
+                    if _ann and _ann <= _anchor_iso and _ps > _anchor_iso and _ps > _cur_start:
+                        if newer_rec is None or _ps > newer_rec['period_start']:
+                            newer_rec = _r
+            if newer_rec is not None:
+                is_future_disposed = True
+                disp_start_dt = datetime.strptime(newer_rec['period_start'], "%Y-%m-%d")
+                if newer_rec.get('period_end'):
+                    disp_end_dt = datetime.strptime(newer_rec['period_end'], "%Y-%m-%d")
+                future_period = newer_rec.get('period_raw', '') or future_period
+                future_measure = newer_rec.get('measure', '') or future_measure
+            elif is_in_local_active:
                 actually_disposed = True
                 # 更新 disp_start_dt 和 disp_end_dt
                 db_rec = next((r for r in local_active_records_list if str(r['code']) == str(code)), None)
