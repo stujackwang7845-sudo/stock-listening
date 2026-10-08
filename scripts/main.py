@@ -45,6 +45,20 @@ def _threading_excepthook(args):
 
 threading.excepthook = _threading_excepthook
 
+# [2026-10-08] Qt 底層原生崩潰(Qt6Gui.dll 0xC00000FD 堆疊溢位，9/1 起反覆發生)不是 Python 例外，
+# 上面兩個 excepthook 抓不到、程式直接消失。faulthandler 會在崩潰當下把「所有執行緒」正在跑的
+# Python 呼叫堆疊寫進 crash_faulthandler.log，才能知道是哪段程式觸發的。
+# 註：Windows 的 COM 會丟一些無害的例外(如 code 0x8001010d)，也會被記錄，看到可以忽略。
+import faulthandler
+try:
+    _FAULT_LOG = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                   "crash_faulthandler.log"), "a", encoding="utf-8")
+    _FAULT_LOG.write(f"\n===== 啟動 {datetime.datetime.now().isoformat(timespec='seconds')} pid={os.getpid()} =====\n")
+    _FAULT_LOG.flush()
+    faulthandler.enable(file=_FAULT_LOG, all_threads=True)
+except Exception as _e:
+    print(f"[main] faulthandler 啟用失敗: {_e}")
+
 def main():
     # Windows Taskbar Icon Fix
     import ctypes
