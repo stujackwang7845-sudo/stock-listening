@@ -165,7 +165,13 @@ class StockParser:
                 name = re.sub(r'<[^>]+>', '', name).strip()
                 
                 period = str(row[5]).strip()
+                # [Fix 2026-10-09] row[7]「處置措施」只有「第一次處置/再次處置」，撮合頻率
+                # (約每2分鐘撮合一次)在 row[8]「處置內容」全文裡；原本讀 row[7]，上櫃處置的
+                # 頻率一律解析不出來(總覽顯示「處置中」、統計圖表漏算上櫃事件)
                 measure_full = str(row[7]).strip()
+                if len(row) > 8 and str(row[8]).strip():
+                    content = re.sub(r'<br\s*/?>', '\n', str(row[8]), flags=re.I)
+                    measure_full = re.sub(r'<[^>]+>', '', content).strip()
                 ann_date_roc = str(row[1]).strip()
                 ann_date = self._parse_roc_date(ann_date_roc)
             else:

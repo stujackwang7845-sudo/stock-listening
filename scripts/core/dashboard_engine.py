@@ -217,15 +217,28 @@ def fetch_market_flags(fetcher, parser, target_date_str, progress):
     # Currently fetcher methods take date_str
     margin_date_str = target_date_str
     
+    # [Fix 2026-10-09] 當天的信用交易名單晚上才公布(實測 18:40 證交所 10/08 還抓不到)，
+    # 抓到空的就把該市場所有股票都當成「不可融券」，而且會一直留在當天的快取裡
+    # (10/08 上市 104 檔全部變成不可融券)。當天沒資料時，退回最近一個有資料的交易日
+    # (融券資格很少逐日變動)，上市、上櫃各自判斷，最多往前找 5 個交易日。
+    def _margin_codes(fetch, parse):
+        d = datetime.strptime(target_date_str, "%Y%m%d")
+        for _ in range(6):
+            raw = fetch(d.strftime("%Y%m%d"))
+            codes = parse(raw) if raw else set()
+            if codes:
+                if d.strftime("%Y%m%d") != target_date_str:
+                    print(f"[fetch_market_flags] {target_date_str} 名單尚未公布，改用 {d:%Y%m%d}")
+                return set(codes)
+            d = DateUtils.get_last_trading_day(d - dt.timedelta(days=1))
+            time.sleep(0.5)
+        return set()
+
     # TWSE
-    twse_margin = fetcher.fetch_twse_margin_list(margin_date_str)
-    if twse_margin:
-        margin_codes.update(parser.parse_twse_margin(twse_margin))
-        
+    margin_codes.update(_margin_codes(fetcher.fetch_twse_margin_list, parser.parse_twse_margin))
+
     # TPEX
-    tpex_margin = fetcher.fetch_tpex_margin_list(margin_date_str)
-    if tpex_margin:
-        margin_codes.update(parser.parse_tpex_margin(tpex_margin))
+    margin_codes.update(_margin_codes(fetcher.fetch_tpex_margin_list, parser.parse_tpex_margin))
         
     # Futures List
     progress("正在抓取股票期貨清單...")
@@ -1711,7 +1724,8 @@ def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
 
             total_days = _count_trading_days_inclusive(_row_disp_start_dt, _row_disp_end_dt)
             if today_dt.date() < _row_disp_start_dt.date():
-                days_text = ""  # 已公告但還沒生效，跟「處置頻率」欄一起留空
+                # [2026-10-09 使用者要求] 已公告但還沒生效也要顯示(跟總覽的 0/5 一致)
+                days_text = f"第0天/共{total_days}天" if total_days > 0 else ""
             else:
                 effective_today = _row_disp_end_dt if today_dt.date() > _row_disp_end_dt.date() else today_dt
                 current_day = _count_trading_days_inclusive(_row_disp_start_dt, effective_today)
