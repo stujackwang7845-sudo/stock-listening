@@ -200,10 +200,35 @@ class DetailsTab(QWidget):
         self._add_row(row, "下次進處置", f"{head}\n{prog}", color, wrap=True)
 
     def _add_clauses(self, row, d):
-        clauses = d.get("recent_clauses") or []
-        text = "　".join(f"{day[5:].replace('-', '/')} " + ("其他條件" if c == "其他" else f"第{c}款")
-                        for day, c in clauses) if clauses else "—"
-        self._add_row(row, "近期注意條款", text, wrap=True)
+        """近期注意條款：儀表板式日期表(最近 10 個交易日一天一欄，沒被注意留空，顯示日標「(今)」)。"""
+        days = d.get("recent_days") or []
+        by_day = dict(d.get("recent_clauses") or [])
+        if not days:
+            self._add_row(row, "近期注意條款", "—")
+            return
+        k = QLabel("近期注意條款")
+        k.setStyleSheet(_KEY_STYLE)
+        k.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.info_grid.addWidget(k, row, 0)
+        t = QTableWidget(1, len(days))
+        t.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        t.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        t.verticalHeader().setVisible(False)
+        t.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        t.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        t.setHorizontalHeaderLabels([day[5:].replace("-", "/") + (" (今)" if day == d.get("display_date") else "")
+                                     for day in days])
+        t.horizontalHeader().setStyleSheet("QHeaderView::section { color: #4da6ff; font-weight: bold; }")
+        for i, day in enumerate(days):
+            c = by_day.get(day, "")
+            it = QTableWidgetItem(c)
+            it.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            it.setForeground(QBrush(QColor("#9a9a9a" if c == "其他" else "#E0E0E0")))
+            t.setItem(0, i, it)
+        t.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        t.setRowHeight(0, 34)
+        t.setFixedHeight(t.horizontalHeader().sizeHint().height() + 34 + 4)
+        self.info_grid.addWidget(t, row, 1)
 
     def _render_history(self, code):
         from core.disposal_detail import disposal_history_rows

@@ -64,6 +64,16 @@ def condition_label(reason):
     return "、".join(labels), again
 
 
+def recent_trading_days(until_iso, n_days=10):
+    """顯示日(含)往前 n 個交易日，由舊到新(「近期注意條款」日期表的欄位，沒被注意的日子也列)。"""
+    out, cur = [], datetime.strptime(until_iso, "%Y-%m-%d")
+    while len(out) < n_days:
+        if DateUtils.is_trading_day(cur):
+            out.append(cur.strftime("%Y-%m-%d"))
+        cur -= timedelta(days=1)
+    return out[::-1]
+
+
 def recent_clauses(code, until_iso, n_days=10, db_path=None):
     """顯示日(含)往前 n 個交易日內的注意條款 [(日期, '一,四'), ...]，由舊到新。"""
     conn = sqlite3.connect(db_path or get_paths().disposal_db)
@@ -264,7 +274,8 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         nx = _next(code, "", disp_d, mine, next_hint)
         nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx, code, disp_iso)
         return {"code": code, "has_disposal": False, "display_date": disp_iso,
-                "recent_clauses": recent_clauses(code, disp_iso), "next": nx,
+                "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
+                "next": nx,
                 "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
 
     ps = datetime.strptime(rec["period_start"], "%Y-%m-%d").date()
@@ -305,7 +316,7 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         "announce_date": ann_iso(rec), "offense": offense,
         "condition": cond or "—", "again_within_30": again,
         "official_reason": official_reason_text(rec.get("reason") or ""),
-        "recent_clauses": recent_clauses(code, disp_iso),
+        "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
         "stats_bucket": stats_bucket, "stats_title": stats_title,
         "next": _next(code, rec.get("source", ""), disp_d, mine, next_hint),
     }
