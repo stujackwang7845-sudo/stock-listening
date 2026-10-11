@@ -67,6 +67,7 @@ class ForecastPage(QWidget):
     """處置預測總覽頁面"""
     status_message_updated = pyqtSignal(str)
     initial_load_finished = pyqtSignal()
+    stock_double_clicked = pyqtSignal(str, str)  # (代號, 名稱)：雙擊列 → 主視窗帶到「詳細條件」
 
     def __init__(self):
         super().__init__()
@@ -227,6 +228,7 @@ class ForecastPage(QWidget):
         table.setSortingEnabled(True)
         table.setWordWrap(True)
         table.cellClicked.connect(self._on_cell_clicked)
+        table.cellDoubleClicked.connect(lambda r, c, t=table: self._emit_stock_double_clicked(t, r))
 
         header = table.horizontalHeader()
         for i in range(6):  # 代號/名稱/市場/最後回補日/目前狀態/進處置
@@ -263,6 +265,7 @@ class ForecastPage(QWidget):
 
         table.setWordWrap(True)
         table.cellClicked.connect(self._on_cell_clicked)
+        table.cellDoubleClicked.connect(lambda r, c, t=table: self._emit_stock_double_clicked(t, r))
 
         table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -573,6 +576,11 @@ class ForecastPage(QWidget):
             
         btn.clicked.connect(on_date_selected)
         dialog.exec()
+
+    def _emit_stock_double_clicked(self, table, row):
+        code_item, name_item = table.item(row, 0), table.item(row, 1)
+        if code_item and code_item.text().strip():
+            self.stock_double_clicked.emit(code_item.text().strip(), name_item.text() if name_item else "")
 
     def _on_cell_clicked(self, row, col, table=None):
         if table is None:

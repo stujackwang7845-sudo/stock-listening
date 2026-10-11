@@ -88,6 +88,8 @@ class MainWindow(QMainWindow):
         # Connect Signal (Use grid_table for Dashboard)
         # Note: Dashboard mockup might load async, but widget exists immediately
         self.tab1.grid_table.doubleClicked.connect(self.on_dashboard_item_dblclick)
+        self.tab_forecast.stock_double_clicked.connect(
+            lambda code, name: self.open_details(code, name, self.tab_forecast.current_display_date))
         
         self.tabs.addTab(self.tab_forecast, "處置預測總覽")
         self.tabs.addTab(self.tab1, "監控儀表板")
@@ -126,24 +128,18 @@ class MainWindow(QMainWindow):
         try:
             code_item = self.tab1.grid_table.item(row, 0)
             name_item = self.tab1.grid_table.item(row, 1)
-            source_item = self.tab1.grid_table.item(row, 2)
-            
-            code = code_item.text() if code_item else "-"
-            name = name_item.text() if name_item else "-"
-            source = source_item.text() if source_item else "-"
-            
-            data = {
-                "status": "注意股", 
-                "code": code,
-                "name": name,
-                "reason": "請查看矩陣日期詳細內容",
-                "source": source
-            }
-            
-            self.tab2.update_content(data)
-            self.tabs.setCurrentIndex(1) # Switch to Details Tab
+            if not code_item or not code_item.text().strip():
+                return  # 空白列
+            self.open_details(code_item.text().strip(), name_item.text() if name_item else "",
+                              self.tab1.current_display_date)
         except Exception as e:
             print(f"Error on double click: {e}")
+
+    def open_details(self, code, name, display_date):
+        """總覽/儀表板雙擊 → 帶入「詳細條件」並切過去(2026-10-11)。
+        原本用 setCurrentIndex(1)，但總覽排第一後 1 是儀表板，雙擊後不會跳頁；改用 setCurrentWidget。"""
+        self.tab2.show_stock(code, display_date, name)
+        self.tabs.setCurrentWidget(self.tab2)
 
     def setup_tab_placeholder(self, tab, text):
         layout = QVBoxLayout(tab)

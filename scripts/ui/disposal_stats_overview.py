@@ -77,6 +77,164 @@ WINDOW_FILTERS: tuple[tuple[Optional[int], str], ...] = (
 )
 
 
+# ---- 階段統計圖表(2026-10-11 從 DisposalStatsOverviewWidget 搬出，「詳細條件」頁共用) ----
+
+def stage_label(label: str) -> str:
+    if label == "T-1":
+        return "處置前1"
+    if label.startswith("T"):
+        return f"處置{label[1:]}"
+    if label == "Exit":
+        return "出關1"
+    if label.startswith("Exit+"):
+        return f"出關+{label[5:]}"
+    return label
+
+
+def style_axis(ax) -> None:
+    ax.set_facecolor("#1e1e1e")
+    ax.tick_params(colors="#888888")
+    for spine in ax.spines.values():
+        spine.set_color("#333333")
+    ax.yaxis.label.set_color("#888888")
+
+
+def draw_value_chart(ax, frame: pd.DataFrame, x_values: list[int], metric_key: str) -> None:
+    metric = METRICS[metric_key]
+    values = frame[metric["column"]].astype(float).tolist()
+    colors = ["#ff3333" if value >= 0 else "#33cc66" for value in values]
+    bars = ax.bar(x_values, values, color=colors, width=0.64)
+    if values:
+        min_value = min(values)
+        max_value = max(values)
+        padding = max((max_value - min_value) * 0.18, 0.8)
+        ax.set_ylim(min(0, min_value) - padding, max(0, max_value) + padding)
+    for bar, value in zip(bars, values):
+        offset = 0.12 if value >= 0 else -0.12
+        vertical_align = "bottom" if value >= 0 else "top"
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + offset,
+            f"{value:+.2f}%",
+            ha="center",
+            va=vertical_align,
+            color="#eeeeee",
+            fontsize=8,
+            fontweight="bold",
+        )
+    ax.axhline(0, color="#666666", linewidth=1)
+    ax.set_title(metric["label"], color="#fcd535", fontsize=16, pad=14)
+    ax.set_ylabel(metric["axis"], color="#888888")
+    ax.grid(axis="y", color="white", alpha=0.08)
+
+
+def draw_probability_chart(ax, frame: pd.DataFrame, x_values: list[int]) -> None:
+    black = frame["黑K機率%"].astype(float)
+    flat = frame["平K機率%"].astype(float)
+    red = frame["紅K機率%"].astype(float)
+
+    ax.bar(x_values, black, color="#33cc66", width=0.64, label="黑K")
+    ax.bar(x_values, flat, bottom=black, color="#ffffff", width=0.64, label="平K")
+    ax.bar(x_values, red, bottom=black + flat, color="#ff3333", width=0.64, label="紅K")
+    for idx, (black_value, flat_value, red_value) in enumerate(zip(black, flat, red)):
+        green_y = black_value / 2 if black_value >= 6 else black_value + 1.5
+        green_va = "center" if black_value >= 6 else "bottom"
+        ax.text(
+            idx,
+            green_y,
+            f"{black_value:.1f}%",
+            ha="center",
+            va=green_va,
+            color="#0f1f14" if black_value >= 6 else "#bff5d1",
+            fontsize=8,
+            fontweight="bold",
+            clip_on=False,
+        )
+
+        red_bottom = black_value + flat_value
+        red_y = red_bottom + red_value / 2 if red_value >= 6 else min(100, red_bottom + red_value + 1.5)
+        red_va = "center" if red_value >= 6 else "bottom"
+        ax.text(
+            idx,
+            red_y,
+            f"{red_value:.1f}%",
+            ha="center",
+            va=red_va,
+            color="#ffffff",
+            fontsize=8,
+            fontweight="bold",
+            clip_on=False,
+        )
+    ax.set_title("紅黑機率", color="#fcd535", fontsize=16, pad=14)
+    ax.set_ylabel("機率 (%)", color="#888888")
+    ax.set_ylim(0, 100)
+    ax.grid(axis="y", color="white", alpha=0.08)
+    legend = ax.legend(loc="upper right", frameon=False, ncol=3)
+    for text in legend.get_texts():
+        text.set_color("#bbbbbb")
+
+
+def build_stage_figure(frame: pd.DataFrame, metric_key: str, figsize=(10.5, 4.8)) -> Figure:
+    """metric_key：return(平均漲跌幅)/body(開收差幅)/prob(紅黑機率)。"""
+    figure = Figure(figsize=figsize, dpi=100)
+    figure.patch.set_facecolor("#1e1e1e")
+    ax = figure.add_subplot(111)
+    style_axis(ax)
+
+    labels = [stage_label(label) for label in frame["時間點"].tolist()]
+    x_values = list(range(len(labels)))
+
+    if metric_key == "prob":
+        draw_probability_chart(ax, frame, x_values)
+    else:
+        draw_value_chart(ax, frame, x_values, metric_key)
+
+    ax.set_xticks(x_values)
+    ax.set_xticklabels(labels, rotation=0, ha="center", color="#888888")
+    figure.tight_layout(pad=1.6)
+    return figure
+
+
+def fill_stage_table(table: QTableWidget, frame: pd.DataFrame) -> None:
+    columns = list(frame.columns) if not frame.empty else []
+    table.clear()
+    table.setColumnCount(len(columns))
+    table.setRowCount(len(frame))
+    table.setHorizontalHeaderLabels(columns)
+    table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+    table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+    table.verticalHeader().setVisible(False)
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+    table.horizontalHeader().setStretchLastSection(True)
+
+    numeric_columns = {
+        "樣本數": 0,
+        "平均漲跌幅%": 2,
+        "平均開收差幅%": 2,
+        "上漲機率%": 1,
+        "紅K機率%": 1,
+        "黑K機率%": 1,
+        "平K機率%": 1,
+    }
+
+    for row_idx, (_, row) in enumerate(frame.iterrows()):
+        for col_idx, column in enumerate(columns):
+            value = row[column]
+            if column in numeric_columns:
+                decimals = numeric_columns[column]
+                text = str(int(value)) if column == "樣本數" else f"{float(value):.{decimals}f}"
+            else:
+                text = stage_label(str(value)) if column == "時間點" else str(value)
+
+            item = QTableWidgetItem(text)
+            if column == "時間點":
+                item.setForeground(QBrush(QColor("#fcd535")))
+            else:
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            table.setItem(row_idx, col_idx, item)
+
+
+
 class DisposalStatsOverviewWorker(QThread):
     """背景產生處置統計資料。"""
 
@@ -514,15 +672,7 @@ class DisposalStatsOverviewWidget(QWidget):
         return sorted(labels, key=key)
 
     def _stage_label(self, label: str) -> str:
-        if label == "T-1":
-            return "處置前1"
-        if label.startswith("T"):
-            return f"處置{label[1:]}"
-        if label == "Exit":
-            return "出關1"
-        if label.startswith("Exit+"):
-            return f"出關+{label[5:]}"
-        return label
+        return stage_label(label)
 
     def _render_summary(self, frame: pd.DataFrame) -> None:
         self._clear_layout(self.summary_row)
@@ -592,22 +742,7 @@ class DisposalStatsOverviewWidget(QWidget):
             self.chart_layout.addWidget(empty)
             return
 
-        figure = Figure(figsize=(10.5, 4.8), dpi=100)
-        figure.patch.set_facecolor("#1e1e1e")
-        ax = figure.add_subplot(111)
-        self._style_axis(ax)
-
-        labels = [self._stage_label(label) for label in frame["時間點"].tolist()]
-        x_values = list(range(len(labels)))
-
-        if self.current_metric == "prob":
-            self._draw_probability_chart(ax, frame, x_values)
-        else:
-            self._draw_value_chart(ax, frame, x_values)
-
-        ax.set_xticks(x_values)
-        ax.set_xticklabels(labels, rotation=0, ha="center", color="#888888")
-        figure.tight_layout(pad=1.6)
+        figure = build_stage_figure(frame, self.current_metric)
 
         self.chart_canvas = FigureCanvasQTAgg(figure)
         self.chart_canvas.setMinimumHeight(385)
@@ -615,122 +750,16 @@ class DisposalStatsOverviewWidget(QWidget):
         self.chart_layout.addWidget(self.chart_canvas)
 
     def _draw_value_chart(self, ax, frame: pd.DataFrame, x_values: list[int]) -> None:
-        metric = METRICS[self.current_metric]
-        values = frame[metric["column"]].astype(float).tolist()
-        colors = ["#ff3333" if value >= 0 else "#33cc66" for value in values]
-        bars = ax.bar(x_values, values, color=colors, width=0.64)
-        if values:
-            min_value = min(values)
-            max_value = max(values)
-            padding = max((max_value - min_value) * 0.18, 0.8)
-            ax.set_ylim(min(0, min_value) - padding, max(0, max_value) + padding)
-        for bar, value in zip(bars, values):
-            offset = 0.12 if value >= 0 else -0.12
-            vertical_align = "bottom" if value >= 0 else "top"
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                value + offset,
-                f"{value:+.2f}%",
-                ha="center",
-                va=vertical_align,
-                color="#eeeeee",
-                fontsize=8,
-                fontweight="bold",
-            )
-        ax.axhline(0, color="#666666", linewidth=1)
-        ax.set_title(metric["label"], color="#fcd535", fontsize=16, pad=14)
-        ax.set_ylabel(metric["axis"], color="#888888")
-        ax.grid(axis="y", color="white", alpha=0.08)
+        draw_value_chart(ax, frame, x_values, self.current_metric)
 
     def _draw_probability_chart(self, ax, frame: pd.DataFrame, x_values: list[int]) -> None:
-        black = frame["黑K機率%"].astype(float)
-        flat = frame["平K機率%"].astype(float)
-        red = frame["紅K機率%"].astype(float)
-
-        ax.bar(x_values, black, color="#33cc66", width=0.64, label="黑K")
-        ax.bar(x_values, flat, bottom=black, color="#ffffff", width=0.64, label="平K")
-        ax.bar(x_values, red, bottom=black + flat, color="#ff3333", width=0.64, label="紅K")
-        for idx, (black_value, flat_value, red_value) in enumerate(zip(black, flat, red)):
-            green_y = black_value / 2 if black_value >= 6 else black_value + 1.5
-            green_va = "center" if black_value >= 6 else "bottom"
-            ax.text(
-                idx,
-                green_y,
-                f"{black_value:.1f}%",
-                ha="center",
-                va=green_va,
-                color="#0f1f14" if black_value >= 6 else "#bff5d1",
-                fontsize=8,
-                fontweight="bold",
-                clip_on=False,
-            )
-
-            red_bottom = black_value + flat_value
-            red_y = red_bottom + red_value / 2 if red_value >= 6 else min(100, red_bottom + red_value + 1.5)
-            red_va = "center" if red_value >= 6 else "bottom"
-            ax.text(
-                idx,
-                red_y,
-                f"{red_value:.1f}%",
-                ha="center",
-                va=red_va,
-                color="#ffffff",
-                fontsize=8,
-                fontweight="bold",
-                clip_on=False,
-            )
-        ax.set_title("紅黑機率", color="#fcd535", fontsize=16, pad=14)
-        ax.set_ylabel("機率 (%)", color="#888888")
-        ax.set_ylim(0, 100)
-        ax.grid(axis="y", color="white", alpha=0.08)
-        legend = ax.legend(loc="upper right", frameon=False, ncol=3)
-        for text in legend.get_texts():
-            text.set_color("#bbbbbb")
+        draw_probability_chart(ax, frame, x_values)
 
     def _style_axis(self, ax) -> None:
-        ax.set_facecolor("#1e1e1e")
-        ax.tick_params(colors="#888888")
-        for spine in ax.spines.values():
-            spine.set_color("#333333")
-        ax.yaxis.label.set_color("#888888")
+        style_axis(ax)
 
     def _render_table(self, frame: pd.DataFrame) -> None:
-        columns = list(frame.columns) if not frame.empty else []
-        self.table.clear()
-        self.table.setColumnCount(len(columns))
-        self.table.setRowCount(len(frame))
-        self.table.setHorizontalHeaderLabels(columns)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setStretchLastSection(True)
-
-        numeric_columns = {
-            "樣本數": 0,
-            "平均漲跌幅%": 2,
-            "平均開收差幅%": 2,
-            "上漲機率%": 1,
-            "紅K機率%": 1,
-            "黑K機率%": 1,
-            "平K機率%": 1,
-        }
-
-        for row_idx, (_, row) in enumerate(frame.iterrows()):
-            for col_idx, column in enumerate(columns):
-                value = row[column]
-                if column in numeric_columns:
-                    decimals = numeric_columns[column]
-                    text = str(int(value)) if column == "樣本數" else f"{float(value):.{decimals}f}"
-                else:
-                    text = self._stage_label(str(value)) if column == "時間點" else str(value)
-
-                item = QTableWidgetItem(text)
-                if column == "時間點":
-                    item.setForeground(QBrush(QColor("#fcd535")))
-                else:
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                self.table.setItem(row_idx, col_idx, item)
+        fill_stage_table(self.table, frame)
 
     def _clear_layout(self, layout) -> None:
         while layout.count():
