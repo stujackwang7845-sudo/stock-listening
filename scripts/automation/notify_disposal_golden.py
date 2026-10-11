@@ -406,8 +406,24 @@ def fmt_return(d, rr):
     return s
 
 
+def fail_reasons(g):
+    """黃金濾網沒過的項目(生技／KY／均量)。"""
+    r = []
+    if g["is_bio"]:
+        r.append("生技醫療")
+    if g["is_ky"]:
+        r.append("KY")
+    if g["vol5_lots"] is None:
+        r.append("均量無資料")
+    elif g["vol_days"] < 5:
+        r.append(f"均量資料只有 {g['vol_days']} 天")
+    elif g["vol5_lots"] < MIN_LOTS:
+        r.append(f"前5日均量 {g['vol5_lots']:,.0f} 張 < {MIN_LOTS}")
+    return "、".join(r) or "未知"
+
+
 def fmt_stock(d, g, action, rr=None, show_filter=True, show_return=False, extra_lines=()):
-    head = "✅ 符合黃金濾網" if g["golden"] else "❌ 不符合黃金濾網"
+    head = "✅ 符合黃金濾網" if g["golden"] else f"❌ 不符合黃金濾網（{fail_reasons(g)}）"
     lines = [f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>（{d['market']}）{head}",
              f"　處置 {d['start']:%m/%d}～{d['end']:%m/%d}（{d['n_days']} 個交易日，{d['n_days']} 天初犯）→ {action}"]
     lines += list(extra_lines)
@@ -441,7 +457,7 @@ def section(title, body_lines):
 
 RULES_HTML = (
     "<blockquote expandable>📘 方案 D 規則與可靠度\n"
-    "• 只做初犯。<b>聽牌條件進場＝5 天初犯：處置公告當天(處置前一天)收盤買</b>；<b>處置後進場＝7 天初犯：處置首日收盤買</b>；處置最後一天收盤賣\n"
+    "• 只做初犯。<b>5 天初犯：處置公告當天(處置前一天)收盤買，只能盤前靠聽牌候選預買</b>；<b>7 天初犯：處置公告後、處置首日收盤買</b>；處置最後一天收盤賣\n"
     f"• <b>停損 {STOP_PCT*100:.0f}%</b>：收盤價 ≤ 進場價×{1-STOP_PCT:.2f}(還原後報酬 ≤ −{STOP_PCT*100:.0f}%)，當天收盤賣出；停損價已標在每檔下方\n"
     "• 進場日收盤漲停買不到，回測已排除；候選若盤中已漲停會標示\n"
     "• 5 天初犯要在公告前買進＝賭今天收盤會達標，沒達標就不會處置；盤前候選只是「可能」，不是確定\n"
@@ -500,7 +516,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
                 price_line = "　進場價：查無今日收盤行情"
             body += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", show_filter=True, extra_lines=[price_line, f"　{hit}"]), ""]
         n_ok = sum(1 for e in five if not e[3])
-        lines += [section(f"🟣 聽牌條件進場（5 天初犯，公告前一天收盤買）｜{len(five)} 檔（可買 {n_ok} 檔）", body), ""]
+        lines += [section(f"🟣 5 天初犯｜今日({today:%m/%d})收盤為進場日，處置已公告｜{len(five)} 檔（可買 {n_ok} 檔）", body), ""]
     if seven:
         body = []
         for d, g, rr, lu in sorted(seven, key=lambda x: (not x[1]["golden"], x[0]["code"])):
@@ -581,10 +597,7 @@ def build_pre_message(today, anchor, cands5, cands7, n_rep, warn_holds, exits_to
         lines += [section(f"🟣 聽牌條件進場（5 天初犯）｜今天收盤前買進｜{len(cands5)} 檔" + (f"（已漲停 {n_locked} 檔）" if n_locked else ""), body), ""]
     else:
         lines += ["🟣 <b>聽牌條件進場（5 天初犯）｜今天沒有候選</b>", ""]
-    if cands7:
-        body = [fmt_candidate(c, mis)[0] for c in cands7]
-        body.append("說明：這些預估處置 7 天(計算期間內有第十三款當沖占比過高)，方案 D 不提早買，公告後處置首日收盤買。")
-        lines += [section(f"🟢 處置後進場（預估 7 天初犯）｜不預買，公告後處置首日收盤買｜{len(cands7)} 檔", body), ""]
+    # 預估 7 天初犯不預買，等盤後確認處置、明天進場時才由盤後推播通知，盤前不列
     if n_rep:
         lines += [f"（另有 {n_rep} 檔聽牌股若進處置會是累犯，方案 D 不做）", ""]
 
