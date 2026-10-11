@@ -175,14 +175,18 @@ class DetailsTab(QWidget):
     def _render_stats(self, d):
         self._clear_charts()
         self.stats_table.setVisible(False)
-        bucket = d.get("stats_bucket") if d.get("has_disposal") else None
+        # 使用者要求：圖表看「下次進處置」那一次的分桶；算不出下次才退回本次處置
+        bucket, title, basis = d.get("next_stats_bucket"), d.get("next_stats_title"), d.get("next_stats_basis", "")
+        heading = "下次進處置"
+        if bucket is None and d.get("has_disposal") and d.get("stats_bucket") is not None:
+            bucket, title, basis, heading = d["stats_bucket"], d["stats_title"], "", "本次處置"
         if bucket is None:
             self.stats_title.setVisible(False)
-            self.stats_note.setText("這筆處置沒有對應的統計分桶(非 5/7 天新制、也不是 5分/20分 舊制)。"
-                                    if d.get("has_disposal") else "")
-            self.stats_note.setVisible(bool(d.get("has_disposal")))
+            self.stats_note.setText("沒有對應的統計分桶。")
+            self.stats_note.setVisible(True)
             return
-        self.stats_title.setText(f"統計圖表：{d['stats_title']}")
+        self._stats_basis = basis
+        self.stats_title.setText(f"統計圖表（{heading}）：{title}")
         self.stats_title.setVisible(True)
         if self._dataset is None:
             self.stats_note.setText("正在載入統計資料…")
@@ -192,7 +196,7 @@ class DetailsTab(QWidget):
             return
         frame = self._dataset.interval_frame(bucket)
         used, total = self._dataset.event_counts.get(bucket, (0, 0))
-        self.stats_note.setText(f"歷史上同類處置共 {total} 筆，有日K資料可統計 {used} 筆"
+        self.stats_note.setText(f"{self._stats_basis}歷史上同類處置共 {total} 筆，有日K資料可統計 {used} 筆"
                                 f"（統計資料產生於 {self._dataset.generated_at:%Y-%m-%d %H:%M}）。"
                                 "時間點：處置前1＝處置前一個交易日，處置N＝處置第N天，出關1＝出關日。")
         self.stats_note.setVisible(True)

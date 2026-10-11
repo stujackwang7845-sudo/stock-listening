@@ -128,6 +128,25 @@ def _next(code, source, disp_d, mine, next_hint):
     return out
 
 
+def next_stats_bucket(state, total, offense, period_start, next_info):
+    """
+    「下次進處置」的統計分桶(詳細條件下方圖表用，使用者要求看下次那一次)：
+    - 已公告、尚未生效：下次就是這筆，天數與初犯/累犯都已知
+    - 其他：天數預設 5 天(新制處置多數 5 天；觸發條件含當日沖銷量百分比等時為 7 天，
+      注意條款資料看不出當沖比例，無法事先判斷)，初犯/累犯取「下次進處置」的判定
+    回傳 (bucket, title, basis)；算不出來回傳 (None, "", "")。
+    """
+    if state == "已公告，尚未生效" and total in (5, 7):
+        return (f"{total}天_{offense}", f"新制 {total}天{offense}",
+                f"下次處置即已公告、{period_start} 生效的這次（{total} 天、{offense}）。")
+    label = (next_info or {}).get("next_label") or ""
+    if not label:
+        return None, "", ""
+    off = "累犯" if "累犯" in label else "初犯"
+    return (f"5天_{off}", f"新制 5天{off}",
+            f"下次進處置預估為{off}；天數預設 5 天（新制處置多數為 5 天，觸發條件含當日沖銷量百分比等時為 7 天，屆時以公告為準）。")
+
+
 def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     """
     display_date: date/datetime(畫面上的顯示日)。
@@ -171,9 +190,11 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     elif announced:
         rec = max(announced, key=lambda r: (r["period_end"], r["period_start"]))
     else:
+        nx = _next(code, "", disp_d, mine, next_hint)
+        nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx)
         return {"code": code, "has_disposal": False, "display_date": disp_iso,
-                "recent_clauses": recent_clauses(code, disp_iso),
-                "next": _next(code, "", disp_d, mine, next_hint)}
+                "recent_clauses": recent_clauses(code, disp_iso), "next": nx,
+                "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
 
     ps = datetime.strptime(rec["period_start"], "%Y-%m-%d").date()
     pe = datetime.strptime(rec["period_end"], "%Y-%m-%d").date()
@@ -205,7 +226,7 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         stats_bucket = int(freq[:-1])
         stats_title = f"{freq}盤" + ("(新制，全部)" if freq == "2分" else "(舊制)")
 
-    return {
+    result = {
         "code": code, "has_disposal": True, "display_date": disp_iso,
         "name": rec.get("name", ""), "source": rec.get("source", ""),
         "state": state, "freq": freq or "—", "total_days": total, "day_no": day_no,
@@ -217,3 +238,6 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         "stats_bucket": stats_bucket, "stats_title": stats_title,
         "next": _next(code, rec.get("source", ""), disp_d, mine, next_hint),
     }
+    nb, nt, nbasis = next_stats_bucket(state, total, offense, _iso(ps), result["next"])
+    result.update({"next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis})
+    return result

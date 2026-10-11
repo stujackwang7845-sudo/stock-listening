@@ -63,6 +63,13 @@ class DetailTest(unittest.TestCase):
         self.assertEqual(d["offense"], "初犯")                      # 本次處置
         self.assertEqual((d["next"]["next_label"], d["next"]["min_needed"], d["next"]["from_forecast"]),
                          ("2分累犯", 1, True))                       # 下次進處置
+        # 圖表看下次進處置(使用者要求)：本次初犯，下次累犯 → 5天_累犯
+        self.assertEqual((d["stats_bucket"], d["next_stats_bucket"]), ("5天_初犯", "5天_累犯"))
+
+    def test_next_stats_uses_announced_disposal(self):
+        # 已公告尚未生效：下次就是那一筆(天數、初犯累犯已知)
+        d = dd.compute_disposal_detail("6672", date(2026, 10, 8), records=self.RECORDS)
+        self.assertEqual((d["next_stats_bucket"], d["next_stats_title"]), ("5天_累犯", "新制 5天累犯"))
 
     def test_no_disposal(self):
         self.assertFalse(dd.compute_disposal_detail("2330", date(2026, 10, 8), records=self.RECORDS)["has_disposal"])
