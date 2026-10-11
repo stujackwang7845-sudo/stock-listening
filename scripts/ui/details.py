@@ -10,7 +10,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QColor
 from PyQt6.QtWidgets import (
-    QFrame, QGridLayout, QHeaderView, QLabel, QScrollArea, QSizePolicy, QTableWidget,
+    QFrame, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QScrollArea, QSizePolicy, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -57,6 +57,17 @@ class DetailsTab(QWidget):
         self.title_label.setStyleSheet("font-size: 22px; font-weight: bold; color: #E0E0E0;")
         self.layout_.addWidget(self.title_label)
 
+        # 左右兩欄：左＝處置資訊、歷史處置、統計說明與明細表；右＝三張統計圖(2026-10-11 使用者要求)
+        columns = QHBoxLayout()
+        columns.setSpacing(14)
+        self.left_ = QVBoxLayout()
+        self.left_.setSpacing(12)
+        self.right_ = QVBoxLayout()
+        self.right_.setSpacing(10)
+        columns.addLayout(self.left_, 1)
+        columns.addLayout(self.right_, 1)
+        self.layout_.addLayout(columns)
+
         # 處置資訊卡
         self.info_card = QFrame()
         self.info_card.setObjectName("card")
@@ -67,36 +78,39 @@ class DetailsTab(QWidget):
         self.info_grid.setVerticalSpacing(8)
         self.info_grid.setColumnStretch(1, 1)  # 標題欄依內容寬度，數值欄延伸
         self.info_card.setVisible(False)
-        self.layout_.addWidget(self.info_card)
+        self.left_.addWidget(self.info_card)
 
         # 這檔的歷史處置：處置前一天 ~ 出關後一天逐日漲跌幅(與「處置統計」頁同一份計算)
         self.hist_title = QLabel("")
         self.hist_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #4da6ff;")
         self.hist_title.setVisible(False)
-        self.layout_.addWidget(self.hist_title)
+        self.left_.addWidget(self.hist_title)
         self.hist_table = QTableWidget()
         self.hist_table.setVisible(False)
         self.hist_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.hist_table.verticalHeader().setVisible(False)
         self.hist_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.layout_.addWidget(self.hist_table)
+        self.left_.addWidget(self.hist_table)
 
         # 統計圖表
         self.stats_title = QLabel("")
         self.stats_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #fcd535;")
         self.stats_title.setVisible(False)
-        self.layout_.addWidget(self.stats_title)
+        self.left_.addWidget(self.stats_title)
         self.stats_note = QLabel("")
         self.stats_note.setWordWrap(True)
         self.stats_note.setStyleSheet("color: #9a9a9a; font-size: 13px;")
         self.stats_note.setVisible(False)
-        self.layout_.addWidget(self.stats_note)
+        self.left_.addWidget(self.stats_note)
         self.charts_box = QVBoxLayout()
-        self.layout_.addLayout(self.charts_box)
+        self.charts_box.setSpacing(10)
+        self.right_.addLayout(self.charts_box)
         self.stats_table = QTableWidget()
         self.stats_table.setVisible(False)
         self.stats_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.layout_.addWidget(self.stats_table)
+        self.left_.addWidget(self.stats_table)
+        self.left_.addStretch()
+        self.right_.addStretch()
         self.layout_.addStretch()
 
     def _clear_grid(self):
@@ -241,7 +255,8 @@ class DetailsTab(QWidget):
                 m = sum(vals) / len(vals)
                 put(last, len(base) + j, f"{m:+.2f}% ({len(vals)})", "#4da6ff", True)
         t.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        t.setFixedHeight(t.horizontalHeader().height() + sum(t.rowHeight(i) for i in range(t.rowCount())) + 4)
+        t.setFixedHeight(t.horizontalHeader().height() + sum(t.rowHeight(i) for i in range(t.rowCount()))
+                         + t.horizontalScrollBar().sizeHint().height() + 6)
         t.setVisible(True)
 
     def _render_stats(self, d):
@@ -274,8 +289,9 @@ class DetailsTab(QWidget):
             self.stats_note.setText(self.stats_note.text() + " 目前沒有樣本。")
             return
         for metric in ("return", "body", "prob"):
-            canvas = FigureCanvasQTAgg(build_stage_figure(frame, metric, figsize=(10.5, 3.6)))
-            canvas.setMinimumHeight(300)
+            canvas = FigureCanvasQTAgg(build_stage_figure(frame, metric, figsize=(7.0, 2.8)))
+            canvas.setMinimumHeight(250)
+            canvas.setMaximumHeight(270)  # 三張圖在右欄一個畫面內放得下
             canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             self.charts_box.addWidget(canvas)
         fill_stage_table(self.stats_table, frame)
