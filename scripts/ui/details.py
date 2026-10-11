@@ -107,11 +107,11 @@ class DetailsTab(QWidget):
         self.info_grid.addWidget(v, row, 1)
 
     # ------------------------------------------------------------- 資料
-    def show_stock(self, code, display_date, name=""):
+    def show_stock(self, code, display_date, name="", next_hint=None):
         """雙擊入口：code 股票代號、display_date 該頁目前的顯示日。"""
         from core.disposal_detail import compute_disposal_detail
         try:
-            d = compute_disposal_detail(code, display_date)
+            d = compute_disposal_detail(code, display_date, next_hint=next_hint)
         except Exception as e:
             self.title_label.setText(f"{code} {name} 讀取處置資料失敗：{e}")
             return
@@ -126,7 +126,8 @@ class DetailsTab(QWidget):
         self.info_card.setVisible(True)
         if not d.get("has_disposal"):
             self._add_row(0, "處置狀態", "目前沒有處置紀錄(或尚未公告)")
-            self._add_clauses(1, d)
+            self._add_next(1, d)
+            self._add_clauses(2, d)
             return
         rows = [
             ("處置狀態", d["state"], _STATE_COLOR.get(d["state"])),
@@ -142,7 +143,28 @@ class DetailsTab(QWidget):
         ]
         for i, (k, v, c) in enumerate(rows):
             self._add_row(i, k, v, c, wrap=(k == "官方處置原因"))
-        self._add_clauses(len(rows), d)
+        self._add_next(len(rows), d)
+        self._add_clauses(len(rows) + 1, d)
+
+    def _add_next(self, row, d):
+        """下次進處置：還差幾次注意、四條規則進度、下次是初犯還是累犯(與總覽「進處置」欄同一份)。"""
+        nx = d.get("next") or {}
+        tp = nx.get("trigger_progress") or {}
+        if not tp:
+            return
+        need = tp.get("min_needed")
+        rules = [("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4")]
+        prog = "、".join(f"{lbl} {tp[k]['current']}/{tp[k]['target']}" for lbl, k in rules if k in tp)
+        if need == 0:
+            head = "已達進處置條件" + ("（即本次已公告的處置）" if d.get("state") == "已公告，尚未生效" else "（等待公告）")
+            color = "#FF8C8C"
+        elif isinstance(need, int) and need <= 2:
+            head = f"再 {need} 次注意就進處置 → 下次為 {nx.get('next_label', '—')}"
+            color = "#FF8C8C" if "累犯" in nx.get("next_label", "") else "#FFC850"
+        else:
+            head = f"距離進處置還差 3 次以上（若再進處置為 {nx.get('next_label', '—')}）"
+            color = None
+        self._add_row(row, "下次進處置", f"{head}\n{prog}", color, wrap=True)
 
     def _add_clauses(self, row, d):
         clauses = d.get("recent_clauses") or []

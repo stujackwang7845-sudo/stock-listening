@@ -55,6 +55,15 @@ class DetailTest(unittest.TestCase):
         d = dd.compute_disposal_detail("6672", date(2026, 10, 20), records=self.RECORDS)
         self.assertEqual((d["state"], d["day_no"], d["period_end"]), ("已出關", 5, "2026-10-16"))
 
+    def test_next_hint_from_forecast_is_used(self):
+        # 總覽已算好的規則進度與下次進處置，詳細條件直接沿用(數字一致)
+        tp = {"rule1": {"current": 2, "target": 3, "needed": 1}, "min_needed": 1}
+        d = dd.compute_disposal_detail("6672", date(2026, 10, 7), records=self.RECORDS,
+                                       next_hint={"trigger_progress": tp, "enter_freq": "2分累犯"})
+        self.assertEqual(d["offense"], "初犯")                      # 本次處置
+        self.assertEqual((d["next"]["next_label"], d["next"]["min_needed"], d["next"]["from_forecast"]),
+                         ("2分累犯", 1, True))                       # 下次進處置
+
     def test_no_disposal(self):
         self.assertFalse(dd.compute_disposal_detail("2330", date(2026, 10, 8), records=self.RECORDS)["has_disposal"])
 

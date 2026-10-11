@@ -138,7 +138,11 @@ class MainWindow(QMainWindow):
     def open_details(self, code, name, display_date):
         """總覽/儀表板雙擊 → 帶入「詳細條件」並切過去(2026-10-11)。
         原本用 setCurrentIndex(1)，但總覽排第一後 1 是儀表板，雙擊後不會跳頁；改用 setCurrentWidget。"""
-        self.tab2.show_stock(code, display_date, name)
+        hint = None
+        fp = self.tab_forecast
+        if getattr(fp, "current_display_date", None) and fp.current_display_date.date() == display_date.date():
+            hint = fp.forecast_entry(code)
+        self.tab2.show_stock(code, display_date, name, next_hint=hint)
         self.tabs.setCurrentWidget(self.tab2)
 
     def setup_tab_placeholder(self, tab, text):

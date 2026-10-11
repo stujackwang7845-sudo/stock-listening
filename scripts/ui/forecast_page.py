@@ -577,6 +577,14 @@ class ForecastPage(QWidget):
         btn.clicked.connect(on_date_selected)
         dialog.exec()
 
+    def forecast_entry(self, code):
+        """本頁最近一次 run_forecast 對這檔算出的規則進度與下次進處置(詳細條件頁沿用，數字一致)。"""
+        agg = getattr(getattr(self, "worker", None), "agg_data", None) or {}
+        data = agg.get(str(code)) or {}
+        if data.get("trigger_progress") and data.get("enter_freq"):
+            return {"trigger_progress": data["trigger_progress"], "enter_freq": data["enter_freq"]}
+        return None
+
     def _emit_stock_double_clicked(self, table, row):
         code_item, name_item = table.item(row, 0), table.item(row, 1)
         if code_item and code_item.text().strip():

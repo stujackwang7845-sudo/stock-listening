@@ -65,7 +65,7 @@ def condition_label(reason):
 
 
 def recent_clauses(code, until_iso, n_days=10, db_path=None):
-    """顯示日(含)往前 n 個交易日的注意條款 [(日期, '一,四'), ...]，由舊到新。"""
+    """顯示日(含)往前 n 個交易日內的注意條款 [(日期, '一,四'), ...]，由舊到新。"""
     conn = sqlite3.connect(db_path or get_paths().disposal_db)
     try:
         rows = conn.execute(
@@ -77,18 +77,64 @@ def recent_clauses(code, until_iso, n_days=10, db_path=None):
     by_day = {}
     for d, c in rows:
         by_day.setdefault(d, set()).add(c)
-    days = sorted(by_day, reverse=True)[:n_days]
+    # 第 n 個交易日(含顯示日)為下限；原本取「最近 n 個有紀錄的日子」，久沒被注意會一路抓到幾個月前
+    cur, count = datetime.strptime(until_iso, "%Y-%m-%d"), 0
+    while True:
+        if DateUtils.is_trading_day(cur):
+            count += 1
+            if count >= n_days:
+                break
+        cur -= timedelta(days=1)
+    cutoff = cur.strftime("%Y-%m-%d")
     out = []
-    for d in sorted(days):
+    for d in sorted(x for x in by_day if x >= cutoff):
         nums = sorted(x for x in by_day[d] if x in CLAUSE_CN)
         out.append((d, ",".join(CLAUSE_CN[x] for x in nums) or "其他"))
     return out
 
 
-def compute_disposal_detail(code, display_date, records=None):
+def next_disposal_outlook(code, source, disp_d, mine, db_path=None):
+    """
+    「下次進處置」：跟總覽(forecast_engine.run_forecast)同一套算法——最近 30 個交易日的注意條款
+    → DispositionPredictor 的四條規則進度與還差幾次 → predict_exact_disposal_frequency 預測下次
+    進處置是初犯還是累犯(例：4556 目前處置是初犯，但再 1 次注意就會在這次處置的 30 營業日內，下次是累犯)。
+    """
+    from core.conditions_engine import build_pred_dates, disposal_periods_from_records, build_history_items
+    from core.predictor import DispositionPredictor
+    from core.forecast_engine import predict_exact_disposal_frequency
+
+    anchor_dt = datetime.combine(disp_d, datetime.min.time())
+    pred_dates = build_pred_dates(anchor_dt, 30)
+    clauses_map = {}
+    for day, cls in recent_clauses(code, _iso(disp_d), n_days=30, db_path=db_path):
+        clauses_map[day[5:].replace("-", "/")] = cls
+    periods = disposal_periods_from_records(mine, disp_d)
+    hist = build_history_items(clauses_map, periods, pred_dates, anchor_dt)
+    progress = DispositionPredictor.get_trigger_progress(hist)
+    _, _, min_needed = DispositionPredictor.analyze(hist, future_days=5)
+    days_until = min_needed if isinstance(min_needed, int) and 0 <= min_needed <= 10 else 0
+    label = predict_exact_disposal_frequency(code, source, disp_d, {code: mine}, days_until_trigger=days_until)
+    return {"min_needed": min_needed, "trigger_progress": progress, "next_label": label}
+
+
+def _next(code, source, disp_d, mine, next_hint):
+    if next_hint and next_hint.get("trigger_progress") and next_hint.get("enter_freq"):
+        tp = next_hint["trigger_progress"]
+        return {"min_needed": tp.get("min_needed"), "trigger_progress": tp,
+                "next_label": next_hint["enter_freq"], "from_forecast": True}
+    out = next_disposal_outlook(code, source, disp_d, mine)
+    out["min_needed"] = out["trigger_progress"].get("min_needed", out["min_needed"])
+    out["from_forecast"] = False
+    return out
+
+
+def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     """
     display_date: date/datetime(畫面上的顯示日)。
     records: disposal_records 全部紀錄(可傳入共用，省一次讀庫)；None 就自己讀。
+    next_hint: 總覽(run_forecast)對這檔已算好的 {"trigger_progress", "enter_freq"}；有給就直接沿用，
+               畫面數字跟總覽完全一致(總覽的條款來源是快取＋聽牌紀錄＋注意條款庫合併，自己重算可能
+               在 10日/30日累計次數上差一兩次)。沒給才用注意條款庫自己算。
     """
     from core.measure_parser import MeasureParser
     from core.forecast_engine import predict_exact_disposal_frequency
@@ -126,7 +172,8 @@ def compute_disposal_detail(code, display_date, records=None):
         rec = max(announced, key=lambda r: (r["period_end"], r["period_start"]))
     else:
         return {"code": code, "has_disposal": False, "display_date": disp_iso,
-                "recent_clauses": recent_clauses(code, disp_iso)}
+                "recent_clauses": recent_clauses(code, disp_iso),
+                "next": _next(code, "", disp_d, mine, next_hint)}
 
     ps = datetime.strptime(rec["period_start"], "%Y-%m-%d").date()
     pe = datetime.strptime(rec["period_end"], "%Y-%m-%d").date()
@@ -168,4 +215,5 @@ def compute_disposal_detail(code, display_date, records=None):
         "official_reason": official_reason_text(rec.get("reason") or ""),
         "recent_clauses": recent_clauses(code, disp_iso),
         "stats_bucket": stats_bucket, "stats_title": stats_title,
+        "next": _next(code, rec.get("source", ""), disp_d, mine, next_hint),
     }
