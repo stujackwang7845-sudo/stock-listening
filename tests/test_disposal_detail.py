@@ -98,5 +98,24 @@ class NextDaysTest(unittest.TestCase):
             self.assertEqual(dd.predict_next_days("4556", "2026-10-08", self.TP)[0], 5)
 
 
+class ChartChoiceTest(unittest.TestCase):
+    """圖表看哪一次(使用者規則)：聽牌才看下次；處置中未聽牌看本次；已公告未生效看那一次。"""
+    BASE = {"stats_bucket": "5天_初犯", "stats_title": "新制 5天初犯",
+            "next_stats_bucket": "5天_累犯", "next_stats_title": "新制 5天累犯", "next_stats_basis": ""}
+
+    def d(self, state, need):
+        return dict(self.BASE, state=state, next={"trigger_progress": {"min_needed": need}})
+
+    def test_disposed_not_listening_shows_current(self):   # 2033：處置中、還差 3 次
+        self.assertEqual(dd.chart_choice(self.d("處置中", 3))[3], "本次處置")
+        self.assertEqual(dd.chart_choice(self.d("處置中", 2))[0], "5天_初犯")
+
+    def test_disposed_listening_shows_next(self):          # 4556：處置中、再 1 次
+        self.assertEqual(dd.chart_choice(self.d("處置中", 1))[:1], ("5天_累犯",))
+
+    def test_not_disposed_shows_next(self):
+        self.assertEqual(dd.chart_choice(self.d(None, 3))[3], "下次進處置")
+
+
 if __name__ == "__main__":
     unittest.main()

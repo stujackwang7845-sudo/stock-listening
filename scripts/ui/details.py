@@ -175,11 +175,9 @@ class DetailsTab(QWidget):
     def _render_stats(self, d):
         self._clear_charts()
         self.stats_table.setVisible(False)
-        # 使用者要求：圖表看「下次進處置」那一次的分桶；算不出下次才退回本次處置
-        bucket, title, basis = d.get("next_stats_bucket"), d.get("next_stats_title"), d.get("next_stats_basis", "")
-        heading = "下次進處置"
-        if bucket is None and d.get("has_disposal") and d.get("stats_bucket") is not None:
-            bucket, title, basis, heading = d["stats_bucket"], d["stats_title"], "", "本次處置"
+        # 看哪一次處置的統計：規則在 core/disposal_detail.chart_choice(聽牌才看下次，處置中未聽牌看本次)
+        from core.disposal_detail import chart_choice
+        bucket, title, basis, heading = chart_choice(d)
         if bucket is None:
             self.stats_title.setVisible(False)
             self.stats_note.setText("沒有對應的統計分桶。")

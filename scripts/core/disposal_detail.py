@@ -197,6 +197,27 @@ def next_stats_bucket(state, total, offense, period_start, next_info, code="", d
     return (f"{days}天_{off}", f"新制 {days}天{off}", f"下次進處置預估為{off}、{days} 天：{why}")
 
 
+def chart_choice(d):
+    """
+    詳細條件下方圖表要看哪一次處置(使用者規則)：
+    1. 已公告、尚未生效 → 那一次
+    2. 處置中且還沒聽牌(再進處置還差 2 次以上注意，明天注意也不會再進處置) → 本次處置
+    3. 聽牌(還差 1 次)或條件已達成 → 下次進處置
+    4. 沒有進行中的處置 → 下次進處置(預估)
+    回傳 (bucket, title, basis, heading)；沒有可用分桶時 bucket 為 None。
+    """
+    need = ((d.get("next") or {}).get("trigger_progress") or {}).get("min_needed")
+    listening = isinstance(need, int) and need <= 1
+    if d.get("state") == "處置中" and not listening and d.get("stats_bucket") is not None:
+        return (d["stats_bucket"], d["stats_title"],
+                f"目前處置中、尚未聽牌(再進處置還差 {need} 次以上注意)，顯示本次處置的統計。", "本次處置")
+    if d.get("next_stats_bucket") is not None:
+        return d["next_stats_bucket"], d["next_stats_title"], d.get("next_stats_basis", ""), "下次進處置"
+    if d.get("stats_bucket") is not None:
+        return d["stats_bucket"], d["stats_title"], "", "本次處置"
+    return None, "", "", ""
+
+
 def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     """
     display_date: date/datetime(畫面上的顯示日)。
