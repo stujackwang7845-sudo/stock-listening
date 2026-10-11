@@ -441,7 +441,7 @@ def section(title, body_lines):
 
 RULES_HTML = (
     "<blockquote expandable>📘 方案 D 規則與可靠度\n"
-    "• 只做初犯。<b>5 天初犯：處置公告當天(處置前一天)收盤買</b>；7 天初犯：處置首日收盤買；處置最後一天收盤賣\n"
+    "• 只做初犯。<b>聽牌條件進場＝5 天初犯：處置公告當天(處置前一天)收盤買</b>；<b>處置後進場＝7 天初犯：處置首日收盤買</b>；處置最後一天收盤賣\n"
     f"• <b>停損 {STOP_PCT*100:.0f}%</b>：收盤價 ≤ 進場價×{1-STOP_PCT:.2f}(還原後報酬 ≤ −{STOP_PCT*100:.0f}%)，當天收盤賣出；停損價已標在每檔下方\n"
     "• 進場日收盤漲停買不到，回測已排除；候選若盤中已漲停會標示\n"
     "• 5 天初犯要在公告前買進＝賭今天收盤會達標，沒達標就不會處置；盤前候選只是「可能」，不是確定\n"
@@ -500,16 +500,16 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
                 price_line = "　進場價：查無今日收盤行情"
             body += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", show_filter=True, extra_lines=[price_line, f"　{hit}"]), ""]
         n_ok = sum(1 for e in five if not e[3])
-        lines += [section(f"🟣 5 天初犯｜進場日是今天收盤｜{len(five)} 檔（可買 {n_ok} 檔）", body), ""]
+        lines += [section(f"🟣 聽牌條件進場（5 天初犯，公告前一天收盤買）｜{len(five)} 檔（可買 {n_ok} 檔）", body), ""]
     if seven:
         body = []
         for d, g, rr, lu in sorted(seven, key=lambda x: (not x[1]["golden"], x[0]["code"])):
             body += [fmt_stock(d, g, f"{next_td:%m/%d} 收盤買進，{d['end']:%m/%d} 收盤賣出",
                                extra_lines=[f"　🛡 停損價 = 買進價 × {1-STOP_PCT:.2f}（明日收盤買進後再算）"]), ""]
-        lines += [section(f"🟢 7 天初犯｜明日 {next_td:%m/%d} 收盤買｜{len(seven)} 檔", body), ""]
+        lines += [section(f"🟢 處置後進場（7 天初犯，處置首日 {next_td:%m/%d} 收盤買）｜{len(seven)} 檔", body), ""]
     if not five and not seven:
         extra = f"（累犯 {n_repeat} 檔不做）" if n_repeat else ""
-        lines += [f"🟢 <b>新進場｜無</b>{extra}", ""]
+        lines += [f"🟣🟢 <b>新進場｜無</b>（聽牌條件進場、處置後進場都沒有）{extra}", ""]
     elif n_repeat:
         lines += [f"（另有 {n_repeat} 檔累犯明日開始處置，本策略不做）", ""]
 
@@ -578,13 +578,13 @@ def build_pre_message(today, anchor, cands5, cands7, n_rep, warn_holds, exits_to
             n_locked += lk
         body.append("👉 要不要買：今天收盤前買進(收盤價)，若今晚公告進處置 → 明天起處置 5 天；沒達標就不會處置。\n"
                     f"　買進後的停損價 = 買進價 × {1 - STOP_PCT:.2f}（收盤 ≤ 此價當天收盤賣出）。{hit_note}")
-        lines += [section(f"🟣 5 天初犯候選｜今天收盤前買進｜{len(cands5)} 檔" + (f"（已漲停 {n_locked} 檔）" if n_locked else ""), body), ""]
+        lines += [section(f"🟣 聽牌條件進場（5 天初犯）｜今天收盤前買進｜{len(cands5)} 檔" + (f"（已漲停 {n_locked} 檔）" if n_locked else ""), body), ""]
     else:
-        lines += ["🟣 <b>5 天初犯候選｜今天沒有</b>", ""]
+        lines += ["🟣 <b>聽牌條件進場（5 天初犯）｜今天沒有候選</b>", ""]
     if cands7:
         body = [fmt_candidate(c, mis)[0] for c in cands7]
         body.append("說明：這些預估處置 7 天(計算期間內有第十三款當沖占比過高)，方案 D 不提早買，公告後處置首日收盤買。")
-        lines += [section(f"🟢 預估 7 天初犯｜不預買、公告後首日收盤買｜{len(cands7)} 檔", body), ""]
+        lines += [section(f"🟢 處置後進場（預估 7 天初犯）｜不預買，公告後處置首日收盤買｜{len(cands7)} 檔", body), ""]
     if n_rep:
         lines += [f"（另有 {n_rep} 檔聽牌股若進處置會是累犯，方案 D 不做）", ""]
 
@@ -817,6 +817,9 @@ def main_pre(args, today):
         print("[dry-run] 未推播、未寫紀錄。")
         return
     push(msg)
+    if args.force_send:
+        print("[force-send] 手動測試推播：不寫入「今天已推播」與候選紀錄，正式排程照常執行。")
+        return
     meta["pre_close_date"] = str(today)
     log.setdefault("_cand", {})[str(today)] = [c["code"] for c in cands5]
     save_log(log)
