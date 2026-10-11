@@ -8,10 +8,15 @@
 """
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QBrush, QColor
 from PyQt6.QtWidgets import (
     QFrame, QGridLayout, QHeaderView, QLabel, QScrollArea, QSizePolicy, QTableWidget,
-    QVBoxLayout, QWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget,
 )
+
+# 歷史處置表欄名(對照「處置統計」頁的欄位代號)
+_HIST_LABEL = {"-1": "處置前一天", "處置日": "處置第1天", "+1": "第2天", "+2": "第3天", "+3": "第4天",
+               "+4": "第5天", "+5": "第6天", "處置結束": "處置末日", "出關日": "出關日", "出+1": "出關後一天"}
 
 from ui.disposal_stats_overview import (
     DisposalStatsOverviewWorker, build_stage_figure, fill_stage_table,
@@ -62,6 +67,18 @@ class DetailsTab(QWidget):
         self.info_grid.setColumnStretch(1, 1)  # 標題欄依內容寬度，數值欄延伸
         self.info_card.setVisible(False)
         self.layout_.addWidget(self.info_card)
+
+        # 這檔的歷史處置：處置前一天 ~ 出關後一天逐日漲跌幅(與「處置統計」頁同一份計算)
+        self.hist_title = QLabel("")
+        self.hist_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #4da6ff;")
+        self.hist_title.setVisible(False)
+        self.layout_.addWidget(self.hist_title)
+        self.hist_table = QTableWidget()
+        self.hist_table.setVisible(False)
+        self.hist_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.hist_table.verticalHeader().setVisible(False)
+        self.hist_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.layout_.addWidget(self.hist_table)
 
         # 統計圖表
         self.stats_title = QLabel("")
@@ -116,6 +133,7 @@ class DetailsTab(QWidget):
             self.title_label.setText(f"{code} {name} 讀取處置資料失敗：{e}")
             return
         self._render_info(d, name)
+        self._render_history(code)
         self._render_stats(d)
 
     def _render_info(self, d, fallback_name):
@@ -171,6 +189,59 @@ class DetailsTab(QWidget):
         text = "　".join(f"{day[5:].replace('-', '/')} " + ("其他條件" if c == "其他" else f"第{c}款")
                         for day, c in clauses) if clauses else "—"
         self._add_row(row, "近期注意條款", text, wrap=True)
+
+    def _render_history(self, code):
+        from core.disposal_detail import disposal_history_rows
+        try:
+            h = disposal_history_rows(code)
+        except Exception as e:
+            self.hist_title.setText(f"歷史處置：讀取失敗 {e}")
+            self.hist_title.setVisible(True)
+            self.hist_table.setVisible(False)
+            return
+        rows, cols = h["rows"], h["columns"]
+        self.hist_title.setText(f"歷史處置前後漲跌幅（共 {len(rows)} 次，處置前一天～出關後一天的逐日漲跌；超過 7 天的處置第 7 天起只列末日）")
+        self.hist_title.setVisible(True)
+        if not rows:
+            self.hist_table.setVisible(False)
+            return
+        base = ["公告日", "處置期間", "頻率", "天數", "初犯/累犯"]
+        t = self.hist_table
+        t.clear()
+        t.setColumnCount(len(base) + len(cols))
+        t.setHorizontalHeaderLabels(base + [_HIST_LABEL.get(c, c) for c in cols])
+        t.setRowCount(len(rows) + 1)
+
+        def put(r, c, text, color=None, right=False):
+            it = QTableWidgetItem(text)
+            if color:
+                it.setForeground(QBrush(QColor(color)))
+            if right:
+                it.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            t.setItem(r, c, it)
+
+        for i, r in enumerate(rows):
+            put(i, 0, r["announce"])
+            put(i, 1, f"{r['start']} ~ {r['end']}")
+            put(i, 2, r["freq"])
+            put(i, 3, r["duration"])
+            put(i, 4, r["offense"], "#FF8C8C" if r["offense"] == "累犯" else "#8CC8FF")
+            for j, c in enumerate(cols):
+                v = r["changes"].get(c)
+                if isinstance(v, (int, float)):
+                    put(i, len(base) + j, f"{v:+.2f}%", "#ff4d4d" if v > 0 else "#33cc66" if v < 0 else "#E0E0E0", True)
+                else:
+                    put(i, len(base) + j, "N/A" if v is None else str(v), "#888888", True)
+        last = len(rows)
+        put(last, 0, "📊 平均", "#4da6ff")
+        for j, c in enumerate(cols):
+            vals = [r["changes"][c] for r in rows if isinstance(r["changes"].get(c), (int, float))]
+            if vals:
+                m = sum(vals) / len(vals)
+                put(last, len(base) + j, f"{m:+.2f}% ({len(vals)})", "#4da6ff", True)
+        t.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        t.setFixedHeight(t.horizontalHeader().height() + sum(t.rowHeight(i) for i in range(t.rowCount())) + 4)
+        t.setVisible(True)
 
     def _render_stats(self, d):
         self._clear_charts()

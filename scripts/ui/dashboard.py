@@ -55,6 +55,9 @@ class SortableWidgetItem(QTableWidgetItem):
 
 class InfoBox(QFrame):
     item_clicked = pyqtSignal(str) # Signal for link clicks
+    # [2026-10-11] 雙擊股票連結 → 主視窗帶到「詳細條件」。QLabel 沒有「雙擊哪個連結」的訊號，
+    # 改用同一個連結在系統雙擊間隔內被點兩次判定(單擊的 item_clicked 行為不變)
+    item_double_clicked = pyqtSignal(str)
 
     def __init__(self, title, items_dict=None, color_theme="#4da6ff", header_btn_text=None, header_btn_callback=None):
         super().__init__()
@@ -139,11 +142,22 @@ class InfoBox(QFrame):
                 val_lbl = QLabel(str(val))
                 val_lbl.setWordWrap(True)
                 val_lbl.setOpenExternalLinks(False) # Catch link clicks
-                val_lbl.linkActivated.connect(self.item_clicked.emit)
+                val_lbl.linkActivated.connect(self._on_link_activated)
                 row.addWidget(val_lbl, 1) # Expand
                 
             self.content_layout.addLayout(row)
         self.content_layout.addStretch()
+
+    def _on_link_activated(self, href):
+        import time
+        self.item_clicked.emit(href)
+        now = time.monotonic()
+        last_href, last_t = getattr(self, "_last_link", (None, 0.0))
+        if href == last_href and now - last_t <= QApplication.doubleClickInterval() / 1000.0:
+            self._last_link = (None, 0.0)
+            self.item_double_clicked.emit(href)
+        else:
+            self._last_link = (href, now)
 
 class ListeningFetchWorker(QThread):
     """
@@ -220,6 +234,7 @@ class HistoryWorker(QThread):
 
 
 class Dashboard(QWidget):
+    stock_double_clicked = pyqtSignal(str)  # 資訊框雙擊股票(代號)
     status_message_updated = pyqtSignal(str) 
     initial_load_finished = pyqtSignal() # Signal when first data load is done
 
@@ -451,6 +466,10 @@ class Dashboard(QWidget):
         self.disp_exit_box = InfoBox("處置出關區", {}, "#FF4444")
         self.disp_exit_box.item_clicked.connect(self.highlight_stock)
         top_area.addWidget(self.disp_exit_box, 1)
+
+        # [2026-10-11] 四個資訊框雙擊股票 → 主視窗帶到「詳細條件」
+        for _box in (self.observer_box, self.disposition_box, self.disp_active_box, self.disp_exit_box):
+            _box.item_double_clicked.connect(self.stock_double_clicked.emit)
         
         left_layout.addLayout(top_area, 1)
         

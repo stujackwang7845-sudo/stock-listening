@@ -312,3 +312,40 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     nb, nt, nbasis = next_stats_bucket(state, total, offense, _iso(ps), result["next"], code, disp_iso)
     result.update({"next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis})
     return result
+
+
+# 歷史處置前後漲跌幅(詳細條件頁，2026-10-11 使用者要求)：處置前一天 ~ 出關後一天的逐日漲跌幅，
+# 欄位與數值跟「處置統計」頁同一套(compute_stats_rows 的 changes，讀 calculated_stats 快取、不連網)。
+HISTORY_COLUMNS = ["-1", "處置日", "+1", "+2", "+3", "+4", "+5", "處置結束", "出關日", "出+1"]
+
+
+def disposal_history_rows(code, records=None):
+    """
+    回傳 {"columns": [...], "rows": [{"announce", "start", "end", "freq", "duration", "offense", "changes"}]}，
+    依處置開始日由新到舊。columns 只留這檔實際有出現的欄位(5 天處置沒有 +4/+5)。
+    """
+    from core.disposal_stats_engine import compute_stats_rows, deduplicate_records
+
+    code = str(code).strip()
+    if records is None:
+        from core.disposal_database import DisposalDatabase
+        db = DisposalDatabase(get_paths().disposal_db)
+        records = db.get_all_records()
+        db.close()
+    mine = [r for r in records if str(r.get("code", "")).strip().removesuffix(".0") == code]
+    if not mine:
+        return {"columns": [], "rows": []}
+    processed = deduplicate_records(compute_stats_rows(mine, allow_download=False))
+    present = {c for r in processed for c in (r.get("headers") or [])}
+    columns = [c for c in HISTORY_COLUMNS if c in present]
+    rows = []
+    for r in processed:
+        rows.append({
+            "announce": DateUtils.to_iso_date_str(r.get("announce_date") or ""),
+            "start": r.get("start_date", ""), "end": r.get("end_date", ""),
+            "freq": r.get("freq_text", ""), "duration": r.get("duration_text", ""),
+            "offense": r.get("offense_text", ""),
+            "changes": {c: (r.get("changes") or {}).get(c) for c in columns},
+        })
+    rows.sort(key=lambda x: x["start"].replace("/", "-"), reverse=True)
+    return {"columns": columns, "rows": rows}

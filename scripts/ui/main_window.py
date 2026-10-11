@@ -88,6 +88,8 @@ class MainWindow(QMainWindow):
         # Connect Signal (Use grid_table for Dashboard)
         # Note: Dashboard mockup might load async, but widget exists immediately
         self.tab1.grid_table.doubleClicked.connect(self.on_dashboard_item_dblclick)
+        self.tab1.stock_double_clicked.connect(
+            lambda code: self.open_details(code, "", self.tab1.current_display_date))
         self.tab_forecast.stock_double_clicked.connect(
             lambda code, name: self.open_details(code, name, self.tab_forecast.current_display_date))
         
