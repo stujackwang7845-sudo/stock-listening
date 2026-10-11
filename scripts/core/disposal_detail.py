@@ -128,12 +128,62 @@ def _next(code, source, disp_d, mine, next_hint):
     return out
 
 
-def next_stats_bucket(state, total, offense, period_start, next_info):
+# 四條規則的計算期間(交易日)：連3日、連5日、10日內6次、30日內12次
+_RULE_WINDOW = {"rule1": 3, "rule2": 5, "rule3": 10, "rule4": 30}
+_RULE_NAME = {"rule1": "連3日第1款", "rule2": "連5日1-8款", "rule3": "10日內6次", "rule4": "30日內12次"}
+
+
+def clause13_days(code, until_iso, n_days, db_path=None):
+    """顯示日(含)往前 n 個交易日內，出現第十三款(當沖交易占比過高)的日期。"""
+    if n_days <= 0:
+        return []
+    days, cur = [], datetime.strptime(until_iso, "%Y-%m-%d")
+    while len(days) < n_days:
+        if DateUtils.is_trading_day(cur):
+            days.append(cur.strftime("%Y-%m-%d"))
+        cur -= timedelta(days=1)
+    conn = sqlite3.connect(db_path or get_paths().disposal_db)
+    try:
+        rows = conn.execute(
+            f"SELECT DISTINCT announce_date FROM attention_clauses WHERE code = ? AND clause_number = 13 "
+            f"AND announce_date IN ({','.join('?' * len(days))})", (str(code), *days)).fetchall()
+    finally:
+        conn.close()
+    return sorted(r[0] for r in rows)
+
+
+def predict_next_days(code, disp_iso, trigger_progress):
+    """
+    下次處置是 5 天還是 7 天(證交所 2026-08-10 新制：計算處置的期間內，若同時因「當沖交易占比過高」
+    (第十三款)被公布注意，處置期間 7 個營業日，否則 5 個營業日)。
+    取最快達標的規則(還差 k 次、計算期間 W 天)，看最近 W-k 個交易日(含顯示日)有沒有第十三款。
+    以 8/10~10/08 新制 135 件驗證：133 件吻合，7 天者 20/20；不吻合 2 件(3055、3094)皆為
+    「10日內6次」觸發，期間內有第十三款但處置 5 天。
+    回傳 (天數, 說明)。
+    """
+    tp = trigger_progress or {}
+    cands = [(tp[k]["needed"], i, k) for i, k in enumerate(("rule1", "rule2", "rule3", "rule4")) if k in tp]
+    if not cands:
+        return 5, ""
+    needed, _, rule = min(cands)
+    window = _RULE_WINDOW[rule]
+    past = max(window - max(needed, 0), 0)
+    hits = clause13_days(code, disp_iso, past)
+    if hits:
+        shown = "、".join(h[5:].replace("-", "/") for h in hits)
+        return 7, (f"最快達標的「{_RULE_NAME[rule]}」計算期間內已有第十三款(當沖占比過高，{shown})，"
+                   f"依新制處置 7 個營業日。")
+    note = f"最快達標的「{_RULE_NAME[rule]}」計算期間內目前沒有第十三款(當沖占比過高)，處置 5 個營業日"
+    if needed > 0:
+        note += f"；之後 {needed} 個交易日若出現第十三款會變 7 天"
+    return 5, note + "。"
+
+
+def next_stats_bucket(state, total, offense, period_start, next_info, code="", disp_iso=""):
     """
     「下次進處置」的統計分桶(詳細條件下方圖表用，使用者要求看下次那一次)：
     - 已公告、尚未生效：下次就是這筆，天數與初犯/累犯都已知
-    - 其他：天數預設 5 天(新制處置多數 5 天；觸發條件含當日沖銷量百分比等時為 7 天，
-      注意條款資料看不出當沖比例，無法事先判斷)，初犯/累犯取「下次進處置」的判定
+    - 其他：天數依 predict_next_days(第十三款規則)，初犯/累犯取「下次進處置」的判定
     回傳 (bucket, title, basis)；算不出來回傳 (None, "", "")。
     """
     if state == "已公告，尚未生效" and total in (5, 7):
@@ -143,8 +193,8 @@ def next_stats_bucket(state, total, offense, period_start, next_info):
     if not label:
         return None, "", ""
     off = "累犯" if "累犯" in label else "初犯"
-    return (f"5天_{off}", f"新制 5天{off}",
-            f"下次進處置預估為{off}；天數預設 5 天（新制處置多數為 5 天，觸發條件含當日沖銷量百分比等時為 7 天，屆時以公告為準）。")
+    days, why = predict_next_days(code, disp_iso, (next_info or {}).get("trigger_progress"))
+    return (f"{days}天_{off}", f"新制 {days}天{off}", f"下次進處置預估為{off}、{days} 天：{why}")
 
 
 def compute_disposal_detail(code, display_date, records=None, next_hint=None):
@@ -191,7 +241,7 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         rec = max(announced, key=lambda r: (r["period_end"], r["period_start"]))
     else:
         nx = _next(code, "", disp_d, mine, next_hint)
-        nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx)
+        nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx, code, disp_iso)
         return {"code": code, "has_disposal": False, "display_date": disp_iso,
                 "recent_clauses": recent_clauses(code, disp_iso), "next": nx,
                 "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
@@ -238,6 +288,6 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         "stats_bucket": stats_bucket, "stats_title": stats_title,
         "next": _next(code, rec.get("source", ""), disp_d, mine, next_hint),
     }
-    nb, nt, nbasis = next_stats_bucket(state, total, offense, _iso(ps), result["next"])
+    nb, nt, nbasis = next_stats_bucket(state, total, offense, _iso(ps), result["next"], code, disp_iso)
     result.update({"next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis})
     return result

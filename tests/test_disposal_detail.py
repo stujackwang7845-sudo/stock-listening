@@ -36,6 +36,7 @@ class ReasonTest(unittest.TestCase):
         self.assertEqual(dd.condition_label(TPEX_REASON), ("最近30個營業日內有12個營業日達注意標準", False))
 
 
+@mock.patch.object(dd, "clause13_days", lambda code, until, n, db_path=None: [])
 @mock.patch.object(dd, "recent_clauses", lambda code, until, n_days=10, db_path=None: [])
 class DetailTest(unittest.TestCase):
     # 6672：10/06~10/13 處置中，10/08 再公告 10/12~10/16(使用者規則：以最新公告為準)
@@ -73,6 +74,28 @@ class DetailTest(unittest.TestCase):
 
     def test_no_disposal(self):
         self.assertFalse(dd.compute_disposal_detail("2330", date(2026, 10, 8), records=self.RECORDS)["has_disposal"])
+
+
+class NextDaysTest(unittest.TestCase):
+    """下次處置天數：最快達標規則的計算期間內有第十三款(當沖占比過高) → 7 天(證交所 2026-08-10 新制)。"""
+    TP = {"rule1": {"current": 2, "target": 3, "needed": 1}, "rule2": {"current": 2, "target": 5, "needed": 3},
+          "rule3": {"current": 2, "target": 6, "needed": 4}, "rule4": {"current": 2, "target": 12, "needed": 10}}
+
+    def test_clause13_in_window_gives_7(self):
+        calls = []
+
+        def fake(code, until, n, db_path=None):
+            calls.append(n)
+            return ["2026-10-08"]
+        with mock.patch.object(dd, "clause13_days", fake):
+            days, why = dd.predict_next_days("3441", "2026-10-08", self.TP)
+        self.assertEqual(days, 7)
+        self.assertEqual(calls, [2])          # 連3日還差1次 → 只看最近 3-1=2 個交易日
+        self.assertIn("第十三款", why)
+
+    def test_no_clause13_gives_5(self):
+        with mock.patch.object(dd, "clause13_days", lambda code, until, n, db_path=None: []):
+            self.assertEqual(dd.predict_next_days("4556", "2026-10-08", self.TP)[0], 5)
 
 
 if __name__ == "__main__":
