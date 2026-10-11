@@ -17,6 +17,34 @@ from core.disposal_stats_manager import DisposalStatsManager
 from core.disposal_database import DisposalDatabase
 
 
+PERIOD_COL = "處置期間漲跌幅"
+
+
+def add_period_change(headers, changes, dates, code, price_db):
+    """
+    「處置期間漲跌幅」= 處置末日收盤 / 處置前一天收盤 - 1(%)，插在「處置結束」右邊(2026-10-11 使用者要求)。
+    逐日欄位最多只存到 +5，10 天的舊制處置串不起來，所以直接用兩天的收盤價(處置統計自己的股價庫)。
+    不寫進 calculated_stats 快取，每次載入現算，舊快取不用重算。缺任一天收盤就不加(畫面顯示 N/A)。
+    """
+    headers = list(headers or [])
+    changes = dict(changes or {})
+    dates = dates or {}
+    if PERIOD_COL in changes or "處置結束" not in headers or not dates.get("-1") or not dates.get("處置結束"):
+        return headers, changes
+    try:
+        p0 = price_db.get_price(code, dates["-1"])
+        p1 = price_db.get_price(code, dates["處置結束"])
+    except Exception:
+        return headers, changes
+    c0 = p0.get("close") if p0 else None
+    c1 = p1.get("close") if p1 else None
+    if not c0 or not c1:
+        return headers, changes
+    headers.insert(headers.index("處置結束") + 1, PERIOD_COL)
+    changes[PERIOD_COL] = round((c1 / c0 - 1) * 100, 2)
+    return headers, changes
+
+
 def compute_stats_rows(disposal_records, allow_download=True, api_token=None, target_year=None,
                        force_refresh=False, progress=None, should_stop=None):
     """
@@ -360,6 +388,8 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                     allow_download = False
                     _emit(f"已銜接歷史資料，停止下載... ({idx + 1}/{total})")
             
+            headers, changes = add_period_change(headers, changes, dates, code, stats_manager.price_db)
+
             # Merge custom stats
             custom_stats_json = record.get("custom_stats")
             if custom_stats_json:
@@ -568,6 +598,7 @@ def sort_change_columns(columns):
             try: return (2, int(col[1:]))
             except: return (99, 0)
         elif col == "處置結束": return (2, 999)
+        elif col == PERIOD_COL: return (2, 1000)  # 緊接在「處置結束」右邊
         elif col == "出關日": return (3, 0)
         elif col.startswith("出-"):
             # 新增：出-5 → 出-4 → 出-3 → 出-2 → 出-1

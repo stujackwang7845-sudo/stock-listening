@@ -16,7 +16,8 @@ from PyQt6.QtWidgets import (
 
 # 歷史處置表欄名(對照「處置統計」頁的欄位代號)
 _HIST_LABEL = {"-1": "處置前一天", "處置日": "處置第1天", "+1": "第2天", "+2": "第3天", "+3": "第4天",
-               "+4": "第5天", "+5": "第6天", "處置結束": "處置末日", "出關日": "出關日", "出+1": "出關後一天"}
+               "+4": "第5天", "+5": "第6天", "處置結束": "處置末日", "處置期間漲跌幅": "處置期間漲跌幅",
+               "出關日": "出關日", "出+1": "出關後一天"}
 
 from ui.disposal_stats_overview import (
     DisposalStatsOverviewWorker, build_stage_figure, fill_stage_table,
@@ -200,7 +201,7 @@ class DetailsTab(QWidget):
             self.hist_table.setVisible(False)
             return
         rows, cols = h["rows"], h["columns"]
-        self.hist_title.setText(f"歷史處置前後漲跌幅（共 {len(rows)} 次，處置前一天～出關後一天的逐日漲跌；超過 7 天的處置第 7 天起只列末日）")
+        self.hist_title.setText(f"歷史處置前後漲跌幅（新制 {len(rows)} 次，處置前一天～出關後一天的逐日漲跌；處置期間漲跌幅＝處置末日收盤÷處置前一天收盤−1）")
         self.hist_title.setVisible(True)
         if not rows:
             self.hist_table.setVisible(False)

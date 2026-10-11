@@ -316,14 +316,16 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
 
 # 歷史處置前後漲跌幅(詳細條件頁，2026-10-11 使用者要求)：處置前一天 ~ 出關後一天的逐日漲跌幅，
 # 欄位與數值跟「處置統計」頁同一套(compute_stats_rows 的 changes，讀 calculated_stats 快取、不連網)。
-HISTORY_COLUMNS = ["-1", "處置日", "+1", "+2", "+3", "+4", "+5", "處置結束", "出關日", "出+1"]
+HISTORY_COLUMNS = ["-1", "處置日", "+1", "+2", "+3", "+4", "+5", "處置結束", "處置期間漲跌幅", "出關日", "出+1"]
 
 
 def disposal_history_rows(code, records=None):
     """
     回傳 {"columns": [...], "rows": [{"announce", "start", "end", "freq", "duration", "offense", "changes"}]}，
     依處置開始日由新到舊。columns 只留這檔實際有出現的欄位(5 天處置沒有 +4/+5)。
+    只列新制(2026-08-10 起開始)的處置(使用者要求)。
     """
+    from core.disposal_stats_analytics import RULE_CHANGE_DATE
     from core.disposal_stats_engine import compute_stats_rows, deduplicate_records
 
     code = str(code).strip()
@@ -332,11 +334,15 @@ def disposal_history_rows(code, records=None):
         db = DisposalDatabase(get_paths().disposal_db)
         records = db.get_all_records()
         db.close()
-    mine = [r for r in records if str(r.get("code", "")).strip().removesuffix(".0") == code]
+    rule_iso = RULE_CHANGE_DATE.isoformat()
+    mine = [r for r in records if str(r.get("code", "")).strip().removesuffix(".0") == code
+            and (r.get("period_start") or "") >= rule_iso]
     if not mine:
         return {"columns": [], "rows": []}
     processed = deduplicate_records(compute_stats_rows(mine, allow_download=False))
     present = {c for r in processed for c in (r.get("headers") or [])}
+    if "處置結束" in present:
+        present.add("處置期間漲跌幅")  # 進行中的處置也固定顯示這欄(N/A)
     columns = [c for c in HISTORY_COLUMNS if c in present]
     rows = []
     for r in processed:
