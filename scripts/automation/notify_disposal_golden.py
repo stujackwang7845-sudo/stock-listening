@@ -6,6 +6,9 @@
   - 進場：<b>5 天初犯 = 處置前一天(處置公告當天)收盤買</b>；7 天初犯 = 處置第一天收盤買
   - 出場：處置最後一天收盤賣出；<b>收盤價(還原)跌破進場價 8%，當天收盤賣出(停損)</b>
   - 進場日收盤漲停買不到：回測排除、推播標示
+  - 濾網(2026-10-12 使用者採用)：進場日前最近一次注意公告「只有第一款(連漲型)」且進場日收盤 20MA 乖離 > 35% → 不買。
+    回測(新制、排除漲停、統一資金)：52→47 筆，年化 +230%→+274%、MDD -4.3%→-3.6%、前後半都不輸；
+    樣本小(第一款 16 筆、被排除 5 筆)，且是測了約 20 種變化後挑出的，之後用新樣本繼續驗證。
   - 回測(新制 8/10～10/08、排除漲停)：D 方案 52 筆，每筆平均 +5.6%、勝率 75%、單筆最差 -10.3%、
     風報比 5.23(scratch/four_plans_20261012.py --no-limit-up)
   - 5 天初犯要在公告前買進，所以另有「盤前提醒」模式(--pre-close，交易日 12:50)：以官方聽牌＋預測引擎
@@ -84,6 +87,7 @@ URLS = {
 
 
 STOP_PCT = 0.08          # 方案 D：收盤(還原)報酬跌破 -8% 當天收盤出場
+DEV_MAX = 0.35           # 濾網：注意條款只有「第一款」且進場日收盤 20MA 乖離 > 35% 不買(回測 2026-10-12)
 
 
 def tick(p):
@@ -388,22 +392,86 @@ def calc_return(d, as_of, quotes, daily, corp):
                 suspicious=suspicious, stop_price=stop_price_of(entry), stopped=stopped)
 
 
-def fmt_return(d, rr):
-    if rr is None:
-        return "　報酬：查無行情資料"
-    s = f"　進場 {rr['entry']:g}（{rr['entry_date']:%m/%d} 收盤）→ {rr['cur']:g}（{rr['cur_date']:%m/%d}）"
-    if rr["suspicious"]:
-        s += (f"｜<b>原始價報酬 {rr['raw']:+.2f}%</b>\n"
-              f"　⚠️ 期間除權息資料可疑（換算還原為 {rr['adj']:+.2f}%，不採用），請自行確認")
-    else:
-        s += f"｜<b>還原報酬 {rr['adj']:+.2f}%</b>"
-        if rr["n_events"]:
-            s += f"（期間有除權息，原始價 {rr['raw']:+.2f}%）"
-    s += f"\n　🛡 停損價 {rr['stop_price']:g}（進場價 −{STOP_PCT*100:.0f}%，收盤 ≤ 此價當天收盤賣出）"
-    if rr["stopped"]:
-        st = rr["stopped"]
-        s += f"\n　⛔ {st['date']:%m/%d} 收盤 {st['close']:g} 已觸發停損，還原報酬 {st['ret']:+.2f}%"
-    return s
+def load_clause_db(today):
+    """注意條款資料庫副本：把桌面版 attention_clauses 複製到暫存檔，再補抓到 today(不動使用者的資料庫)。
+    回傳 (暫存檔路徑 or None, 最新公告日)。補抓失敗就用現有資料，最新公告日讓呼叫端判斷是否落後。"""
+    import shutil
+    import sqlite3
+    import tempfile
+    src = PROJ / "data" / "disposal_history.db"
+    if not src.exists():
+        return None, None
+    tmp = os.path.join(tempfile.mkdtemp(prefix="dispo_clause_"), "disposal_history.db")
+    s_conn, d_conn = sqlite3.connect(str(src)), sqlite3.connect(tmp)
+    s_conn.backup(d_conn)
+    s_conn.close()
+    d_conn.close()
+    try:
+        os.environ.setdefault("DISPO_NO_SHIOAJI", "1")
+        sys.path.insert(0, str(PROJ / "scripts"))
+        from core.dashboard_engine import fill_attention_clauses_gap
+        fill_attention_clauses_gap(datetime.combine(today, datetime.min.time()), tmp)
+    except Exception as e:
+        print(f"[WARN] 注意條款補抓失敗，用現有資料：{e}")
+    conn = sqlite3.connect(tmp)
+    latest = conn.execute("SELECT MAX(announce_date) FROM attention_clauses").fetchone()[0]
+    conn.close()
+    return tmp, latest
+
+
+def clause_type(db_path, code, entry):
+    """進場日(不含)之前最近一次注意公告的條款類型：'一'(只有第一款) / '六' / '其他' / '無'(查不到)。
+    與回測一致：款 0(解析不出)不算；有第六款→六；有第一款以外的款→其他；只有第一款→一。"""
+    if not db_path:
+        return "無"
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("SELECT announce_date, clause_number FROM attention_clauses WHERE code=? AND announce_date<? "
+                        "AND clause_number>0 ORDER BY announce_date DESC", (code, str(entry))).fetchall()
+    conn.close()
+    if not rows:
+        return "無"
+    last = {r[1] for r in rows if r[0] == rows[0][0]}
+    return "六" if 6 in last else "其他" if any(c != 1 for c in last) else "一"
+
+
+CLAUSE_TXT = {"一": "第一款(連漲型)", "六": "第六款(週轉率)", "其他": "其他款", "無": "條款查無"}
+
+
+def dev20_info(code, entry, today, quotes, daily, now_price=None):
+    """進場日收盤相對 20 日均線的乖離。now_price 給盤中用(以現價當進場日收盤的估計)。
+    回傳 dict(dev=乖離, thr=進場日收盤超過這個價就算乖離>35%, close=進場日收盤/估計)；資料不足回傳 None。"""
+    prev = []
+    cur = prev_trading_day(entry)
+    for _ in range(40):
+        c = close_of(code, cur, quotes, daily)
+        if c is not None and c == c:          # 跳過沒行情(None)與 NaN
+            prev.append(c)
+        if len(prev) == 19:
+            break
+        cur = prev_trading_day(cur)
+    if len(prev) < 19:
+        return None
+    c = now_price if now_price is not None else close_of(code, entry, quotes, daily)
+    if c is not None and c != c:
+        c = None
+    s19 = sum(prev)
+    thr = math.floor(DEV_MAX_FACTOR * s19 / (20 - DEV_MAX_FACTOR) * 100) / 100
+    return dict(dev=None if c is None else c / ((s19 + c) / 20) - 1, thr=thr, close=c)
+
+
+DEV_MAX_FACTOR = 1 + DEV_MAX
+
+
+def judge(clause, di):
+    """濾網判定：回傳 'skip'(確定不買) / 'cond'(第一款，要看進場日收盤) / 'ok'。"""
+    if clause != "一":
+        return "ok"
+    if di is None:
+        return "cond"
+    if di["dev"] is not None and di["dev"] > DEV_MAX:
+        return "skip"
+    return "cond"
 
 
 def fail_reasons(g):
@@ -422,16 +490,25 @@ def fail_reasons(g):
     return "、".join(r) or "未知"
 
 
-def fmt_stock(d, g, action, rr=None, show_filter=True, show_return=False, extra_lines=()):
-    head = "✅ 符合黃金濾網" if g["golden"] else f"❌ 不符合黃金濾網（{fail_reasons(g)}）"
-    lines = [f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>（{d['market']}）{head}",
-             f"　處置 {d['start']:%m/%d}～{d['end']:%m/%d}（{d['n_days']} 個交易日，{d['n_days']} 天初犯）→ {action}"]
-    lines += list(extra_lines)
-    if show_return:
-        lines.append(fmt_return(d, rr))
-    if show_filter:
-        lines.append(f"　{html.escape(fmt_filter(g))}")
-    return "\n".join(lines)
+def gold_tag(g):
+    return "" if g["golden"] else f"｜濾網✗{html.escape(fail_reasons(g))}"
+
+
+def fmt_hold(d, g, rr, tag=None):
+    """持有部位一行：進場價→現價、還原報酬、停損價。"""
+    head = f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+    tag = gold_tag(g) if tag is None else tag
+    if rr is None:
+        return f"{head}｜查無行情{tag}"
+    if rr["suspicious"]:
+        ret = f"原始價 {rr['raw']:+.1f}%⚠️除權息資料可疑"
+    else:
+        ret = f"{rr['adj']:+.1f}%"
+    s = f"{head}｜進 {rr['entry']:g}→現 {rr['cur']:g}（{ret}）｜停損價 {rr['stop_price']:g}{tag}"
+    if rr["stopped"]:
+        st = rr["stopped"]
+        s += f"\n　⛔ {st['date']:%m/%d} 收盤 {st['close']:g} 已觸發停損（{st['ret']:+.1f}%）"
+    return s
 
 
 def avg_summary(items):
@@ -442,7 +519,7 @@ def avg_summary(items):
         return ""
     s = f"，平均 {sum(vals)/len(vals):+.2f}%"
     if gold and len(gold) != len(vals):
-        s += f"（符合濾網 {len(gold)} 檔 {sum(gold)/len(gold):+.2f}%）"
+        s += f"（符合黃金濾網 {len(gold)} 檔 {sum(gold)/len(gold):+.2f}%）"
     return s
 
 
@@ -456,78 +533,82 @@ def section(title, body_lines):
 
 
 RULES_HTML = (
-    "<blockquote expandable>📘 方案 D 規則與可靠度\n"
-    "• 只做初犯。<b>5 天初犯：處置公告當天(處置前一天)收盤買，只能盤前靠聽牌候選預買</b>；<b>7 天初犯：處置公告後、處置首日收盤買</b>；處置最後一天收盤賣\n"
-    f"• <b>停損 {STOP_PCT*100:.0f}%</b>：收盤價 ≤ 進場價×{1-STOP_PCT:.2f}(還原後報酬 ≤ −{STOP_PCT*100:.0f}%)，當天收盤賣出；停損價已標在每檔下方\n"
-    "• 進場日收盤漲停買不到，回測已排除；候選若盤中已漲停會標示\n"
-    "• 5 天初犯要在公告前買進＝賭今天收盤會達標，沒達標就不會處置；盤前候選只是「可能」，不是確定\n"
-    "• 回測(新制 8/10～10/08，排除漲停買不到，每筆等額)：D 方案 52 筆，每筆平均 +5.6%、勝率 75%、"
-    "單筆最差 −10.3%、風報比 5.23；同期不加停損的初犯 5 天前一天買 −40.7% 為最差\n"
-    "• 樣本只有 8 週且全程多頭；停損以收盤價假設，處置期間每 2 分鐘撮合、跌停鎖死時可能賣不掉\n"
-    "• 報酬為還原報酬(含持有期間除權息調整)，未扣手續費與證交稅(來回約 0.38%)\n"
-    "• 黃金濾網只做標註(樣本內挑出，前後半段驗證方向不一致)，不影響進出場\n"
-    "• 處置期間每 2 分鐘撮合，大額委託需預收款券</blockquote>"
+    "<blockquote expandable>📘 方案 D 規則\n"
+    "• 只做初犯。5 天初犯：處置公告當天(處置前一天)收盤買；7 天初犯：處置首日收盤買；處置最後一天收盤賣\n"
+    f"• 停損：收盤 ≤ 進場價×{1-STOP_PCT:.2f}(還原後 ≤ −{STOP_PCT*100:.0f}%)，當天收盤賣\n"
+    f"• <b>濾網</b>：進場日前最近一次注意公告「只有第一款(連漲型)」且進場日收盤 20MA 乖離 > {DEV_MAX*100:.0f}% → 不買"
+    "(5 天初犯在盤前候選用現價估，7 天初犯給出明日收盤價門檻)\n"
+    "• 進場日收盤漲停買不到，不算\n"
+    "• 回測(新制 8/10～10/08、排除漲停)：加濾網 47 筆 年化 +274%、MDD −3.6%；不加 52 筆 +230%、−4.3%。"
+    "第一款只有 16 筆、被濾掉 5 筆，樣本小且是試了約 20 種條件後挑的，會繼續用新樣本驗證\n"
+    "• 條款別：第六款(週轉率)11 筆勝率 100%、其他款 25 筆 84%、第一款 16 筆 44%\n"
+    "• 僅 8 週且全程多頭；處置期間每 2 分鐘撮合，跌停鎖死時可能賣不掉；報酬為還原報酬，未扣手續費與證交稅(來回約 0.38%)\n"
+    "• 黃金濾網(生技／KY／均量&lt;100 張)只做標註，不影響進出場</blockquote>"
 )
 
 
 def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, cand_codes):
-    lines = [f"🔔 <b>處置新制初犯策略 D｜{today:%Y/%m/%d} 盤後</b>", ""]
+    wd = "一二三四五六日"[today.weekday()]
+    lines = [f"🔔 <b>處置策略 D｜{today:%m/%d}({wd}) 盤後</b>", ""]
 
-    # 0. 今日觸發停損
-    if stops_today:
-        body = []
-        for d, g, rr in sorted(stops_today, key=lambda x: x[0]["code"]):
-            st = rr["stopped"]
-            body += [fmt_stock(d, g, "今日收盤已觸發停損", rr, show_filter=False, show_return=True),
-                     f"　👉 若今天收盤沒賣，請盡快處理（回測假設當天收盤 {st['close']:g} 賣出）", ""]
-        lines += [section(f"⛔ 今日觸發停損｜{len(stops_today)} 檔", body), ""]
-
-    # 1. 持有中
-    if holds:
-        body = []
-        for d, g, rr in sorted(holds, key=lambda x: (not x[1]["golden"], x[0]["end"], x[0]["code"])):
-            body += [fmt_stock(d, g, f"持有至 {d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
-        lines += [section(f"📊 持有中｜{len(holds)} 檔{avg_summary(holds)}", body), ""]
-    else:
-        lines += ["📊 <b>持有中｜無</b>", ""]
-
-    # 2. 預計出場
-    if exits:
-        body = []
-        for d, g, rr in sorted(exits, key=lambda x: (not x[1]["golden"], x[0]["code"])):
-            body += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", rr, show_filter=False, show_return=True), ""]
-        lines += [section(f"🔴 預計出場（明日 {next_td:%m/%d} 收盤賣）｜{len(exits)} 檔{avg_summary(exits)}", body), ""]
-    else:
-        lines += [f"🔴 <b>預計出場（明日 {next_td:%m/%d}）｜無</b>", ""]
-
-    # 3. 進場：5 天初犯(進場日=今天收盤，已過) / 7 天初犯(明日首日收盤買)
-    five = [e for e in entries if e[0]["n_days"] == 5]
-    seven = [e for e in entries if e[0]["n_days"] != 5]
+    # 1. 進場
+    five = [e for e in entries if e["d"]["n_days"] == 5]
+    seven = [e for e in entries if e["d"]["n_days"] != 5]
     if five:
-        body = []
-        for d, g, rr, lu in sorted(five, key=lambda x: (x[3], not x[1]["golden"], x[0]["code"])):
-            hit = "✅ 盤前已列入候選" if d["code"] in cand_codes else "未列入盤前候選（沒預先買進，進場日已過）"
-            if lu:
-                price_line = f"　進場日 {today:%m/%d}(今日)收盤 {rr['entry']:g}：⚠️ <b>漲停鎖死，多半買不到（方案 D 不計入）</b>"
-            elif rr:
-                price_line = (f"　進場日 {today:%m/%d}(今日)收盤買進價 {rr['entry']:g}\n"
-                              f"　🛡 停損價 {rr['stop_price']:g}（收盤 ≤ 此價當天收盤賣出）")
+        lines.append(f"🟣 <b>今日收盤是進場日（5 天初犯）｜{len(five)} 檔</b>")
+        for e in sorted(five, key=lambda e: e["d"]["code"]):
+            d, rr = e["d"], e["rr"]
+            who = f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+            note = "盤前有列候選" if d["code"] in cand_codes else "盤前沒列候選，沒預買就錯過"
+            if e["lu"]:
+                lines.append(f"• {who}｜🚫 今日收盤漲停，買不到，不算")
+            elif e["verdict"] == "skip":
+                lines.append(f"• {who}｜🚫 <b>不買</b>：{CLAUSE_TXT[e['clause']]}、乖離 {e['di']['dev']*100:+.0f}% > {DEV_MAX*100:.0f}%")
             else:
-                price_line = "　進場價：查無今日收盤行情"
-            body += [fmt_stock(d, g, f"{d['end']:%m/%d} 收盤賣出", show_filter=True, extra_lines=[price_line, f"　{hit}"]), ""]
-        n_ok = sum(1 for e in five if not e[3])
-        lines += [section(f"🟣 5 天初犯｜今日({today:%m/%d})收盤為進場日，處置已公告｜{len(five)} 檔（可買 {n_ok} 檔）", body), ""]
+                price = f"進場價 {rr['entry']:g}（今日收盤）｜停損價 {rr['stop_price']:g}" if rr else "查無今日收盤"
+                why = CLAUSE_TXT[e["clause"]]
+                if e["clause"] == "一":
+                    dev = e["di"]["dev"] if e["di"] else None
+                    why += f"、乖離 {dev*100:+.0f}% ≤ {DEV_MAX*100:.0f}%" if dev is not None else "、乖離資料不足"
+                lines.append(f"• {who}｜✅ 買｜{why}｜{price}｜{d['end']:%m/%d} 收盤賣（{note}）{gold_tag(e['g'])}")
+        lines.append("")
     if seven:
-        body = []
-        for d, g, rr, lu in sorted(seven, key=lambda x: (not x[1]["golden"], x[0]["code"])):
-            body += [fmt_stock(d, g, f"{next_td:%m/%d} 收盤買進，{d['end']:%m/%d} 收盤賣出",
-                               extra_lines=[f"　🛡 停損價 = 買進價 × {1-STOP_PCT:.2f}（明日收盤買進後再算）"]), ""]
-        lines += [section(f"🟢 處置後進場（7 天初犯，處置首日 {next_td:%m/%d} 收盤買）｜{len(seven)} 檔", body), ""]
+        lines.append(f"🟢 <b>明日 {next_td:%m/%d} 收盤買進（7 天初犯）｜{len(seven)} 檔</b>")
+        for e in sorted(seven, key=lambda e: e["d"]["code"]):
+            d = e["d"]
+            who = f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+            if e["clause"] == "一" and e["di"]:
+                cond = f"⚠️ 第一款：明日收盤 ≤ {e['di']['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
+            elif e["clause"] == "一":
+                cond = "⚠️ 第一款：乖離資料不足，明日收盤前自行確認乖離 ≤ 35%"
+            else:
+                cond = f"✅ 買（{CLAUSE_TXT[e['clause']]}）"
+            lines.append(f"• {who}｜{cond}｜停損價＝買價×{1-STOP_PCT:.2f}｜{d['end']:%m/%d} 收盤賣{gold_tag(e['g'])}")
+        lines.append("")
     if not five and not seven:
         extra = f"（累犯 {n_repeat} 檔不做）" if n_repeat else ""
-        lines += [f"🟣🟢 <b>新進場｜無</b>（聽牌條件進場、處置後進場都沒有）{extra}", ""]
+        lines += [f"➕ <b>新進場｜無</b>{extra}", ""]
     elif n_repeat:
-        lines += [f"（另有 {n_repeat} 檔累犯明日開始處置，本策略不做）", ""]
+        lines += [f"（另有 {n_repeat} 檔累犯明日開始處置，不做）", ""]
+
+    # 2. 出場
+    if stops_today:
+        lines.append(f"⛔ <b>今日收盤觸發停損，若還沒賣請處理｜{len(stops_today)} 檔</b>")
+        lines += [fmt_hold(d, g, rr) for d, g, rr in sorted(stops_today, key=lambda x: x[0]["code"])]
+        lines.append("")
+    if exits:
+        lines.append(f"🔴 <b>明日 {next_td:%m/%d} 收盤賣出｜{len(exits)} 檔{avg_summary(exits)}</b>")
+        lines += [fmt_hold(d, g, rr) for d, g, rr in sorted(exits, key=lambda x: x[0]["code"])]
+        lines.append("")
+    else:
+        lines += [f"🔴 <b>明日 {next_td:%m/%d} 收盤賣出｜無</b>", ""]
+
+    # 3. 持有中(展開才看)
+    if holds:
+        body = [fmt_hold(d, g, rr) for d, g, rr in sorted(holds, key=lambda x: (x[0]["end"], x[0]["code"]))]
+        lines += [section(f"📊 持有中｜{len(holds)} 檔{avg_summary(holds)}（點開看明細）", body), ""]
+    else:
+        lines += ["📊 <b>持有中｜無</b>", ""]
 
     lines.append(RULES_HTML)
     return "\n".join(x for x in lines if x is not None).strip()
@@ -565,41 +646,53 @@ def fetch_mis(code_markets):
     return out
 
 
-def fmt_candidate(c, mis, prev_close_hint=None):
+def fmt_candidate(c, mis, clause, di):
+    """盤前候選一檔。回傳 (文字, 是否漲停鎖死, 是否被濾網排除)。"""
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
     locked = bool(price and up and price >= up - 1e-6)
     px_txt = "現價查無" if not price else f"現價 {price:g}（漲停價 {up:g}）" if up else f"現價 {price:g}"
-    if locked:
-        px_txt += "｜⚠️ <b>已漲停，恐買不到</b>"
     p = c["progress"]
     prog = "、".join(f"{lbl} {p[k]['current']}/{p[k]['target']}" for lbl, k in
                     (("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4"))
                     if p.get(k))
-    cond = [f"　　{html.escape(x)}" for x in c["conditions"]] or ["　　（今日再被注意即進處置，無單一價位條件）"]
-    return "\n".join([
-        f"<b>{html.escape(c['code'])} {html.escape(c['name'])}</b>（{html.escape(str(c['market']))}）{px_txt}",
-        f"　昨收 {q.get('prev') or c['close']}｜{c['enter_freq']}｜預估處置 {c['days']} 天",
-        f"　聽牌進度：{prog}",
-        "　進處置條件（今日收盤達下列任一）：", *cond, ""]), locked
+    cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]] or ["　　（今日再被注意即進處置，無單一價位條件）"]
+    verdict = judge(clause, di)
+    if locked:
+        act = "⚠️ 已漲停，恐買不到"
+    elif verdict == "skip":
+        act = f"🚫 不買：第一款、現價乖離 {di['dev']*100:+.0f}% > {DEV_MAX*100:.0f}%"
+    elif clause == "一" and di:
+        act = f"⚠️ 第一款：收盤 ≤ {di['thr']:g} 才買（超過不買）"
+    elif clause == "一":
+        act = "⚠️ 第一款：乖離資料不足，自行確認收盤乖離 ≤ 35%"
+    else:
+        act = "✅ 可買"
+    txt = "\n".join([
+        f"• <b>{html.escape(c['code'])} {html.escape(c['name'])}</b>（{html.escape(str(c['market']))}）{px_txt}",
+        f"　{act}｜{CLAUSE_TXT[clause]}｜聽牌進度：{prog}",
+        "　今日收盤達下列任一 → 進處置：", *cond, ""])
+    return txt, locked, verdict == "skip"
 
 
-def build_pre_message(today, anchor, cands5, cands7, n_rep, warn_holds, exits_today, mis, hit_note):
-    lines = [f"⏰ <b>處置新制初犯策略 D｜{today:%Y/%m/%d} 盤前提醒</b>", f"（預測以 {anchor:%m/%d} 收盤為準，現價取自即時行情）", ""]
+def build_pre_message(today, anchor, cands5, n_rep, warn_holds, exits_today, mis, hit_note, ctx):
+    """ctx: {code: (clause, di)}"""
+    wd = "一二三四五六日"[today.weekday()]
+    lines = [f"⏰ <b>處置策略 D｜{today:%m/%d}({wd}) 盤前提醒</b>", f"（預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）", ""]
     if cands5:
-        body, n_locked = [], 0
+        body, n_locked, n_skip = [], 0, 0
         for c in cands5:
-            txt, lk = fmt_candidate(c, mis)
+            txt, lk, sk = fmt_candidate(c, mis, *ctx[c["code"]])
             body.append(txt)
             n_locked += lk
-        body.append("👉 要不要買：今天收盤前買進(收盤價)，若今晚公告進處置 → 明天起處置 5 天；沒達標就不會處置。\n"
-                    f"　買進後的停損價 = 買進價 × {1 - STOP_PCT:.2f}（收盤 ≤ 此價當天收盤賣出）。{hit_note}")
-        lines += [section(f"🟣 聽牌條件進場（5 天初犯）｜今天收盤前買進｜{len(cands5)} 檔" + (f"（已漲停 {n_locked} 檔）" if n_locked else ""), body), ""]
+            n_skip += sk
+        n_ok = len(cands5) - n_skip - n_locked
+        body.append(f"👉 想買：今天收盤前買進；若今晚公告處置，明天起處置 5 天，處置最後一天收盤賣。買進後停損價＝買價×{1 - STOP_PCT:.2f}。{hit_note}")
+        lines += [section(f"🟣 今天收盤前可買（5 天初犯）｜{len(cands5)} 檔，可買 {max(n_ok, 0)} 檔", body), ""]
     else:
-        lines += ["🟣 <b>聽牌條件進場（5 天初犯）｜今天沒有候選</b>", ""]
-    # 預估 7 天初犯不預買，等盤後確認處置、明天進場時才由盤後推播通知，盤前不列
+        lines += ["🟣 <b>今天收盤前可買（5 天初犯）｜沒有候選</b>", ""]
     if n_rep:
-        lines += [f"（另有 {n_rep} 檔聽牌股若進處置會是累犯，方案 D 不做）", ""]
+        lines += [f"（另有 {n_rep} 檔聽牌股若進處置是累犯，不做）", ""]
 
     if warn_holds or exits_today:
         def gap(x):  # 現價離停損價的距離(負 = 已跌破)，沒有現價排最後
@@ -610,14 +703,15 @@ def build_pre_message(today, anchor, cands5, cands7, n_rep, warn_holds, exits_to
             price = q.get("price") if q else None
             tag = ""
             if price and price <= rr["stop_price"]:
-                tag, n_danger = " ⚠️ <b>已在停損價之下，收盤若仍 ≤ 停損價就收盤賣出</b>", n_danger + 1
+                tag, n_danger = " ⚠️ <b>已在停損價下，收盤仍 ≤ 停損價就賣</b>", n_danger + 1
             elif price and price <= rr["stop_price"] * 1.03:
                 tag, n_danger = " ⚠️ 距停損價不到 3%", n_danger + 1
-            body.append(f"{html.escape(d['code'])} {html.escape(d['name'])}｜進場 {rr['entry']:g}｜🛡 停損價 {rr['stop_price']:g}｜"
-                        + (f"現價 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "現價查無") + tag)
+            body.append(f"• {html.escape(d['code'])} {html.escape(d['name'])}｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
+                        + (f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "現價查無") + tag)
         for d, g, rr, q in exits_today:
-            body.append(f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>：處置最後一天，🔴 今天收盤賣出")
-        title = f"🛡 持有部位停損檢查｜{len(warn_holds)} 檔" + (f"，⚠️ 需留意 {n_danger} 檔" if n_danger else "，都離停損價夠遠")             + (f"｜今日出場 {len(exits_today)} 檔" if exits_today else "")
+            body.append(f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>：處置最後一天，🔴 <b>今天收盤賣</b>")
+        title = (f"🛡 持有部位停損檢查｜{len(warn_holds)} 檔" + (f"，⚠️ 需留意 {n_danger} 檔" if n_danger else "，都離停損價夠遠")
+                 + (f"｜今日出場 {len(exits_today)} 檔" if exits_today else ""))
         lines += [section(title, body), ""]
     lines.append(RULES_HTML)
     return "\n".join(lines).strip()
@@ -681,6 +775,17 @@ def load_prices_for(targets, today, extra_days=()):
     return daily, corp
 
 
+def ma_days(targets, today):
+    """算 20MA 乖離需要的行情日：每檔進場日前 ~40 個日曆天。"""
+    days = set()
+    for d in targets:
+        cur = d["entry"]
+        for _ in range(40):
+            cur = cur - timedelta(days=1)
+            days.add(cur)
+    return days
+
+
 def split_stops(items, today):
     """items: [(d, g, rr)] → (仍持有, 今日觸發停損)；更早就停損的不再顯示。"""
     live, now = [], []
@@ -723,16 +828,19 @@ def main_post(args, today):
     company = load_company()
     quotes = load_today_volume()
     targets = entries_raw + exits_raw + holds_raw
-    daily, corp = load_prices_for(targets, today)
+    daily, corp = load_prices_for(targets, today, extra_days=ma_days(entries_raw, today))
+    clause_db, clause_latest = load_clause_db(today) if entries_raw else (None, None)
 
     entries = []
     for d in entries_raw:
         g = golden_check(d, company, daily, quotes)
-        if d["n_days"] == 5:
-            rr = calc_return(d, today, quotes, daily, corp)
-            entries.append((d, g, rr, is_limit_up(d["code"], d["entry"], quotes, daily)))
-        else:
-            entries.append((d, g, None, False))
+        cl = clause_type(clause_db, d["code"], d["entry"])
+        lu = d["n_days"] == 5 and is_limit_up(d["code"], d["entry"], quotes, daily)
+        rr = calc_return(d, today, quotes, daily, corp) if d["n_days"] == 5 else None
+        # 5 天初犯進場日 = 今天(收盤已知)；7 天初犯進場日 = 明天，只給價格門檻
+        di = dev20_info(d["code"], d["entry"], today, quotes, daily)
+        verdict = judge(cl, di) if d["n_days"] == 5 else ("cond" if cl == "一" else "ok")
+        entries.append(dict(d=d, g=g, rr=rr, lu=lu, clause=cl, di=di, verdict=verdict))
     exits_all = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in exits_raw]
     holds_all = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in holds_raw]
     exits, exit_stops = split_stops(exits_all, today)
@@ -751,10 +859,13 @@ def main_post(args, today):
 
     now = datetime.now().isoformat(timespec="seconds")
     meta["last_push_date"] = str(today)
-    for d, g, rr, lu in entries:
+    for e in entries:
+        d, g, rr, lu = e["d"], e["g"], e["rr"], e["lu"]
         rec = log.setdefault(key(d), {})
         rec.update(code=d["code"], name=d["name"], market=d["market"], announce=str(d["announce"]),
                    start=str(d["start"]), end=str(d["end"]), n_days=d["n_days"], entry_date=str(d["entry"]),
+                   clause=e["clause"], dev20=None if not e["di"] or e["di"]["dev"] is None else round(e["di"]["dev"], 4),
+                   filter_verdict=e["verdict"],
                    entry_price=None if rr is None else rr["entry"], entry_limit_up=lu,
                    was_candidate=d["code"] in cand_codes, golden=g["golden"], is_bio=g["is_bio"],
                    is_ky=g["is_ky"], vol5_lots=g["vol5_lots"], vol_days=g["vol_days"], entry_pushed_at=now)
@@ -801,7 +912,6 @@ def main_pre(args, today):
     data = run_worker(anchor, out)
     cands = [c for c in data["candidates"] if c["code"] not in busy]
     cands5 = [c for c in cands if c["offense"] == "初犯" and c["days"] == 5]
-    cands7 = [c for c in cands if c["offense"] == "初犯" and c["days"] != 5]
     n_rep = sum(1 for c in cands if c["offense"] == "累犯")
 
     holds_raw = [d for d in first if d["entry"] < today <= d["end"]]
@@ -815,16 +925,26 @@ def main_pre(args, today):
             continue                                    # 已停損出場的不再列
         g = golden_check(d, company, daily, quotes)
         (exits_today if d["end"] == today else warn).append((d, g, rr, None))
-    mis = fetch_mis([(c["code"], c["market"]) for c in cands5 + cands7] +
+    mis = fetch_mis([(c["code"], c["market"]) for c in cands5] +
                     [(d["code"], d["market"]) for d, _, _, _ in warn + exits_today])
+    # 條款別與乖離(以現價估進場日收盤)
+    ctx = {}
+    if cands5:
+        clause_db, _ = load_clause_db(today)
+        cand_targets = [dict(code=c["code"], entry=today) for c in cands5]
+        cdaily = load_parquet_daily({c["code"] for c in cands5}, ma_days(cand_targets, today))
+        for c in cands5:
+            cl = clause_type(clause_db, c["code"], today)
+            di = dev20_info(c["code"], today, today, {}, cdaily, now_price=(mis.get(c["code"]) or {}).get("price"))
+            ctx[c["code"]] = (cl, di)
     warn = [(d, g, rr, mis.get(d["code"])) for d, g, rr, _ in warn]
     exits_today = [(d, g, rr, mis.get(d["code"])) for d, g, rr, _ in exits_today]
 
     hit_note = HIT_RATE_NOTE
-    if not (cands5 or cands7 or warn or exits_today):
+    if not (cands5 or warn or exits_today):
         print("  今天沒有候選也沒有持股要提醒，靜默結束。")
         return
-    msg = build_pre_message(today, anchor, cands5, cands7, n_rep, warn, exits_today, mis, hit_note)
+    msg = build_pre_message(today, anchor, cands5, n_rep, warn, exits_today, mis, hit_note, ctx)
     print("\n" + msg + "\n")
     if args.dry_run:
         print("[dry-run] 未推播、未寫紀錄。")
@@ -834,7 +954,7 @@ def main_pre(args, today):
         print("[force-send] 手動測試推播：不寫入「今天已推播」與候選紀錄，正式排程照常執行。")
         return
     meta["pre_close_date"] = str(today)
-    log.setdefault("_cand", {})[str(today)] = [c["code"] for c in cands5]
+    log.setdefault("_cand", {})[str(today)] = [c["code"] for c in cands5 if judge(*ctx[c["code"]]) != "skip"]
     save_log(log)
 
 

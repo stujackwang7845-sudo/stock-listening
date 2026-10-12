@@ -94,5 +94,75 @@ class TriggerLinesTest(unittest.TestCase):
         self.assertEqual(pc.trigger_lines([]), [])
 
 
+class ClauseFilterTest(unittest.TestCase):
+    """第一款且 20MA 乖離 > 35% 不買(2026-10-12)。"""
+
+    def make_db(self, rows):
+        import sqlite3
+        import tempfile
+        path = os.path.join(tempfile.mkdtemp(), "t.db")
+        c = sqlite3.connect(path)
+        c.execute("CREATE TABLE attention_clauses (announce_date TEXT, code TEXT, clause_number INT)")
+        c.executemany("INSERT INTO attention_clauses VALUES (?,?,?)", rows)
+        c.commit()
+        c.close()
+        return path
+
+    def test_clause_type(self):
+        db = self.make_db([("2026-10-06", "1111", 1), ("2026-10-07", "2222", 1), ("2026-10-07", "2222", 6),
+                           ("2026-10-07", "3333", 1), ("2026-10-07", "3333", 3), ("2026-10-07", "4444", 0)])
+        e = date(2026, 10, 8)
+        self.assertEqual(n.clause_type(db, "1111", e), "一")
+        self.assertEqual(n.clause_type(db, "2222", e), "六")
+        self.assertEqual(n.clause_type(db, "3333", e), "其他")
+        self.assertEqual(n.clause_type(db, "4444", e), "無")           # 款 0 = 解析不出，不算
+        self.assertEqual(n.clause_type(db, "9999", e), "無")
+        self.assertEqual(n.clause_type(db, "1111", date(2026, 10, 6)), "無")   # 只用進場日(不含)之前的公告
+
+    def test_clause_type_uses_latest_notice_only(self):
+        db = self.make_db([("2026-10-01", "1111", 6), ("2026-10-07", "1111", 1)])
+        self.assertEqual(n.clause_type(db, "1111", date(2026, 10, 8)), "一")
+
+    def test_dev20_and_threshold(self):
+        # 進場日 10/08 前連續 19 個交易日收盤都是 100，進場日收盤 c：乖離 = c/((1900+c)/20)-1
+        days, cur = [], date(2026, 10, 8)
+        for _ in range(19):
+            cur = n.prev_trading_day(cur)
+            days.append(cur)
+        daily = {("1111", d): (1000.0, 100.0) for d in days}
+        di = n.dev20_info("1111", date(2026, 10, 8), date(2026, 10, 8), {}, daily, now_price=130.0)
+        self.assertAlmostEqual(di["dev"], 130 / ((1900 + 130) / 20) - 1)
+        thr = di["thr"]                                            # 收盤超過它 → 乖離 > 35%
+        self.assertGreater(thr / ((1900 + thr) / 20) - 1, DEV - 0.001)
+        self.assertLess((thr - 0.01) / ((1900 + thr - 0.01) / 20) - 1, DEV)
+        self.assertIsNone(n.dev20_info("1111", date(2026, 10, 8), date(2026, 10, 8), {}, {}, now_price=100.0))
+
+    def test_judge(self):
+        hot, cool = dict(dev=0.40, thr=1), dict(dev=0.20, thr=1)
+        self.assertEqual(n.judge("一", hot), "skip")
+        self.assertEqual(n.judge("一", cool), "cond")
+        self.assertEqual(n.judge("一", None), "cond")
+        self.assertEqual(n.judge("其他", hot), "ok")               # 只有第一款才濾
+        self.assertEqual(n.judge("六", hot), "ok")
+
+    def test_candidate_and_message_render(self):
+        c = dict(code="1111", name="測試", market="上市", close=100.0, enter_freq="2分初犯", offense="初犯", days=5,
+                 min_needed=1, progress={"rule1": {"current": 2, "target": 3}}, conditions=["[1] 6日漲幅 > 32% 目標 50.6"])
+        mis = {"1111": dict(price=120.0, up=121.0, prev=110.0, down=99.0)}
+        for clause, di, expect in (("一", dict(dev=0.40, thr=130.0, close=120.0), "不買"),
+                                    ("一", dict(dev=0.20, thr=130.0, close=120.0), "≤ 130"),
+                                    ("其他", dict(dev=0.20, thr=130.0, close=120.0), "可買")):
+            txt, locked, skipped = n.fmt_candidate(c, mis, clause, di)
+            self.assertIn(expect, txt)
+            self.assertEqual(skipped, clause == "一" and di["dev"] > DEV)
+        msg = n.build_pre_message(date(2026, 10, 12), date(2026, 10, 8), [c], 0, [], [], mis, "",
+                                  {"1111": ("其他", dict(dev=0.2, thr=130.0, close=120.0))})
+        self.assertIn("今天收盤前可買", msg)
+        self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
+
+
+DEV = 0.35
+
+
 if __name__ == "__main__":
     unittest.main()
