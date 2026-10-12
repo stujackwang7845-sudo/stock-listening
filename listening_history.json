@@ -14280,5 +14280,85 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "2466",
+        "name": "冠西電",
+        "trigger_info": "115年10月8日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "9103",
+        "name": "美德醫療-DR",
+        "trigger_info": "115年10月6日至115年10月12日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "3265",
+        "name": "台星科",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "3597",
+        "name": "映興",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "4174",
+        "name": "浩鼎",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "4760",
+        "name": "勤凱",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "5205",
+        "name": "中茂",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-12",
+        "code": "7772",
+        "name": "耀穎",
+        "trigger_info": "115年10月08日至115年10月12日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
