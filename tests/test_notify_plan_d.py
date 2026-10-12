@@ -161,6 +161,23 @@ class ClauseFilterTest(unittest.TestCase):
         self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
 
 
+    def test_evening_candidates_message(self):
+        c = dict(code="3265", name="台星科", market="上櫃", conditions=["[1-1] 6日漲幅 > 23% 目標 231.50 必進處置"])
+        txt = n.fmt_next_cand(c, "其他", dict(dev=None, thr=300.0, close=None), 262.0, True)
+        self.assertIn("今收 262（漲停）", txt)
+        self.assertIn("可買", txt)                                  # 今天漲停不影響明天買不買
+        self.assertNotIn("買不到", txt)
+        hot = n.fmt_next_cand(c, "一", dict(dev=None, thr=300.0, close=None), 262.0, False)
+        self.assertIn("明日收盤 ≤ 300", hot)
+        msg = n.build_message(date(2026, 10, 12), date(2026, 10, 13), [], [], [], [], 0, set(),
+                              [(c, "其他", None, 262.0, True)], 1)
+        self.assertIn("明日 10/13 收盤前買進", msg)
+        self.assertIn("3265", msg)
+        self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
+        none = n.build_message(date(2026, 10, 12), date(2026, 10, 13), [], [], [], [], 0, set(), [], 0)
+        self.assertIn("預買候選（5 天初犯）｜沒有", none)
+
+
 DEV = 0.35
 
 
