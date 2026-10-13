@@ -654,23 +654,50 @@ def fetch_mis(code_markets):
         s.get("https://mis.twse.com.tw/stock/index.jsp", timeout=20)
     except Exception:
         pass
-    items = [f"{'tse' if m == '上市' else 'otc'}_{c}.tw" for c, m in code_markets]
-    for i in range(0, len(items), 40):
-        try:
-            time.sleep(2)
-            r = s.get(MIS_URL, params={"ex_ch": "|".join(items[i:i + 40]), "json": "1", "delay": "0"}, timeout=20)
-            for x in r.json().get("msgArray", []):
-                def f(k):
-                    try:
-                        return float(x.get(k))
-                    except (TypeError, ValueError):
-                        return None
-                last, prev = f("z"), f("y")
-                out[x.get("c")] = dict(price=last if last else prev, traded=bool(last), prev=prev,
-                                       up=f("u"), down=f("w"))
-        except Exception as e:
-            print(f"[WARN] MIS 查價失敗：{e}")
+    want = {c: m for c, m in code_markets}
+    # 2026-10-13 12:50 盤前提醒整批查無現價(MIS 偶發回空)：沒拿到的代號最多再試 2 輪，每輪換新連線
+    for attempt in range(3):
+        todo = [(c, m) for c, m in want.items() if c not in out]
+        if not todo:
+            break
+        if attempt:
+            time.sleep(5 * attempt)
+            s = requests.Session()
+            s.headers.update(UA)
+            try:
+                s.get("https://mis.twse.com.tw/stock/index.jsp", timeout=20)
+            except Exception:
+                pass
+        items = [f"{'tse' if m == '上市' else 'otc'}_{c}.tw" for c, m in todo]
+        for i in range(0, len(items), 40):
+            try:
+                time.sleep(2)
+                r = s.get(MIS_URL, params={"ex_ch": "|".join(items[i:i + 40]), "json": "1", "delay": "0"}, timeout=20)
+                for x in r.json().get("msgArray", []):
+                    def f(k):
+                        try:
+                            return float(x.get(k))
+                        except (TypeError, ValueError):
+                            return None
+                    last, prev = f("z"), f("y")
+                    if last is None and prev is None:
+                        continue
+                    out[x.get("c")] = dict(price=last if last else prev, traded=bool(last), prev=prev,
+                                           up=f("u"), down=f("w"))
+            except Exception as e:
+                print(f"[WARN] MIS 查價失敗(第 {attempt + 1} 輪)：{e}")
+    miss = [c for c in want if c not in out]
+    if miss:
+        print(f"[WARN] MIS 三輪後仍查無：{miss}")
     return out
+
+
+def px_text(price, prev, up, fallback_close=None):
+    """現價＋漲跌幅＋漲停價；即時行情失敗時用昨收代並明講。"""
+    if not price:
+        return f"即時行情查詢失敗，昨收 {fallback_close:g}" if fallback_close else "即時行情查詢失敗"
+    chg = f"（{(price / prev - 1) * 100:+.1f}%）" if prev else ""
+    return f"現價 {price:g}{chg}" + (f"｜漲停價 {up:g}" if up else "")
 
 
 def fmt_candidate(c, mis, clause, di):
@@ -678,7 +705,7 @@ def fmt_candidate(c, mis, clause, di):
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
     locked = bool(price and up and price >= up - 1e-6)
-    px_txt = "現價查無" if not price else f"現價 {price:g}（漲停價 {up:g}）" if up else f"現價 {price:g}"
+    px_txt = px_text(price, q.get("prev"), up, c.get("close"))
     p = c["progress"]
     prog = "、".join(f"{lbl} {p[k]['current']}/{p[k]['target']}" for lbl, k in
                     (("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4"))
@@ -734,7 +761,7 @@ def build_pre_message(today, anchor, cands5, n_rep, warn_holds, exits_today, mis
             elif price and price <= rr["stop_price"] * 1.03:
                 tag, n_danger = " ⚠️ 距停損價不到 3%", n_danger + 1
             body.append(f"• {html.escape(d['code'])} {html.escape(d['name'])}｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
-                        + (f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "現價查無") + tag)
+                        + (f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "即時行情查詢失敗") + tag)
         for d, g, rr, q in exits_today:
             body.append(f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>：處置最後一天，🔴 <b>今天收盤賣</b>")
         title = (f"🛡 持有部位停損檢查｜{len(warn_holds)} 檔" + (f"，⚠️ 需留意 {n_danger} 檔" if n_danger else "，都離停損價夠遠")
@@ -1031,11 +1058,49 @@ def main():
     ap.add_argument("--date", help="以這天當作「今天」(YYYYMMDD)，預設今天")
     args = ap.parse_args()
 
-    today = datetime.strptime(args.date, "%Y%m%d").date() if args.date else date.today()
+    start_log()
+    if args.date:
+        today = datetime.strptime(args.date, "%Y%m%d").date()
+    elif args.pre_close:
+        today = date.today()
+    else:
+        # 盤後模式：「今天」= 最近一個已收盤(14:00 後)的交易日。2026-10-13 晚上電腦睡著，排程 10/14 04:39 補跑時
+        # 拿 10/14(還沒開盤)去算，候選是空的、還報錯，10/13 的盤後推播整則沒發出去。
+        now = datetime.now()
+        ref = now if now.hour >= 14 else now - timedelta(days=1)
+        today = DateUtils.get_last_trading_day(datetime.combine(ref.date(), datetime.min.time())).date()
+        if today != now.date():
+            print(f"[{now}] 補跑：以最近一個已收盤交易日 {today} 為盤後日")
     if not DateUtils.is_trading_day(datetime.combine(today, datetime.min.time())) and not args.force_send:
         print(f"[{datetime.now()}] {today} 不是交易日，結束。")
         return
     (main_pre if args.pre_close else main_post)(args, today)
+
+
+class _Tee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, x):
+        for st_ in self.streams:
+            try:
+                st_.write(x)
+                st_.flush()
+            except Exception:
+                pass
+
+    def flush(self):
+        pass
+
+
+def start_log():
+    """排程執行時沒有畫面，輸出同時寫到 logs/notify_YYYYMMDD.log，方便事後查為什麼沒推。"""
+    d = PROJ / "logs"
+    d.mkdir(exist_ok=True)
+    f = open(d / f"notify_{date.today():%Y%m%d}.log", "a", encoding="utf-8")
+    f.write(f"\n===== {datetime.now()} {' '.join(sys.argv[1:])} =====\n")
+    sys.stdout = _Tee(sys.__stdout__, f)
+    sys.stderr = _Tee(sys.__stderr__, f)
 
 
 if __name__ == "__main__":
