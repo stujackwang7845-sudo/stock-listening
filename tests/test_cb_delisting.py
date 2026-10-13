@@ -20,10 +20,13 @@ class CBDelistTest(unittest.TestCase):
             f.write("6672,66721,2026/01/22,2031/01/22\n")
             f.write("6672,66722,2026/02/03,2031/02/03\n")
             f.write("1111,11111,2026/01/01,2031/01/01\n")
+            f.write("2222,22221,2026/01/01,\n")                # 到期日空白：用資料庫補
+            f.write("3333,33331,2026/01/01,\n")                # 到期日空白、資料庫也沒有：當作仍在外流通
         self.db = os.path.join(d, "cb.db")
         c = sqlite3.connect(self.db)
-        c.execute("CREATE TABLE cb_master (cb_id TEXT, delisting_date TEXT)")
-        c.executemany("INSERT INTO cb_master VALUES (?,?)", [("66721", "2026-09-01"), ("66722", "2026-09-01"), ("11111", None)])
+        c.execute("CREATE TABLE cb_master (cb_id TEXT, delisting_date TEXT, maturity_date TEXT)")
+        c.executemany("INSERT INTO cb_master VALUES (?,?,?)", [("66721", "2026-09-01", "2031-01-22"), ("66722", "2026-09-01", "2031-02-03"),
+                                                              ("11111", None, "2031-01-01"), ("22221", None, "2027-06-30")])
         c.commit()
         c.close()
 
@@ -34,6 +37,9 @@ class CBDelistTest(unittest.TestCase):
         self.assertTrue(db.had_cb_on("6672", "2026-08-31"))      # 下櫃前一天還在
         self.assertFalse(db.had_cb_on("6672", "2026-09-01"))     # 下櫃日當天起不算
         self.assertTrue(db.has_cb_now("1111"))                   # 沒下櫃的照舊
+        self.assertTrue(db.has_cb_now("2222"))                   # 缺到期日不再整筆略過
+        self.assertFalse(db.had_cb_on("2222", "2027-07-01"))     # 用資料庫到期日 2027-06-30 截斷
+        self.assertTrue(db.has_cb_now("3333"))
 
     def test_without_db_same_as_before(self):
         db = CBDatabase(self.csv, os.path.join(tempfile.mkdtemp(), "none.db"))
