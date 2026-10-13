@@ -687,17 +687,65 @@ def fetch_mis(code_markets):
             except Exception as e:
                 print(f"[WARN] MIS 查價失敗(第 {attempt + 1} 輪)：{e}")
     miss = [c for c in want if c not in out]
+    # MIS 的 z 欄偶爾是「-」(那一刻沒有成交)，只拿得到昨收；這些也問一次 Fugle，有今天的成交價就用它
+    no_trade = [c for c in want if c in out and not out[c].get("traded")]
     if miss:
-        print(f"[WARN] MIS 三輪後仍查無：{miss}")
+        print(f"[WARN] MIS 三輪後仍查無：{miss}，改查 Fugle")
+    if miss or no_trade:
+        fg = fetch_fugle(miss + no_trade)
+        for c, q in fg.items():
+            if c in miss or q.get("traded"):
+                out[c] = q
+        still = [c for c in want if c not in out]
+        if still:
+            print(f"[WARN] Fugle 也查無：{still}")
     return out
 
 
-def px_text(price, prev, up, fallback_close=None):
-    """現價＋漲跌幅＋漲停價；即時行情失敗時用昨收代並明講。"""
+def fetch_fugle(codes):
+    """Fugle 即時報價(MIS 的備援)：{code: dict(price, prev, up, down, traded, src)}。
+    金鑰 FUGLE_API_KEY 在共用 .env；報價日期不是今天(還沒開盤/休市)就當作沒有即時價，只留昨收。"""
+    out = {}
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(r"E:\Vibe Coding\ANTIGRAVITY SETTINGS\.env")
+    except Exception:
+        pass
+    key = os.getenv("FUGLE_API_KEY", "")
+    if not key:
+        print("[WARN] 沒有 FUGLE_API_KEY，無法用 Fugle 備援")
+        return out
+    for c in codes:
+        try:
+            r = requests.get(f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/{c}",
+                             headers={"X-API-KEY": key}, timeout=10)
+            j = r.json()
+            prev = j.get("previousClose") or j.get("referencePrice")
+            last = j.get("lastPrice") or j.get("closePrice")
+            if j.get("date") != str(date.today()):
+                # 報價還停在上一個交易日(今天還沒開盤/休市)：那天的收盤才是「昨收」
+                prev, last = last or prev, None
+            if not (last or prev):
+                continue
+            prev = float(prev) if prev else None
+            out[c] = dict(price=float(last) if last else prev, traded=bool(last), prev=prev,
+                          up=limit_up_price(prev) if prev else None, down=None, src="Fugle")
+            time.sleep(1.1)                     # 免費方案每分鐘 60 次
+        except Exception as e:
+            print(f"[WARN] Fugle 查價失敗 {c}：{e}")
+    return out
+
+
+def px_text(price, prev, up, fallback_close=None, traded=True, src=None):
+    """現價＋漲跌幅＋漲停價；還沒成交標「尚無成交」；即時行情失敗時用昨收代並明講。"""
     if not price:
         return f"即時行情查詢失敗，昨收 {fallback_close:g}" if fallback_close else "即時行情查詢失敗"
+    tag = f"（{src}）" if src else ""
+    lim = f"｜漲停價 {up:g}" if up else ""
+    if not traded:
+        return f"尚無成交，昨收 {prev or price:g}{lim}{tag}"
     chg = f"（{(price / prev - 1) * 100:+.1f}%）" if prev else ""
-    return f"現價 {price:g}{chg}" + (f"｜漲停價 {up:g}" if up else "")
+    return f"現價 {price:g}{chg}{lim}{tag}"
 
 
 def fmt_candidate(c, mis, clause, di):
@@ -705,7 +753,7 @@ def fmt_candidate(c, mis, clause, di):
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
     locked = bool(price and up and price >= up - 1e-6)
-    px_txt = px_text(price, q.get("prev"), up, c.get("close"))
+    px_txt = px_text(price, q.get("prev"), up, c.get("close"), q.get("traded", True), q.get("src"))
     p = c["progress"]
     prog = "、".join(f"{lbl} {p[k]['current']}/{p[k]['target']}" for lbl, k in
                     (("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4"))
