@@ -303,7 +303,10 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                                 break
 
                         if not allow_download:
-                            if has_real_value or start_date.date() > today_date:
+                            # [2026-10-14] 離線模式遇到「已經過去卻還空白」的不完整快取也重算：
+                            # calculate_price_changes 離線時會先查本機 DB 專案行情(不連網)，
+                            # 不用等「網頁更新」才補到新的一天(使用者要求統計頁用本機 DB 行情)
+                            if (has_real_value and is_complete) or start_date.date() > today_date:
                                 headers, changes, dates = c_headers, c_changes, c_dates
                                 stats_loaded_from_cache = True
                         else:
