@@ -330,6 +330,75 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
 HISTORY_COLUMNS = ["-1", "處置日", "+1", "+2", "+3", "+4", "+5", "處置結束", "處置期間漲跌幅", "出關日", "出+1"]
 
 
+_PARQUET_ROOT = r"E:\Vibe Coding\Stock\DB\parquet_data\price_daily_raw"
+
+
+def local_closes(code, days):
+    """本機收盤價 {iso日期: 收盤}：先讀 DB 專案 parquet(每天排程更新)，沒有再讀 market_data.db(官方行情)。不連網。"""
+    out = {}
+    if not days:
+        return out
+    months = {(d[:4], int(d[5:7])) for d in days}
+    try:
+        import os
+        import pyarrow.parquet as pq
+        for mk in ("TWSE", "TPEX"):
+            for y, m in months:
+                f = os.path.join(_PARQUET_ROOT, f"market={mk}", f"year={y}", f"month={m}", "data.parquet")
+                if not os.path.exists(f):
+                    continue
+                t = pq.read_table(f, columns=["date", "symbol", "close"], filters=[("symbol", "=", code)]).to_pydict()
+                for d, c in zip(t["date"], t["close"]):
+                    if c is not None and c == c:
+                        out[d.isoformat()[:10]] = float(c)
+    except Exception as e:
+        print(f"[disposal_detail] 讀 parquet 失敗(改讀 market_data.db)：{e}")
+    missing = [d for d in days if d not in out]
+    if missing:
+        try:
+            import sqlite3
+            conn = sqlite3.connect(get_paths().market_db)
+            lo, hi = min(missing), max(missing)
+            for d, c in conn.execute("SELECT date, close FROM price_history WHERE stock_id=? AND date BETWEEN ? AND ?",
+                                     (code, lo, hi)):
+                if c is not None and d not in out:
+                    out[d] = float(c)
+            conn.close()
+        except Exception as e:
+            print(f"[disposal_detail] 讀 market_data.db 失敗：{e}")
+    return out
+
+
+def fill_missing_changes(code, r):
+    """
+    r 是 compute_stats_rows 的一列(changes/dates)。快取裡空白(None)、但那天已收盤且本機有收盤價的欄位，
+    用「當天收盤 / 前一個交易日收盤 - 1」補上(與統計頁同定義，% 取兩位)；處置期間漲跌幅也一起重算。就地修改。
+    """
+    changes, dates = r.get("changes") or {}, r.get("dates") or {}
+    todo = [k for k, v in changes.items() if v is None and dates.get(k)]
+    if not todo:
+        return
+    today = datetime.now().strftime("%Y-%m-%d")
+    need = {}
+    for k in todo:
+        d = dates[k]
+        if d > today:
+            continue
+        prev = DateUtils.get_last_trading_day(datetime.strptime(d, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+        need[k] = (d, prev)
+    if not need:
+        return
+    closes = local_closes(code, sorted({x for pair in need.values() for x in pair}))
+    for k, (d, prev) in need.items():
+        if d in closes and prev in closes and closes[prev]:
+            changes[k] = round((closes[d] / closes[prev] - 1) * 100, 2)
+    # 處置期間漲跌幅 = 處置末日收盤 / 處置前一天收盤 - 1(compute_stats_rows 缺任一天時沒放)
+    if changes.get("處置期間漲跌幅") is None and dates.get("-1") and dates.get("處置結束") and dates["處置結束"] <= today:
+        cc = local_closes(code, [dates["-1"], dates["處置結束"]])
+        if dates["-1"] in cc and dates["處置結束"] in cc and cc[dates["-1"]]:
+            changes["處置期間漲跌幅"] = round((cc[dates["處置結束"]] / cc[dates["-1"]] - 1) * 100, 2)
+
+
 def disposal_history_rows(code, records=None):
     """
     回傳 {"columns": [...], "rows": [{"announce", "start", "end", "freq", "duration", "offense", "changes"}]}，
@@ -357,6 +426,7 @@ def disposal_history_rows(code, records=None):
     columns = [c for c in HISTORY_COLUMNS if c in present]
     rows = []
     for r in processed:
+        fill_missing_changes(code, r)
         rows.append({
             "announce": DateUtils.to_iso_date_str(r.get("announce_date") or ""),
             "start": r.get("start_date", ""), "end": r.get("end_date", ""),
