@@ -70,7 +70,17 @@ except ImportError:
 
 PRICE_ROOT = Path(r"E:\Vibe Coding\Stock\DB\parquet_data\price_daily_raw")
 CORP_ROOT = Path(r"E:\Vibe Coding\Stock\DB\parquet_data\corporate_actions_raw")
-SIGNAL_LOG = PROJ / "data" / "disposal_golden_signals.json"
+DATA_DIR = os.environ.get("DISPO_DATA_DIR")          # 雲端：狀態資料夾；本機：不設，用 data/
+SIGNAL_LOG = (Path(DATA_DIR) if DATA_DIR else PROJ / "data") / "disposal_golden_signals.json"
+
+
+def use_parquet(root):
+    """本機 DB 專案 parquet 在就用；雲端沒有(或設 DISPO_NO_PARQUET=1 模擬雲端)改用官方資料。"""
+    return root.exists() and not os.environ.get("DISPO_NO_PARQUET")
+
+
+def data_file(name):
+    return (Path(DATA_DIR) if DATA_DIR else PROJ / "data") / name
 REPORT_HTML = PROJ / "reports" / "latest_disposal_golden_push.html"
 MIN_LOTS = 100
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -260,6 +270,8 @@ def prior_trading_days(start, n=5):
 def load_parquet_daily(codes, days):
     """DB 專案行情 parquet：{(code, date): (成交股數, 收盤價)}"""
     out = {}
+    if not use_parquet(PRICE_ROOT):
+        return load_official_daily(codes, days)
     months = {(d.year, d.month) for d in days}
     for mk in ["TWSE", "TPEX"]:
         for y, m in months:
@@ -307,8 +319,79 @@ def fmt_filter(g):
     return f"生技：{bio}｜KY：{ky}｜前5日均量：{vol}{note}"
 
 
+def load_official_daily(codes, days):
+    """雲端版行情：狀態資料夾 market_data.db 的 price_history(官方 MI_INDEX/dailyQuotes，成交量為股數)。"""
+    import sqlite3
+    out = {}
+    db = data_file("market_data.db")
+    if not db.exists() or not codes or not days:
+        return out
+    conn = sqlite3.connect(str(db))
+    lo, hi = str(min(days)), str(max(days))
+    marks = ",".join("?" * len(codes))
+    for code, d, vol, close in conn.execute(
+            f"SELECT stock_id, date, volume, close FROM price_history WHERE date BETWEEN ? AND ? AND stock_id IN ({marks})",
+            (lo, hi, *sorted(codes))):
+        if close is not None:
+            out[(str(code), datetime.strptime(d, "%Y-%m-%d").date())] = (float(vol or 0), float(close))
+    conn.close()
+    return out
+
+
+def load_official_corp_actions(codes, since, until):
+    """雲端版除權息：證交所 TWT49U(上市)＋櫃買 exDailyQ(上櫃)，{code: [(日期, 除權息前收盤, 參考價)]}。"""
+    out = {}
+    if not codes:
+        return out
+
+    def idx(fields, name):
+        return next(i for i, f in enumerate(fields) if f.strip() == name)
+
+    def num(x):
+        try:
+            return float(str(x).replace(",", ""))
+        except ValueError:
+            return None
+    try:
+        r = requests.get("https://www.twse.com.tw/rwd/zh/exRight/TWT49U",
+                         params={"startDate": f"{since:%Y%m%d}", "endDate": f"{until:%Y%m%d}", "response": "json"},
+                         headers=UA, timeout=30).json()
+        f = r.get("fields") or []
+        i_d, i_c, i_b, i_a = idx(f, "資料日期"), idx(f, "股票代號"), idx(f, "除權息前收盤價"), idx(f, "除權息參考價")
+        for row in r.get("data") or []:
+            code = str(row[i_c]).strip()
+            m = re.match(r"(\d+)年(\d+)月(\d+)日", str(row[i_d]))
+            if code in codes and m:
+                dd = date(int(m.group(1)) + 1911, int(m.group(2)), int(m.group(3)))
+                b, a = num(row[i_b]), num(row[i_a])
+                if since < dd <= until and b and a:
+                    out.setdefault(code, []).append((dd, b, a))
+    except Exception as e:
+        print(f"[WARN] 上市除權息(TWT49U)抓取失敗：{e}")
+    try:
+        time.sleep(2)
+        r = requests.get("https://www.tpex.org.tw/web/stock/exright/dailyquo/exDailyQ_result.php",
+                         params={"l": "zh-tw", "d": f"{since.year - 1911}/{since:%m/%d}",
+                                 "ed": f"{until.year - 1911}/{until:%m/%d}", "o": "json"}, headers=UA, timeout=30).json()
+        t = (r.get("tables") or [{}])[0]
+        f = t.get("fields") or []
+        i_d, i_c, i_b, i_a = idx(f, "除權息日期"), idx(f, "代號"), idx(f, "除權息前收盤價"), idx(f, "除權息參考價")
+        for row in t.get("data") or []:
+            code = str(row[i_c]).strip()
+            y, mth, dy = (int(x) for x in str(row[i_d]).split("/"))
+            dd = date(y + 1911, mth, dy)
+            b, a = num(row[i_b]), num(row[i_a])
+            if code in codes and since < dd <= until and b and a:
+                out.setdefault(code, []).append((dd, b, a))
+    except Exception as e:
+        print(f"[WARN] 上櫃除權息(exDailyQ)抓取失敗：{e}")
+    return out
+
+
 def load_corp_actions(codes, since, until):
     """官方除權息事件(DB corporate_actions_raw)：{code: [(日期, 除權息前收盤, 參考價)]}"""
+    if not use_parquet(CORP_ROOT):
+        return load_official_corp_actions(codes, since, until)
     out = {}
     for mk in ["TWSE", "TPEX"]:
         for y in range(since.year, until.year + 1):
@@ -398,7 +481,7 @@ def load_clause_db(today):
     import shutil
     import sqlite3
     import tempfile
-    src = PROJ / "data" / "disposal_history.db"
+    src = data_file("disposal_history.db")
     if not src.exists():
         return None, None
     tmp = os.path.join(tempfile.mkdtemp(prefix="dispo_clause_"), "disposal_history.db")
@@ -849,11 +932,27 @@ def save_log(log):
     os.replace(tmp, SIGNAL_LOG)
 
 
+def telegram_api(text):
+    """雲端用：直接呼叫 Telegram Bot API(HTML 模式)，失敗丟例外。"""
+    r = requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage",
+                      json={"chat_id": os.environ["TELEGRAM_CHAT_ID"], "text": text, "parse_mode": "HTML",
+                            "disable_web_page_preview": True}, timeout=30)
+    j = r.json()
+    if not j.get("ok"):
+        raise RuntimeError(f"Telegram API 回傳失敗: {j.get('error_code')} {j.get('description')}")
+    return j["result"]
+
+
 def push(msg):
     REPORT_HTML.parent.mkdir(parents=True, exist_ok=True)
     REPORT_HTML.write_text(msg, encoding="utf-8")
+    if send_telegram is None and os.environ.get("TELEGRAM_BOT_TOKEN"):
+        for c in split_message(msg):
+            res = telegram_api(c)
+            print(f"✅ 已推播（{len(c)} 字），message_id={res.get('message_id')}")
+        return
     if send_telegram is None:
-        print("[ERROR] 找不到 send_telegram 模組，未推播。")
+        print("[ERROR] 找不到 send_telegram 模組，也沒有 TELEGRAM_BOT_TOKEN，未推播。")
         sys.exit(1)
     for c in split_message(msg):
         res = send_telegram(c, parse_mode="HTML")

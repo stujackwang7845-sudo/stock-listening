@@ -1,0 +1,8 @@
+# 雲端推播(scripts/cloud/dispo_cloud_job.py)最少套件；桌面版用 pyproject.toml
+beautifulsoup4==4.15.0
+finmind==2.0.11
+lxml==6.1.3
+pandas==2.3.3
+pyarrow==26.0.0
+python-dotenv==1.2.4
+requests==2.34.2

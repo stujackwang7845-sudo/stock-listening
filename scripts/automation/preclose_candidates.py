@@ -27,17 +27,18 @@ SCRIPTS = PROJ / "scripts"
 
 def prepare_copy():
     tmp = tempfile.mkdtemp(prefix="dispo_preclose_")
+    state = os.environ.get("DISPO_DATA_DIR")       # 雲端：從狀態資料夾複製(檔名都在同一層)
     for src, name in (("data/cache.db", "cache.db"), ("data/market_data.db", "market_data.db"),
                       ("data/disposal_history.db", "disposal_history.db"),
                       ("data/margin_futures.db", "margin_futures.db"), ("stock_prices.db", "stock_prices.db")):
-        p = PROJ / src
+        p = Path(state) / name if state else PROJ / src
         if p.exists():
             s, d = sqlite3.connect(str(p)), sqlite3.connect(os.path.join(tmp, name))
             s.backup(d)
             d.close()
             s.close()
     for name in ("listening_history.json", "tags_config.json", "twse_holidays.json"):
-        p = PROJ / "data" / name
+        p = (Path(state) if state else PROJ / "data") / name
         if p.exists():
             shutil.copy2(p, os.path.join(tmp, name))
     return tmp
