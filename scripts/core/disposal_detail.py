@@ -347,9 +347,9 @@ def local_closes(code, days):
                 f = os.path.join(_PARQUET_ROOT, f"market={mk}", f"year={y}", f"month={m}", "data.parquet")
                 if not os.path.exists(f):
                     continue
-                t = pq.read_table(f, columns=["date", "symbol", "close"], filters=[("symbol", "=", code)]).to_pydict()
-                for d, c in zip(t["date"], t["close"]):
-                    if c is not None and c == c:
+                t = pq.ParquetFile(f).read(columns=["date", "symbol", "close"]).to_pydict()   # read_table 會套 hive 分區欄位而型別衝突
+                for d, sym, c in zip(t["date"], t["symbol"], t["close"]):
+                    if str(sym).strip() == code and c is not None and c == c:
                         out[d.isoformat()[:10]] = float(c)
     except Exception as e:
         print(f"[disposal_detail] 讀 parquet 失敗(改讀 market_data.db)：{e}")
