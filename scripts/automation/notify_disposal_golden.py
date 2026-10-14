@@ -1,5 +1,5 @@
 """
-處置新制「初犯」策略 D + 黃金濾網標註：Telegram 推播(盤後＋盤前)
+處置新制「初犯」策略 D + 黃金濾網標註：Telegram 推播(盤後＋盤中)
 =======================================================================
 策略 D（2026-10-12 起，原本是「處置首日收盤買」的方案 A）：
   - 只做「初犯」（上市：處置措施「第一次處置」；上櫃：條件文字沒有「最近30個營業日內曾發布處置」）
@@ -11,13 +11,13 @@
     樣本小(第一款 16 筆、被排除 5 筆)，且是測了約 20 種變化後挑出的，之後用新樣本繼續驗證。
   - 回測(新制 8/10～10/08、排除漲停)：D 方案 52 筆，每筆平均 +5.6%、勝率 75%、單筆最差 -10.3%、
     風報比 5.23(scratch/four_plans_20261012.py --no-limit-up)
-  - 5 天初犯要在公告前買進，所以另有「盤前提醒」模式(--pre-close，交易日 12:50)：以官方聽牌＋預測引擎
+  - 5 天初犯要在公告前買進，所以另有「盤中提醒」模式(--pre-close，交易日 12:50)：以官方聽牌＋預測引擎
     列出「今天收盤再被注意就進處置、初犯、預估 5 天」的候選與觸發條件，並檢查持股距離停損價。
   - 黃金濾網（三項都符合才算通過）：
       1. 非生技醫療（官方產業別代碼 22）
       2. 非 KY（官方「外國企業註冊地國」有值）
       3. 處置開始前 5 個交易日平均成交量 ≥ 100 張
-推播時機：盤前 12:50(5 天初犯候選與停損檢查)；處置公告當天盤後（明天就是處置首日），以及處置最後一天的前一天（提醒明天收盤出場）。
+推播時機：盤中 12:50(5 天初犯候選與停損檢查)；處置公告當天盤後（明天就是處置首日），以及處置最後一天的前一天（提醒明天收盤出場）。
 資料來源（全部官方公開資料，不需券商帳號）：
   - 處置公告：證交所 announcement/punish、櫃買 tpex_disposal_information
   - 產業別／KY：證交所 t187ap03_L、櫃買 mopsfin_t187ap03_O
@@ -27,7 +27,7 @@
   新制初犯 N=57 勝率 77%、平均淨 +5.9%、最大虧損 -16.7%；黃金濾網是樣本內挑出來的條件，
   前後半段驗證方向不一致，推播只做標註，請以不加濾網的數字估計風險。
 用法：
-  uv run python scripts/automation/notify_disposal_golden.py --pre-close   # 盤前提醒(交易日 12:50)
+  uv run python scripts/automation/notify_disposal_golden.py --pre-close   # 盤中提醒(交易日 12:50)
   uv run python scripts/automation/notify_disposal_golden.py            # 正式(交易日才跑、有訊號才推)
   uv run python scripts/automation/notify_disposal_golden.py --dry-run  # 只印出內容不推播、不寫紀錄
   uv run python scripts/automation/notify_disposal_golden.py --date 20261001 --dry-run  # 指定日期預覽
@@ -620,7 +620,7 @@ RULES_HTML = (
     "• 只做初犯。5 天初犯：處置公告當天(處置前一天)收盤買；7 天初犯：處置首日收盤買；處置最後一天收盤賣\n"
     f"• 停損：收盤 ≤ 進場價×{1-STOP_PCT:.2f}(還原後 ≤ −{STOP_PCT*100:.0f}%)，當天收盤賣\n"
     f"• <b>濾網</b>：進場日前最近一次注意公告「只有第一款(連漲型)」且進場日收盤 20MA 乖離 > {DEV_MAX*100:.0f}% → 不買"
-    "(5 天初犯在盤前候選用現價估，7 天初犯給出明日收盤價門檻)\n"
+    "(5 天初犯在盤中候選用現價估，7 天初犯給出明日收盤價門檻)\n"
     "• 進場日收盤漲停買不到，不算\n"
     "• 回測(新制 8/10～10/08、排除漲停)：加濾網 47 筆 年化 +274%、MDD −3.6%；不加 52 筆 +230%、−4.3%。"
     "第一款只有 16 筆、被濾掉 5 筆，樣本小且是試了約 20 種條件後挑的，會繼續用新樣本驗證\n"
@@ -658,7 +658,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
                      + (f"（另有 {n_cand_rep} 檔聽牌股若進處置是累犯，不做）" if n_cand_rep else ""))
         lines.append("")
     elif cand_err:
-        lines += [f"🟣 <b>明日預買候選｜計算失敗，請看盤前提醒</b>（{html.escape(cand_err[:80])}）", ""]
+        lines += [f"🟣 <b>明日預買候選｜計算失敗，請看盤中提醒</b>（{html.escape(cand_err[:80])}）", ""]
     else:
         lines += [f"🟣 <b>明日 {next_td:%m/%d} 預買候選（5 天初犯）｜沒有</b>" + (f"（累犯 {n_cand_rep} 檔不做）" if n_cand_rep else ""), ""]
 
@@ -700,7 +700,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
         for e in sorted(five, key=lambda e: e["d"]["code"]):
             d, rr = e["d"], e["rr"]
             who = f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
-            note = "盤前有列候選" if d["code"] in cand_codes else "盤前沒列候選，沒預買就錯過"
+            note = "盤中有列候選" if d["code"] in cand_codes else "盤中沒列候選，沒預買就錯過"
             if e["lu"]:
                 lines.append(f"• {who}｜🚫 今日收盤漲停，買不到，不算")
             elif e["verdict"] == "skip":
@@ -724,7 +724,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
     return "\n".join(x for x in lines if x is not None).strip()
 
 
-# ---------------------------------------------------------------- 盤前提醒
+# ---------------------------------------------------------------- 盤中提醒
 MIS_URL = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp"
 
 
@@ -738,7 +738,7 @@ def fetch_mis(code_markets):
     except Exception:
         pass
     want = {c: m for c, m in code_markets}
-    # 2026-10-13 12:50 盤前提醒整批查無現價(MIS 偶發回空)：沒拿到的代號最多再試 2 輪，每輪換新連線
+    # 2026-10-13 12:50 盤中提醒整批查無現價(MIS 偶發回空)：沒拿到的代號最多再試 2 輪，每輪換新連線
     for attempt in range(3):
         todo = [(c, m) for c, m in want.items() if c not in out]
         if not todo:
@@ -832,7 +832,7 @@ def px_text(price, prev, up, fallback_close=None, traded=True, src=None):
 
 
 def fmt_candidate(c, mis, clause, di):
-    """盤前候選一檔。回傳 (文字, 是否漲停鎖死, 是否被濾網排除)。"""
+    """盤中候選一檔。回傳 (文字, 是否漲停鎖死, 是否被濾網排除)。"""
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
     locked = bool(price and up and price >= up - 1e-6)
@@ -863,7 +863,7 @@ def fmt_candidate(c, mis, clause, di):
 def build_pre_message(today, anchor, cands5, n_rep, warn_holds, exits_today, mis, hit_note, ctx):
     """ctx: {code: (clause, di)}"""
     wd = "一二三四五六日"[today.weekday()]
-    lines = [f"⏰ <b>處置策略 D｜{today:%m/%d}({wd}) 盤前提醒</b>", f"（預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）", ""]
+    lines = [f"⏰ <b>處置策略 D｜{today:%m/%d}({wd}) 盤中提醒</b>", f"（預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）", ""]
     if cands5:
         body, n_locked, n_skip = [], 0, 0
         for c in cands5:
@@ -894,7 +894,10 @@ def build_pre_message(today, anchor, cands5, n_rep, warn_holds, exits_today, mis
             body.append(f"• {html.escape(d['code'])} {html.escape(d['name'])}｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
                         + (f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "即時行情查詢失敗") + tag)
         for d, g, rr, q in exits_today:
-            body.append(f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>：處置最後一天，🔴 <b>今天收盤賣</b>")
+            price = q.get("price") if q else None
+            now = f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "即時行情查詢失敗"
+            body.append(f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
+                        f"{now}｜🔴 <b>處置最後一天，今天收盤賣</b>")
         title = (f"🛡 持有部位停損檢查｜{len(warn_holds)} 檔" + (f"，⚠️ 需留意 {n_danger} 檔" if n_danger else "，都離停損價夠遠")
                  + (f"｜今日出場 {len(exits_today)} 檔" if exits_today else ""))
         lines += [section(title, body), ""]
@@ -1129,14 +1132,14 @@ def run_worker(anchor, out_path):
 
 def main_pre(args, today):
     anchor = prev_trading_day(today)
-    print(f"[{datetime.now()}] 盤前提醒：今天 {today}，預測錨點(最近收盤日) {anchor}")
+    print(f"[{datetime.now()}] 盤中提醒：今天 {today}，預測錨點(最近收盤日) {anchor}")
     if not args.date and not args.dry_run and not args.force_send and datetime.now().time() > datetime.strptime("13:20", "%H:%M").time():
-        print("  已過 13:20，盤前提醒沒有意義(排程補跑)，結束。")
+        print("  已過 13:20，盤中提醒沒有意義(排程補跑)，結束。")
         return
     log = load_log()
     meta = log.setdefault("_meta", {})
     if not args.dry_run and not args.force_send and meta.get("pre_close_date") == str(today):
-        print("  今天的盤前提醒已推播過，結束。")
+        print("  今天的盤中提醒已推播過，結束。")
         return
 
     disposals = load_disposals(today)
@@ -1201,7 +1204,7 @@ def main():
     ap = argparse.ArgumentParser(description="處置新制初犯策略 D Telegram 推播")
     ap.add_argument("--dry-run", action="store_true", help="只印出內容，不推播、不寫紀錄")
     ap.add_argument("--force-send", action="store_true", help="沒有訊號也推播（測試用）")
-    ap.add_argument("--pre-close", action="store_true", help="盤前提醒模式(交易日 12:50 左右執行)：5 天初犯聽牌候選與停損檢查")
+    ap.add_argument("--pre-close", action="store_true", help="盤中提醒模式(交易日 12:50 左右執行)：5 天初犯聽牌候選與停損檢查")
     ap.add_argument("--date", help="以這天當作「今天」(YYYYMMDD)，預設今天")
     args = ap.parse_args()
 

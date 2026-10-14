@@ -178,6 +178,18 @@ class ClauseFilterTest(unittest.TestCase):
         self.assertIn("預買候選（5 天初犯）｜沒有", none)
 
 
+    def test_intraday_exit_today_shows_entry_stop_profit(self):
+        d = dict(code="3094", name="聯傑", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 14), n_days=5)
+        rr = dict(entry=69.2, stop_price=63.6)
+        msg = n.build_pre_message(date(2026, 10, 14), date(2026, 10, 13), [], 0, [], [(d, {}, rr, {"price": 70.6})], {}, "", {})
+        self.assertIn("盤中提醒", msg)
+        self.assertNotIn("盤前", msg.replace("收盤前", ""))
+        self.assertIn("進 69.2", msg)
+        self.assertIn("停損價 63.6", msg)
+        self.assertIn("+2.0%", msg)
+        self.assertIn("今天收盤賣", msg)
+
+
 DEV = 0.35
 
 
