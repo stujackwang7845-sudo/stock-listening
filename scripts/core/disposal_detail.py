@@ -374,29 +374,16 @@ def fill_missing_changes(code, r):
     r 是 compute_stats_rows 的一列(changes/dates)。快取裡空白(None)、但那天已收盤且本機有收盤價的欄位，
     用「當天收盤 / 前一個交易日收盤 - 1」補上(與統計頁同定義，% 取兩位)；處置期間漲跌幅也一起重算。就地修改。
     """
+    # [2026-10-14] 改用 DB 專案還原股價，單日漲跌幅超過 ±10% 判定股價有問題不補(core/adjusted_prices.py)
+    from core import adjusted_prices
     changes, dates = r.get("changes") or {}, r.get("dates") or {}
-    todo = [k for k, v in changes.items() if v is None and dates.get(k)]
-    if not todo:
-        return
+    adjusted_prices.fill_changes(code, changes, dates)
     today = datetime.now().strftime("%Y-%m-%d")
-    need = {}
-    for k in todo:
-        d = dates[k]
-        if d > today:
-            continue
-        prev = DateUtils.get_last_trading_day(datetime.strptime(d, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
-        need[k] = (d, prev)
-    if not need:
-        return
-    closes = local_closes(code, sorted({x for pair in need.values() for x in pair}))
-    for k, (d, prev) in need.items():
-        if d in closes and prev in closes and closes[prev]:
-            changes[k] = round((closes[d] / closes[prev] - 1) * 100, 2)
     # 處置期間漲跌幅 = 處置末日收盤 / 處置前一天收盤 - 1(compute_stats_rows 缺任一天時沒放)
     if changes.get("處置期間漲跌幅") is None and dates.get("-1") and dates.get("處置結束") and dates["處置結束"] <= today:
-        cc = local_closes(code, [dates["-1"], dates["處置結束"]])
-        if dates["-1"] in cc and dates["處置結束"] in cc and cc[dates["-1"]]:
-            changes["處置期間漲跌幅"] = round((cc[dates["處置結束"]] / cc[dates["-1"]] - 1) * 100, 2)
+        v = adjusted_prices.period_change(code, dates["-1"], dates["處置結束"])
+        if v is not None:
+            changes["處置期間漲跌幅"] = v
 
 
 def disposal_history_rows(code, records=None):

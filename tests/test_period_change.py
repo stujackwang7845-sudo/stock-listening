@@ -33,8 +33,16 @@ class PeriodChangeTest(unittest.TestCase):
         self.assertEqual(c[PERIOD_COL], 12.5)    # 末日收盤 / 處置前一天收盤 - 1
 
     def test_missing_close_or_ongoing(self):
-        h, c = add_period_change(HEADERS, {}, DATES, "6672", FakePriceDB({"2026-10-05": 100.0}))
+        from unittest import mock
+        from core import adjusted_prices
+        # 股價庫缺收盤、DB 還原股價也沒有 → 不加這欄
+        with mock.patch.object(adjusted_prices, "period_change", return_value=None):
+            h, c = add_period_change(HEADERS, {}, DATES, "6672", FakePriceDB({"2026-10-05": 100.0}))
         self.assertNotIn(PERIOD_COL, h)
+        # 股價庫缺收盤、還原股價有 → 用還原收盤比(2026-10-14)
+        with mock.patch.object(adjusted_prices, "period_change", return_value=7.5):
+            h, c = add_period_change(HEADERS, {}, DATES, "6672", FakePriceDB({"2026-10-05": 100.0}))
+        self.assertEqual(c[PERIOD_COL], 7.5)
         h, c = add_period_change(["-1", "處置日"], {}, {"-1": "2026-10-05"}, "6672", FakePriceDB({}))
         self.assertNotIn(PERIOD_COL, h)          # 還沒有「處置結束」(進行中)
 

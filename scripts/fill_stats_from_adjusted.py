@@ -83,6 +83,32 @@ def main():
             return None, "前一個成交日隔太久(>12 天)"
         return round((s[i][1] / s[i - 1][1] - 1) * 100, 2), None
 
+    pconn = sqlite3.connect(os.path.join(PROJ, "stock_prices.db"))
+
+    def price_db_close(code, day):
+        try:
+            r = pconn.execute("SELECT close FROM stock_prices WHERE code=? AND date=?", (code, day)).fetchone()
+            return r[0] if r else None
+        except sqlite3.Error:
+            return None
+
+    def adj_on(code, day):
+        s = adj.get(code)
+        return s[idx[code][day]][1] if s and day in idx[code] else None
+
+    def bad_path(code, d0, d1):
+        """期間內任一天單日漲跌超過 ±10% 或隔太久 → 還原股價可疑，處置期間漲跌幅也不補。"""
+        s, ix = adj.get(code), idx.get(code, {})
+        i0, i1 = ix.get(d0), ix.get(d1)
+        if i0 is None or i1 is None:
+            return True
+        for i in range(i0 + 1, i1 + 1):
+            gap = (datetime.strptime(s[i][0], "%Y-%m-%d") - datetime.strptime(s[i - 1][0], "%Y-%m-%d")).days
+            if gap > 12 or abs(s[i][1] / s[i - 1][1] - 1) * 100 > LIMIT:
+                return True
+        return False
+
+    period_filled = [0]
     filled, reasons, rejected, updates = 0, Counter(), [], {}
     check_diff = []                                           # 抽驗：已有值 vs 還原股價
     by_year = Counter()
@@ -113,6 +139,15 @@ def main():
                 val, _ = adj_change(code, day)
                 if val is not None:
                     check_diff.append(abs(val - v))
+        # 處置期間漲跌幅：統計頁每次載入用股價庫收盤現算；股價庫缺收盤的，用還原收盤比算一次存進快取
+        if "處置期間漲跌幅" not in ch and dates.get("-1") and dates.get("處置結束") and dates["處置結束"] <= last_day:
+            p0, p1 = price_db_close(code, dates["-1"]), price_db_close(code, dates["處置結束"])
+            if not (p0 and p1):
+                a0, a1 = adj_on(code, dates["-1"]), adj_on(code, dates["處置結束"])
+                if a0 and a1 and not bad_path(code, dates["-1"], dates["處置結束"]):
+                    new["處置期間漲跌幅"] = round((a1 / a0 - 1) * 100, 2)
+                    got.append("處置期間漲跌幅")
+                    period_filled[0] += 1
         if got:
             filled += len(got)
             d2 = dict(d)
@@ -120,7 +155,7 @@ def main():
             d2["_adj_filled"] = sorted(set(d.get("_adj_filled", [])) | set(got))
             updates[rid] = d2
 
-    print(f"\n可補上 {filled} 格（{len(updates)} 筆紀錄）；各年份：{dict(sorted(by_year.items()))}")
+    print(f"\n可補上 {filled} 格（{len(updates)} 筆紀錄，其中處置期間漲跌幅 {period_filled[0]} 格）；各年份：{dict(sorted(by_year.items()))}")
     print(f"補不了的原因：{dict(reasons)}")
     if rejected:
         print(f"超過 ±10% 不補 {len(rejected)} 格，前 20 筆：{rejected[:20]}")

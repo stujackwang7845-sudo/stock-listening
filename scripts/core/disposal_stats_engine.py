@@ -39,6 +39,20 @@ def add_period_change(headers, changes, dates, code, price_db):
     c0 = p0.get("close") if p0 else None
     c1 = p1.get("close") if p1 else None
     if not c0 or not c1:
+        # [2026-10-14] 股價庫缺收盤：改用 DB 專案還原收盤比(不連網)。只對近 60 天結束的處置現算，
+        # 更早的由 scripts/fill_stats_from_adjusted.py 算一次寫進快取(否則每次載入要讀上百個月份檔，慢 10 秒)
+        v = None
+        try:
+            from datetime import date as _date, timedelta as _td
+            if dates["處置結束"] >= (_date.today() - _td(days=60)).isoformat():
+                from core import adjusted_prices
+                v = adjusted_prices.period_change(code, dates["-1"], dates["處置結束"])
+        except Exception:
+            v = None
+        if v is None:
+            return headers, changes
+        headers.insert(headers.index("處置結束") + 1, PERIOD_COL)
+        changes[PERIOD_COL] = v
         return headers, changes
     headers.insert(headers.index("處置結束") + 1, PERIOD_COL)
     changes[PERIOD_COL] = round((c1 / c0 - 1) * 100, 2)
@@ -317,6 +331,7 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                     print(f"DEBUG: Failed to load cached stats: {e}")
             
             if not stats_loaded_from_cache:
+                _adj_got = []   # 這筆用還原股價補了哪些欄位(每筆重設，避免沿用上一筆)
                 # [Fix 2026-09-09] 先查本次執行內的重複計算快取(見上方
                 # computed_stats_cache 註解)，同一(代號,起始日,結束日)組合
                 # 在這次「網頁更新」裡已經算過就直接沿用，不重新發網路請求。
@@ -345,6 +360,13 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                         code, start_date, end_date, days_after=5,
                         allow_download=_force_download
                     )
+                    # [2026-10-14] 已收盤卻還空白的欄位，用 DB 專案還原股價補(不連網，±10% 檢查，見 core/adjusted_prices.py)
+                    try:
+                        from core import adjusted_prices
+                        _adj_got = adjusted_prices.fill_changes(code, changes, dates)
+                    except Exception as e:
+                        _adj_got = []
+                        print(f"DEBUG: 還原股價補值失敗 {code}: {e}")
                     computed_stats_cache[_dedupe_key] = (headers, changes, dates)
 
                 # [Optimization] Save to DB Cache if valid
@@ -360,6 +382,8 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                         "changes": changes,
                         "dates": dates
                     }
+                    if _adj_got:
+                        cache_payload["_adj_filled"] = sorted(_adj_got)   # 哪些格子是用還原股價補的
                     try:
                         json_str = json.dumps(cache_payload)
                         if record_id:

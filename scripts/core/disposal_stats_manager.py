@@ -219,8 +219,7 @@ class DisposalStatsManager:
                 val = price_record.get('close')
                 # [Fix] If cached value is None but we allow download, treat as missing to retry
                 # preventing permanent N/A if first attempt failed
-                # [2026-10-14] 離線模式也重試：快取存 None 的過去日期，本機 DB 行情可能已經補上了
-                if val is None and (allow_download or day.date() <= datetime.now().date()):
+                if val is None and allow_download:
                     missing_days.append(day)
                 else:
                     prices[day] = val
@@ -240,21 +239,6 @@ class DisposalStatsManager:
                 else:
                     prices[d] = None # Future date, no data expected
             
-            # [2026-10-14] 使用者要求統計頁用本機 DB 行情計算：先查 DB 專案 parquet(每天排程更新，
-            # 沒有再查 market_data.db)，不連網、不論 allow_download；找到的寫回 price_db 快取
-            if download_candidates:
-                try:
-                    from core.disposal_detail import local_closes
-                    local = local_closes(code, [d.strftime("%Y-%m-%d") for d in download_candidates])
-                    for day in list(download_candidates):
-                        v = local.get(day.strftime("%Y-%m-%d"))
-                        if v is not None:
-                            prices[day] = float(v)
-                            self.price_db.save_price(code, day.strftime("%Y-%m-%d"), {"close": prices[day]})
-                            download_candidates.remove(day)
-                except Exception as e:
-                    print(f"本機 DB 行情讀取失敗(略過)：{e}")
-
             if download_candidates and allow_download:
                 print(f"遺失 {code} 共 {len(download_candidates)} 天數據，嘗試從快取與網路抓取...")
                 
