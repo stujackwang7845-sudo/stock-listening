@@ -14370,5 +14370,25 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-14",
+        "code": "2424",
+        "name": "隴華",
+        "trigger_info": "115年10月13日至115年10月14日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-14",
+        "code": "8111",
+        "name": "立碁",
+        "trigger_info": "115年10月01日至115年10月14日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
