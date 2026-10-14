@@ -190,6 +190,18 @@ class ClauseFilterTest(unittest.TestCase):
         self.assertIn("今天收盤賣", msg)
 
 
+    def test_futures_suffix_in_names(self):
+        from unittest import mock
+        import core.futures_stocks as fs
+        with mock.patch.object(fs, "has_futures", side_effect=lambda c: c == "2330"):
+            d = dict(code="2330", name="台積電", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 14), n_days=5)
+            rr = dict(entry=1000.0, stop_price=920.0)
+            msg = n.build_pre_message(date(2026, 10, 14), date(2026, 10, 13), [], 0, [], [(d, {}, rr, {"price": 1010.0})], {}, "", {})
+            self.assertIn("台積電(期)", msg)
+            self.assertEqual(n.nm("3094", "聯傑"), "聯傑")
+            self.assertEqual(n.nm("2330", "台積電(期)"), "台積電(期)")      # 不重複加
+
+
 DEV = 0.35
 
 

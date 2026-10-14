@@ -573,13 +573,23 @@ def fail_reasons(g):
     return "、".join(r) or "未知"
 
 
+def nm(code, name):
+    """推播顯示用股票名稱：有發行股票期貨加 (期)(2026-10-15 使用者要求)。"""
+    try:
+        sys.path.insert(0, str(PROJ / "scripts"))
+        from core.futures_stocks import name_with_futures
+        return name_with_futures(code, name)
+    except Exception:
+        return name
+
+
 def gold_tag(g):
     return "" if g["golden"] else f"｜濾網✗{html.escape(fail_reasons(g))}"
 
 
 def fmt_hold(d, g, rr, tag=None):
     """持有部位一行：進場價→現價、還原報酬、停損價。"""
-    head = f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+    head = f"• <b>{html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}</b>"
     tag = gold_tag(g) if tag is None else tag
     if rr is None:
         return f"{head}｜查無行情{tag}"
@@ -641,7 +651,7 @@ def fmt_next_cand(c, cl, di, close, locked):
         act = "✅ 可買"
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]] or ["　　（明日再被注意即進處置，無單一價位條件）"]
     return "\n".join([
-        f"• <b>{html.escape(c['code'])} {html.escape(c['name'])}</b>（{html.escape(str(c['market']))}）{px_txt}｜{CLAUSE_TXT[cl]}｜{act}",
+        f"• <b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）{px_txt}｜{CLAUSE_TXT[cl]}｜{act}",
         "　明日收盤達下列任一 → 進處置：", *cond])
 
 
@@ -670,7 +680,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
         lines.append(f"🟢 <b>明日 {next_td:%m/%d} 收盤買進（7 天初犯）｜{len(seven)} 檔</b>")
         for e in sorted(seven, key=lambda e: e["d"]["code"]):
             d = e["d"]
-            who = f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+            who = f"<b>{html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}</b>"
             if e["clause"] == "一" and e["di"]:
                 cond = f"⚠️ 第一款：明日收盤 ≤ {e['di']['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
             elif e["clause"] == "一":
@@ -699,7 +709,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
         lines.append(f"📋 <b>對帳｜今日收盤是進場日的 5 天初犯（已過）｜{len(five)} 檔</b>")
         for e in sorted(five, key=lambda e: e["d"]["code"]):
             d, rr = e["d"], e["rr"]
-            who = f"<b>{html.escape(d['code'])} {html.escape(d['name'])}</b>"
+            who = f"<b>{html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}</b>"
             note = "盤中有列候選" if d["code"] in cand_codes else "盤中沒列候選，沒預買就錯過"
             if e["lu"]:
                 lines.append(f"• {who}｜🚫 今日收盤漲停，買不到，不算")
@@ -854,7 +864,7 @@ def fmt_candidate(c, mis, clause, di):
     else:
         act = "✅ 可買"
     txt = "\n".join([
-        f"• <b>{html.escape(c['code'])} {html.escape(c['name'])}</b>（{html.escape(str(c['market']))}）{px_txt}",
+        f"• <b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）{px_txt}",
         f"　{act}｜{CLAUSE_TXT[clause]}｜聽牌進度：{prog}",
         "　今日收盤達下列任一 → 進處置：", *cond, ""])
     return txt, locked, verdict == "skip"
@@ -891,12 +901,12 @@ def build_pre_message(today, anchor, cands5, n_rep, warn_holds, exits_today, mis
                 tag, n_danger = " ⚠️ <b>已在停損價下，收盤仍 ≤ 停損價就賣</b>", n_danger + 1
             elif price and price <= rr["stop_price"] * 1.03:
                 tag, n_danger = " ⚠️ 距停損價不到 3%", n_danger + 1
-            body.append(f"• {html.escape(d['code'])} {html.escape(d['name'])}｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
+            body.append(f"• {html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
                         + (f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "即時行情查詢失敗") + tag)
         for d, g, rr, q in exits_today:
             price = q.get("price") if q else None
             now = f"現 {price:g}（{(price / rr['entry'] - 1) * 100:+.1f}%）" if price else "即時行情查詢失敗"
-            body.append(f"• <b>{html.escape(d['code'])} {html.escape(d['name'])}</b>｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
+            body.append(f"• <b>{html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}</b>｜進 {rr['entry']:g}｜停損價 {rr['stop_price']:g}｜"
                         f"{now}｜🔴 <b>處置最後一天，今天收盤賣</b>")
         title = (f"🛡 持有部位停損檢查｜{len(warn_holds)} 檔" + (f"，⚠️ 需留意 {n_danger} 檔" if n_danger else "，都離停損價夠遠")
                  + (f"｜今日出場 {len(exits_today)} 檔" if exits_today else ""))

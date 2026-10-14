@@ -153,6 +153,11 @@ class DetailsTab(QWidget):
 
     def _render_info(self, d, fallback_name):
         name = d.get("name") or fallback_name
+        try:
+            from core.futures_stocks import name_with_futures
+            name = name_with_futures(d["code"], name)      # 有發行股票期貨標 (期)(2026-10-15)
+        except Exception:
+            pass
         self.title_label.setText(f"{name} ({d['code']})　處置詳細條件　<span style='font-size:14px;color:#9a9a9a;'>"
                                  f"顯示日 {d['display_date']}</span>")
         self._clear_grid()

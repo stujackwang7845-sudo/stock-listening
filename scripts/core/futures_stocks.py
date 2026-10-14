@@ -36,6 +36,63 @@ FUTURES_STOCKS = {
 }
 
 
+_LIVE = None
+
+
+def _live_list():
+    """期交所官方股票期貨標的(每天最多抓一次，存在資料夾的 futures_list.json)。失敗回傳 None。"""
+    global _LIVE
+    if _LIVE is not None:
+        return _LIVE or None
+    import json
+    import os
+    from datetime import date
+    try:
+        from core.runtime import get_paths
+        path = os.path.join(os.path.dirname(os.path.abspath(get_paths().disposal_db)), "futures_list.json")
+    except Exception:
+        path = None
+    cached = None
+    if path and os.path.exists(path):
+        try:
+            cached = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            cached = None
+    if cached and cached.get("date") == date.today().isoformat():
+        _LIVE = set(cached["codes"])
+        return _LIVE
+    try:
+        import requests
+        r = requests.get("https://openapi.taifex.com.tw/v1/SSFLists", timeout=10,
+                         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                                                "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"})
+        codes = {str(x.get("StockCode", x.get("UnderlyingID", ""))).strip() for x in r.json() if isinstance(x, dict)}
+        codes.discard("")
+        if len(codes) > 100:                      # 防呆：回應不完整就不用
+            _LIVE = codes
+            if path:
+                try:
+                    json.dump({"date": date.today().isoformat(), "codes": sorted(codes)},
+                              open(path, "w", encoding="utf-8"), ensure_ascii=False)
+                except Exception:
+                    pass
+            return _LIVE
+    except Exception as e:
+        print(f"[futures_stocks] 期交所股票期貨清單抓取失敗，改用上次/內建清單：{e}")
+    if cached and cached.get("codes"):
+        _LIVE = set(cached["codes"])
+        return _LIVE
+    _LIVE = set()
+    return None
+
+
 def has_futures(stock_code):
-    """檢查股票是否有發行期貨"""
-    return str(stock_code).strip() in FUTURES_STOCKS
+    """檢查股票是否有發行期貨：期交所官方清單(每天更新)優先，抓不到才用上面的內建清單(2026-10-15)。"""
+    live = _live_list()
+    return str(stock_code).strip() in (live if live else FUTURES_STOCKS)
+
+
+def name_with_futures(code, name):
+    """股票名稱加 (期)；名稱已經有就不重複加。"""
+    name = name or ""
+    return name if "(期)" in name or not has_futures(code) else f"{name}(期)"
