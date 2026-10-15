@@ -162,6 +162,9 @@ class DetailsTab(QWidget):
                                  f"顯示日 {d['display_date']}</span>")
         self._clear_grid()
         self.info_card.setVisible(True)
+        if d.get("mode") == "outlook":
+            self._render_outlook(d)
+            return
         if not d.get("has_disposal"):
             self._add_row(0, "處置狀態", "目前沒有處置紀錄(或尚未公告)")
             self._add_next(1, d)
@@ -181,6 +184,27 @@ class DetailsTab(QWidget):
         ]
         for i, (k, v, c) in enumerate(rows):
             self._add_row(i, k, v, c, wrap=(k == "官方處置原因"))
+        self._add_next(len(rows), d)
+        self._add_clauses(len(rows) + 1, d)
+
+    def _render_outlook(self, d):
+        """目前沒有處置：顯示「如果接下來進處置」的預估(2026-10-16 使用者要求)。"""
+        na = "不適用（尚未進處置）"
+        rows = [
+            ("處置狀態", d["state"], "#FFC850" if "聽牌" in d["state"] or "條件" in d["state"] else "#9a9a9a"),
+            ("處置頻率", (f"{d['freq']}（約每{d['freq'].rstrip('分')}分鐘撮合一次，依下次為{d['offense']}預估）"
+                       if d["freq"].endswith("分") else d["freq"]), None),
+            ("處置天數", f"{d['total_days']} 個營業日（若進處置）", None),
+            ("處置期間", na, "#9a9a9a"),
+            ("目前進度", d["progress"], "#FF8C8C" if "聽牌" in d["progress"] or "已達" in d["progress"] else None),
+            ("出關日", na, "#9a9a9a"),
+            ("初犯 / 累犯", d["offense"] + ("　（最近30個營業日內曾發布處置）" if d["offense"] == "累犯" else "")
+             + "　※若進處置", "#FF8C8C" if d["offense"] == "累犯" else "#8CC8FF"),
+            ("天數判斷", d.get("days_note") or "—", "#9a9a9a"),
+            ("上次處置", d.get("last_disposal") or "無", "#9a9a9a"),
+        ]
+        for i, (k, v, c) in enumerate(rows):
+            self._add_row(i, k, v, c, wrap=(k in ("天數判斷", "上次處置")))
         self._add_next(len(rows), d)
         self._add_clauses(len(rows) + 1, d)
 

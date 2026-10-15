@@ -207,6 +207,43 @@ def next_stats_bucket(state, total, offense, period_start, next_info, code="", d
     return (f"{days}天_{off}", f"新制 {days}天{off}", f"下次進處置預估為{off}、{days} 天：{why}")
 
 
+def outlook_detail(code, disp_d, disp_iso, mine, next_hint, last):
+    """沒有進行中處置時的詳細條件：下次進處置的頻率(依下次是初犯/累犯的預測)、天數(第十三款規則)、聽牌進度。"""
+    import re as _re
+    from core.measure_parser import MeasureParser
+    src = (last or {}).get("source", "")
+    nx = _next(code, src, disp_d, mine, next_hint)
+    tp = nx.get("trigger_progress") or {}
+    need = tp.get("min_needed", nx.get("min_needed"))
+    label = nx.get("next_label") or ""
+    m = _re.match(r"(\d+分)", label)
+    days, why = predict_next_days(code, disp_iso, tp)
+    offense = "累犯" if "累犯" in label else "初犯"
+    if isinstance(need, int) and need <= 0:
+        progress, state = "已達進處置條件（等待公告）", "未處置（已達條件）"
+    elif need == 1:
+        progress, state = "聽牌（再 1 次注意就進處置）", "未處置（聽牌）"
+    elif isinstance(need, int):
+        progress, state = f"未聽牌（還差 {need} 次注意）", "未處置"
+    else:
+        progress, state = "—", "未處置"
+    last_txt = ""
+    if last:
+        lps = datetime.strptime(last["period_start"], "%Y-%m-%d").date()
+        lfreq = MeasureParser.parse_frequency(last.get("measure") or "") or "—"
+        from core.disposal_stats_analytics import RULE_CHANGE_DATE
+        regime = "新制" if lps >= RULE_CHANGE_DATE else "舊制"
+        last_txt = f"{last['period_start']} ～ {last['period_end']}（{regime}，{lfreq}，已出關）"
+    nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx, code, disp_iso)
+    return {"code": code, "has_disposal": bool(last), "mode": "outlook", "display_date": disp_iso,
+            "name": (last or {}).get("name", ""), "source": src,
+            "state": state, "freq": m.group(1) if m else "—", "total_days": days, "days_note": why,
+            "progress": progress, "offense": offense, "next_label": label, "last_disposal": last_txt,
+            "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
+            "next": nx, "stats_bucket": None, "stats_title": "",
+            "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
+
+
 def chart_choice(d):
     """
     詳細條件下方圖表要看哪一次處置(使用者規則)：
@@ -268,15 +305,11 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
     current = [r for r in announced if r["period_end"] >= disp_iso]
     if current:
         rec = max(current, key=lambda r: (r["period_start"], ann_iso(r)))
-    elif announced:
-        rec = max(announced, key=lambda r: (r["period_end"], r["period_start"]))
     else:
-        nx = _next(code, "", disp_d, mine, next_hint)
-        nb, nt, nbasis = next_stats_bucket("", 0, "", "", nx, code, disp_iso)
-        return {"code": code, "has_disposal": False, "display_date": disp_iso,
-                "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
-                "next": nx,
-                "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
+        # [2026-10-16 使用者要求] 目前沒有處置(已出關或從沒處置)：上方欄位改顯示「如果接下來進處置」的預估，
+        # 不顯示過去那一次(可能是舊制)的頻率/天數/期間；上次處置另列一行參考
+        last = max(announced, key=lambda r: (r["period_end"], r["period_start"])) if announced else None
+        return outlook_detail(code, disp_d, disp_iso, mine, next_hint, last)
 
     ps = datetime.strptime(rec["period_start"], "%Y-%m-%d").date()
     pe = datetime.strptime(rec["period_end"], "%Y-%m-%d").date()

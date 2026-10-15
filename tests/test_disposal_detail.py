@@ -52,9 +52,21 @@ class DetailTest(unittest.TestCase):
         d = dd.compute_disposal_detail("6672", date(2026, 10, 7), records=self.RECORDS)
         self.assertEqual((d["period_start"], d["state"], d["day_no"], d["offense"]), ("2026-10-06", "處置中", 2, "初犯"))
 
-    def test_after_exit(self):
+    def test_after_exit_shows_outlook(self):
+        # 2026-10-16 使用者要求：已出關就顯示「如果接下來進處置」的預估，不顯示舊的那次
         d = dd.compute_disposal_detail("6672", date(2026, 10, 20), records=self.RECORDS)
-        self.assertEqual((d["state"], d["day_no"], d["period_end"]), ("已出關", 5, "2026-10-16"))
+        self.assertEqual(d["mode"], "outlook")
+        self.assertTrue(d["state"].startswith("未處置"))
+        self.assertIn(d["total_days"], (5, 7))
+        self.assertIn("2026-10-12 ～ 2026-10-16", d["last_disposal"])
+        self.assertNotIn("period_start", d)
+
+    def test_outlook_listening_fields(self):
+        tp = {"rule1": {"current": 2, "target": 3, "needed": 1}, "min_needed": 1}
+        d = dd.compute_disposal_detail("6672", date(2026, 10, 20), records=self.RECORDS,
+                                       next_hint={"trigger_progress": tp, "enter_freq": "2分累犯"})
+        self.assertEqual((d["freq"], d["offense"], d["state"]), ("2分", "累犯", "未處置（聽牌）"))
+        self.assertTrue(d["progress"].startswith("聽牌"))
 
     def test_next_hint_from_forecast_is_used(self):
         # 總覽已算好的規則進度與下次進處置，詳細條件直接沿用(數字一致)
