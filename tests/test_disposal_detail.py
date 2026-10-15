@@ -109,6 +109,21 @@ class NextDaysTest(unittest.TestCase):
         with mock.patch.object(dd, "clause13_days", lambda code, until, n, db_path=None: []):
             self.assertEqual(dd.predict_next_days("4556", "2026-10-08", self.TP)[0], 5)
 
+    def test_ten_day_rule_with_clause13_is_still_5(self):
+        # 8111(2026-10-15)：「10日內6次」再 1 次、期間內 10/08 有第十三款，實際公告 5 天
+        tp = {"rule1": {"current": 0, "target": 3, "needed": 3}, "rule2": {"current": 1, "target": 5, "needed": 4},
+              "rule3": {"current": 5, "target": 6, "needed": 1}, "rule4": {"current": 5, "target": 12, "needed": 7}}
+        with mock.patch.object(dd, "clause13_days", lambda code, until, n, db_path=None: ["2026-10-08"]):
+            days, why = dd.predict_next_days("8111", "2026-10-14", tp)
+        self.assertEqual(days, 5)
+        self.assertIn("10日內6次", why)
+
+    def test_tie_prefers_consecutive_rule(self):
+        # 連3日與10日6次都只差 1 次：以連續型判斷，期間有第十三款 → 7 天
+        tp = {"rule1": {"current": 2, "target": 3, "needed": 1}, "rule3": {"current": 5, "target": 6, "needed": 1}}
+        with mock.patch.object(dd, "clause13_days", lambda code, until, n, db_path=None: ["2026-10-08"]):
+            self.assertEqual(dd.predict_next_days("x", "2026-10-08", tp)[0], 7)
+
 
 class ChartChoiceTest(unittest.TestCase):
     """圖表看哪一次(使用者規則)：聽牌才看下次；處置中未聽牌看本次；已公告未生效看那一次。"""
