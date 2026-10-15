@@ -14390,5 +14390,95 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "2059",
+        "name": "川湖",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "3055",
+        "name": "蔚華科",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "6278",
+        "name": "台表科",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "2221",
+        "name": "大甲",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "3230",
+        "name": "錦明",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "3265",
+        "name": "台星科",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "3287",
+        "name": "廣寰科",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "3597",
+        "name": "映興",
+        "trigger_info": "115年10月14日至115年10月15日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-15",
+        "code": "4979",
+        "name": "華星光",
+        "trigger_info": "115年10月02日至115年10月15日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
