@@ -396,7 +396,7 @@ class DispositionCalculator:
             
             if last_close >= min_t:
                 gap_pct = ((min_t - last_close) / last_close) * 100
-                status_part = f"(可跌{gap_pct:.2f}%)"
+                status_part = f"(可跌{abs(gap_pct):.2f}%)"   # 2026-10-15：已達標時 gap 是負數，顯示成「可跌-x%」會被誤讀成要漲
             
             msg = (
                 f"<b>[2] 長期漲幅條款 {source_label}</b>"
@@ -584,7 +584,7 @@ class DispositionCalculator:
                      # Met - Show allowable drop
                      gap_pct = ((target_6 - last_close) / last_close) * 100
                      status_target = f"目標 {target_6:.2f}"
-                     status_gap = f"(可跌{gap_pct:.2f}%)"
+                     status_gap = f"(可跌{abs(gap_pct):.2f}%)"   # 2026-10-15：同上，取絕對值(與 [1] 款一致)
             
             # Show if:
             # 1. Not met (Price < Target)
