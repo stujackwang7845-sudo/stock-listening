@@ -18,6 +18,63 @@ from core.disposal_database import DisposalDatabase
 
 
 PERIOD_COL = "處置期間漲跌幅"
+PRE6_COL = "6日漲跌"
+
+
+def add_pre_changes(headers, changes, dates, code, price_db):
+    """
+    [2026-10-16 使用者要求]「-2」= 處置前兩天當天漲跌(收盤 / 再前一個交易日收盤 - 1)；
+    「6日漲跌」= 處置前 6 個交易日累積漲跌(處置前一天收盤 / 往前第 6 個交易日收盤 - 1)。
+    每次載入現算(不寫快取，舊快取不用重算)；股價庫沒有的用 DB 還原股價(core/adjusted_prices，±10% 檢查)。
+    """
+    headers = list(headers or [])
+    changes = dict(changes or {})
+    d1 = (dates or {}).get("-1")
+    if not d1 or "-1" not in headers:
+        return headers, changes
+    closes = {}
+    try:
+        lo = (datetime.strptime(d1, "%Y-%m-%d") - timedelta(days=30)).strftime("%Y-%m-%d")
+        for r in price_db.get_price_range(code, lo, d1):
+            if r.get("close"):
+                closes[r["date"]] = float(r["close"])
+    except Exception:
+        pass
+    days = sorted(closes)
+    m2 = p6 = None
+    if d1 in closes and len(days) >= 7 and days[-1] == d1:
+        c1 = closes[d1]
+        c2, c3, c7 = closes[days[-2]], closes[days[-3]], closes[days[-7]]
+        m2 = round((c2 / c3 - 1) * 100, 2)
+        p6 = round((c1 / c7 - 1) * 100, 2)
+        if abs(m2) > 10.1:                       # 股價庫可疑(漲跌停 ±10%)，不採用
+            m2 = None
+    recent = d1 >= (datetime.now() - timedelta(days=120)).strftime("%Y-%m-%d")   # 舊紀錄不回頭讀十幾年還原股價(太慢)
+    if (m2 is None or p6 is None) and recent:
+        try:
+            from core import adjusted_prices as ap
+            if ap.available():
+                # 還原股價：用它自己的交易日序列往前找
+                series = {}
+                y, mth = int(d1[:4]), int(d1[5:7])
+                for yy, mm in ((y, mth), (y, mth - 1) if mth > 1 else (y - 1, 12)):
+                    series.update(ap._month(yy, mm).get(code, {}))
+                sd = sorted(d for d in series if d <= d1)
+                if sd and sd[-1] == d1 and len(sd) >= 7:
+                    if m2 is None:
+                        m2 = ap.daily_change(code, sd[-2])[0]
+                    if p6 is None:
+                        p6 = ap.period_change(code, sd[-7], d1)
+        except Exception:
+            pass
+    i = headers.index("-1")
+    if "-2" not in headers:
+        headers.insert(i, "-2")
+        changes["-2"] = m2
+    if PRE6_COL not in headers:
+        headers.insert(headers.index("-1") + 1, PRE6_COL)   # 「處置日」左邊
+        changes[PRE6_COL] = p6
+    return headers, changes
 
 
 def add_period_change(headers, changes, dates, code, price_db):
@@ -416,6 +473,7 @@ def compute_stats_rows(disposal_records, allow_download=True, api_token=None, ta
                     _emit(f"已銜接歷史資料，停止下載... ({idx + 1}/{total})")
             
             headers, changes = add_period_change(headers, changes, dates, code, stats_manager.price_db)
+            headers, changes = add_pre_changes(headers, changes, dates, code, stats_manager.price_db)
 
             # Merge custom stats
             custom_stats_json = record.get("custom_stats")
@@ -619,7 +677,9 @@ def deduplicate_records(records):
 def sort_change_columns(columns):
     """排序漲跌幅欄位名稱"""
     def sort_key(col):
-        if col == "-1": return (0, 0)
+        if col == "-2": return (0, -2)
+        elif col == "-1": return (0, -1)
+        elif col == PRE6_COL: return (0, 0)          # 處置日左邊
         elif col == "處置日": return (1, 0)
         elif col.startswith("+"):
             try: return (2, int(col[1:]))

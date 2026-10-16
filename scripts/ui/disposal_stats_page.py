@@ -171,6 +171,7 @@ class DisposalStatsPage(QWidget):
         self.hidden_freqs = set()    # 紀錄隱藏的頻率 (供頻率欄位過濾使用)
         self.hidden_durations = set()  # 紀錄隱藏的處置天數 (供處置天數欄位過濾使用)
         self.hidden_offenses = set()   # 紀錄隱藏的初犯/累犯 (供初犯/累犯欄位過濾使用)
+        self.range_filters = {}        # [2026-10-16] 漲跌幅欄位數值範圍 {欄位名稱: (下限 or None, 上限 or None)}
         
         # API Tokens (User Provided, from .env via FinMindClient)
         self.API_TOKENS = FinMindClient.get_token_dict()
@@ -284,7 +285,7 @@ class DisposalStatsPage(QWidget):
         toolbar.addWidget(QLabel("開始日:"))
         self.start_date_edit = QDateEdit()
         self.start_date_edit.setCalendarPopup(True)
-        self.start_date_edit.setDate(QDate(2000, 1, 1))  # 預設 2000/01/01 以顯示所有資料
+        self.start_date_edit.setDate(QDate(2026, 8, 10))  # [2026-10-16 使用者要求] 預設新制(2026-08-10)起
         toolbar.addWidget(self.start_date_edit)
         
         toolbar.addWidget(QLabel("結束日:"))
@@ -988,6 +989,47 @@ class DisposalStatsPage(QWidget):
         # 新增分隔線
         menu.addSeparator()
         
+        # [2026-10-16] 數值範圍：從 ~ to，灰字提示目前資料的最小/最大值，留空代表不限
+        header_item = self.table.horizontalHeaderItem(col_index)
+        col_name = header_item.text() if header_item else ""
+        vals = column_numeric_values(self.filtered_data, col_name) if col_name else []
+        if vals:
+            lo_now, hi_now = self.range_filters.get(col_name, (None, None))
+            box = QWidget()
+            lay = QHBoxLayout(box)
+            lay.setContentsMargins(10, 4, 10, 4)
+            lo_edit, hi_edit = QLineEdit(), QLineEdit()
+            for ed, val, ph in ((lo_edit, lo_now, min(vals)), (hi_edit, hi_now, max(vals))):
+                ed.setPlaceholderText(f"{ph:.2f}")
+                ed.setFixedWidth(80)
+                if val is not None:
+                    ed.setText(f"{val:g}")
+            lay.addWidget(QLabel("從"))
+            lay.addWidget(lo_edit)
+            lay.addWidget(QLabel("to"))
+            lay.addWidget(hi_edit)
+            lay.addWidget(QLabel("%"))
+            wa = QWidgetAction(self)
+            wa.setDefaultWidget(box)
+            menu.addAction(wa)
+            menu.addSeparator()
+
+            def _num(t):
+                t = t.strip().replace("%", "").replace("+", "")
+                try:
+                    return float(t) if t else None
+                except ValueError:
+                    return None
+
+            def _apply_range():
+                lo, hi = _num(lo_edit.text()), _num(hi_edit.text())
+                if lo is None and hi is None:
+                    self.range_filters.pop(col_name, None)
+                else:
+                    self.range_filters[col_name] = (lo, hi)
+                self.filter_na_rows()
+            menu.aboutToHide.connect(_apply_range)
+
         # 新增清除所有過濾條件選項
         clear_action = QAction("清除所有過濾條件", self)
         clear_action.triggered.connect(self.clear_all_na_filters)
@@ -996,9 +1038,24 @@ class DisposalStatsPage(QWidget):
         # 顯示選單
         menu.exec(self.table.horizontalHeader().mapToGlobal(pos))
 
+    def _records_in_date_range(self):
+        """日期範圍(與「只顯示個股」)內的紀錄：過濾選項只列這些紀錄裡有的值(2026-10-16 使用者要求)。"""
+        s = self.start_date_edit.date().toString("yyyy-MM-dd")
+        e = self.end_date_edit.date().toString("yyyy-MM-dd")
+        only = self.only_stocks_checkbox.isChecked()
+        out = []
+        for r in self.all_records:
+            if only and len(str(r.get("code", "")).strip()) != 4:
+                continue
+            a = DateUtils.to_iso_date_str(r.get("announce_date", ""))
+            if a and not (s <= a <= e):
+                continue
+            out.append(r)
+        return out
+
     def _show_checkbox_filter_menu(self, pos, field_key, hidden_set):
         """共用的 checkbox 式欄位過濾選單 (頻率/處置天數/初犯累犯都用這個)"""
-        all_values = set(record.get(field_key, "") for record in self.all_records if record.get(field_key))
+        all_values = set(record.get(field_key, "") for record in self._records_in_date_range() if record.get(field_key))
         if not all_values:
             return
 
@@ -1068,6 +1125,7 @@ class DisposalStatsPage(QWidget):
     def clear_all_na_filters(self):
         """清除所有欄位的過濾條件"""
         self.column_na_filters.clear()
+        self.range_filters.clear()
         self.hidden_freqs.clear()
         self.hidden_durations.clear()
         self.hidden_offenses.clear()
@@ -1075,7 +1133,7 @@ class DisposalStatsPage(QWidget):
     
     def filter_na_rows(self):
         """根據欄位級 N/A 過濾狀態隱藏/顯示資料列"""
-        if not self.column_na_filters:
+        if not self.column_na_filters and not self.range_filters:
             # 沒有任何過濾，顯示所有行
             for row in range(self.table.rowCount()):
                 self.table.setRowHidden(row, False)
@@ -1114,6 +1172,22 @@ class DisposalStatsPage(QWidget):
             # Row3: Col1=Val, Col2=Val -> Hide by Col2
             # 這是合理的過濾疊加邏輯。
             
+            # [2026-10-16] 數值範圍過濾(N/A 也隱藏)
+            if not should_hide and self.range_filters:
+                for c in range(self.table.columnCount()):
+                    hi_item = self.table.horizontalHeaderItem(c)
+                    rng = self.range_filters.get(hi_item.text() if hi_item else "")
+                    if not rng:
+                        continue
+                    item = self.table.item(row_idx, c)
+                    try:
+                        v = float(item.text().replace("%", "").replace("+", "")) if item else None
+                    except ValueError:
+                        v = None
+                    if v is None or (rng[0] is not None and v < rng[0]) or (rng[1] is not None and v > rng[1]):
+                        should_hide = True
+                        break
+
             self.table.setRowHidden(row_idx, should_hide)
         
         # 統計行永遠顯示
