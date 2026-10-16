@@ -202,6 +202,24 @@ class ClauseFilterTest(unittest.TestCase):
             self.assertEqual(n.nm("2330", "台積電(期)"), "台積電(期)")      # 不重複加
 
 
+    def test_drop_driven_not_bought(self):
+        # 跌太多才會處置的不買(2026-10-16)：前 6 日累積下跌 → drop，優先於乖離濾網
+        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0, pre6=-0.05)), "drop")
+        self.assertEqual(n.judge("一", dict(dev=0.5, thr=1.0, pre6=-0.2)), "drop")
+        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0, pre6=0.08)), "ok")
+        c = dict(code="3230", name="錦明", market="上櫃", conditions=[])
+        txt = n.fmt_next_cand(c, "一", dict(dev=None, thr=53.66, close=None, pre6=-0.37), 26.3, False)
+        self.assertIn("不買", txt)
+        self.assertIn("跌", txt)
+        days, cur = [], date(2026, 10, 8)
+        for _ in range(19):
+            cur = n.prev_trading_day(cur)
+            days.append(cur)
+        daily = {("1111", d): (1000.0, 100.0 + i) for i, d in enumerate(days)}   # 越往前越貴 = 一路下跌
+        di = n.dev20_info("1111", date(2026, 10, 8), date(2026, 10, 8), {}, daily, now_price=95.0)
+        self.assertLess(di["pre6"], 0)
+
+
 DEV = 0.35
 
 
