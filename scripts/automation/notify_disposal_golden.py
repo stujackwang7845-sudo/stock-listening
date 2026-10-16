@@ -616,9 +616,10 @@ def dev20_info(code, entry, today, quotes, daily, now_price=None):
 DEV_MAX_FACTOR = 1 + DEV_MAX
 
 
-def judge(clause, di):
-    """濾網判定：回傳 'drop'(跌多被處置，不買) / 'skip'(第一款乖離過熱，不買) / 'cond'(第一款，要看進場日收盤) / 'ok'。"""
-    if di and di.get("pre6") is not None and di["pre6"] < 0:
+def judge(clause, di, drop=None):
+    """濾網判定：回傳 'drop'(因跌幅被注意而處置，不買) / 'skip'(第一款乖離過熱，不買) / 'cond'(第一款，要看進場日收盤) / 'ok'。
+    drop：drop_notice() 的結果(注意公告原文是跌幅才有值)。"""
+    if drop:
         return "drop"                      # 2026-10-16 使用者要求：跌太多才會處置的不買
     if clause != "一":
         return "ok"
@@ -704,7 +705,7 @@ RULES_HTML = (
     f"• <b>濾網</b>：進場日前最近一次注意公告「只有第一款(漲跌幅)」且進場日收盤 20MA 乖離 > {DEV_MAX*100:.0f}% → 不買"
     "(5 天初犯在盤中候選用現價估，7 天初犯給出明日收盤價門檻)\n"
     "• 進場日收盤漲停買不到，不算\n"
-    "• <b>跌多被處置的不買</b>：進場日收盤(盤中用現價)相對 6 個交易日前是下跌的(2026-10-16 起)\n"
+    "• <b>跌多被處置的不買</b>：最近一次注意公告原文是因為跌(第一款「跌幅達x%」或第十一款)(2026-10-16 起)\n"
     "• 回測(新制 8/10～10/08、排除漲停)：加濾網 47 筆 年化 +274%、MDD −3.6%；不加 52 筆 +230%、−4.3%。"
     "第一款只有 16 筆、被濾掉 5 筆，樣本小且是試了約 20 種條件後挑的，會繼續用新樣本驗證\n"
     "• 條款別：第六款(週轉率)11 筆勝率 100%、其他款 25 筆 84%、第一款 16 筆 44%\n"
@@ -713,11 +714,11 @@ RULES_HTML = (
 )
 
 
-def fmt_next_cand(c, cl, di, close, locked):
+def fmt_next_cand(c, cl, di, close, locked, drop=None):
     """盤後版明日預買候選一檔：明天(下一個交易日)收盤前買，今天的漲停與否不影響明天買不買得到，只當資訊。"""
     px_txt = "" if close is None else f"｜今收 {close:g}" + ("（漲停）" if locked else "")
-    if judge(cl, di) == "drop":
-        act = drop_txt(di)
+    if judge(cl, di, drop) == "drop":
+        act = drop_txt(drop)
     elif cl == "一" and di:
         act = f"⚠️ 第一款：明日收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
     elif cl == "一":
@@ -757,7 +758,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
             d = e["d"]
             who = f"<b>{html.escape(d['code'])} {html.escape(nm(d['code'], d['name']))}</b>"
             if e["verdict"] == "drop":
-                cond = drop_txt(e["di"])
+                cond = drop_txt(e["drop"])
             elif e["clause"] == "一" and e["di"]:
                 cond = f"⚠️ 第一款：明日收盤 ≤ {e['di']['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
             elif e["clause"] == "一":
@@ -791,7 +792,7 @@ def build_message(today, next_td, entries, exits, holds, stops_today, n_repeat, 
             if e["lu"]:
                 lines.append(f"• {who}｜🚫 今日收盤漲停，買不到，不算")
             elif e["verdict"] == "drop":
-                lines.append(f"• {who}｜{drop_txt(e['di'])}")
+                lines.append(f"• {who}｜{drop_txt(e['drop'])}")
             elif e["verdict"] == "skip":
                 lines.append(f"• {who}｜🚫 <b>不買</b>：{CLAUSE_TXT[e['clause']]}、乖離 {e['di']['dev']*100:+.0f}% > {DEV_MAX*100:.0f}%")
             else:
@@ -920,11 +921,39 @@ def px_text(price, prev, up, fallback_close=None, traded=True, src=None):
     return f"現價 {price:g}{chg}{lim}{tag}"
 
 
-def drop_txt(di):
-    return f"🚫 不買：前 6 日跌 {abs(di['pre6']) * 100:.1f}%（跌多被處置，濾掉）"
+def drop_notice(db_path, code, upto, inclusive=True):
+    """
+    最近一次注意公告(upto 當天含/不含)是不是因為「跌」被注意：第一款原文「跌幅達x%」或第十一款(收盤價為六日最低)。
+    是 → 回傳說明文字(例「10/15 跌幅達28.57%」)；否或查不到 → None。
+    """
+    if not db_path:
+        return None
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    op = "<=" if inclusive else "<"
+    rows = conn.execute(f"SELECT announce_date, clause_number, reason FROM attention_clauses WHERE code=? AND announce_date {op} ? "
+                        "ORDER BY announce_date DESC", (code, str(upto))).fetchall()
+    conn.close()
+    if not rows:
+        return None
+    day = rows[0][0]
+    for d, k, reason in rows:
+        if d != day:
+            break
+        reason = str(reason or "")
+        m = re.search(r"(?<!漲)跌幅(?:達)?\s*([\d.]+)\s*%", reason)
+        if m:
+            return f"{day[5:].replace('-', '/')} 跌幅達{m.group(1)}%"
+        if k == 11:
+            return f"{day[5:].replace('-', '/')} 第十一款(收盤價為六日最低)"
+    return None
 
 
-def fmt_candidate(c, mis, clause, di):
+def drop_txt(why):
+    return f"🚫 不買：注意公告是因為跌（{why}），跌多被處置，濾掉"
+
+
+def fmt_candidate(c, mis, clause, di, drop=None):
     """盤中候選一檔。回傳 (文字, 是否漲停鎖死, 是否被濾網排除)。"""
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
@@ -935,9 +964,9 @@ def fmt_candidate(c, mis, clause, di):
                     (("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4"))
                     if p.get(k))
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]] or ["　　（今日再被注意即進處置，無單一價位條件）"]
-    verdict = judge(clause, di)
+    verdict = judge(clause, di, drop)
     if verdict == "drop":
-        act = drop_txt(di)
+        act = drop_txt(drop)
     elif locked:
         act = "⚠️ 已漲停，恐買不到"
     elif verdict == "skip":
@@ -1157,7 +1186,7 @@ def main_post(args, today):
             locked = bool(is_limit_up(c["code"], today, quotes, daily))
         except Exception:
             locked = False
-        cands.append((c, cl, di, close, locked))
+        cands.append((c, cl, di, close, locked, drop_notice(clause_db, c["code"], today)))
 
     entries = []
     for d in entries_raw:
@@ -1167,10 +1196,11 @@ def main_post(args, today):
         rr = calc_return(d, today, quotes, daily, corp) if d["n_days"] == 5 else None
         # 5 天初犯進場日 = 今天(收盤已知)；7 天初犯進場日 = 明天，只給價格門檻
         di = dev20_info(d["code"], d["entry"], today, quotes, daily)
-        verdict = judge(cl, di)
+        drop = drop_notice(clause_db, d["code"], today)        # 盤後：今天的注意公告已經出來
+        verdict = judge(cl, di, drop)
         if d["n_days"] != 5 and verdict not in ("drop",):
             verdict = "cond" if cl == "一" else "ok"          # 7 天初犯明天才進場，乖離只給價格門檻
-        entries.append(dict(d=d, g=g, rr=rr, lu=lu, clause=cl, di=di, verdict=verdict))
+        entries.append(dict(d=d, g=g, rr=rr, lu=lu, clause=cl, di=di, verdict=verdict, drop=drop))
     exits_all = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in exits_raw]
     holds_all = [(d, golden_check(d, company, daily, quotes), calc_return(d, today, quotes, daily, corp)) for d in holds_raw]
     exits, exit_stops = split_stops(exits_all, today)
@@ -1192,7 +1222,7 @@ def main_post(args, today):
     if cand_err is None:
         meta["cand_pushed"] = str(next_td)
         old = log.setdefault("_cand", {}).get(str(next_td), [])
-        log["_cand"][str(next_td)] = sorted(set(old) | {c["code"] for c, cl, di, *_ in cands if judge(cl, di) != "drop"})
+        log["_cand"][str(next_td)] = sorted(set(old) | {c["code"] for c, cl, di, close, locked, drop in cands if judge(cl, di, drop) != "drop"})
     for e in entries:
         d, g, rr, lu = e["d"], e["g"], e["rr"], e["lu"]
         rec = log.setdefault(key(d), {})
@@ -1270,7 +1300,7 @@ def main_pre(args, today):
         for c in cands5:
             cl = clause_type(clause_db, c["code"], today)
             di = dev20_info(c["code"], today, today, {}, cdaily, now_price=(mis.get(c["code"]) or {}).get("price"))
-            ctx[c["code"]] = (cl, di)
+            ctx[c["code"]] = (cl, di, drop_notice(clause_db, c["code"], today, inclusive=False))
     warn = [(d, g, rr, mis.get(d["code"])) for d, g, rr, _ in warn]
     exits_today = [(d, g, rr, mis.get(d["code"])) for d, g, rr, _ in exits_today]
 

@@ -203,22 +203,29 @@ class ClauseFilterTest(unittest.TestCase):
 
 
     def test_drop_driven_not_bought(self):
-        # 跌太多才會處置的不買(2026-10-16)：前 6 日累積下跌 → drop，優先於乖離濾網
-        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0, pre6=-0.05)), "drop")
-        self.assertEqual(n.judge("一", dict(dev=0.5, thr=1.0, pre6=-0.2)), "drop")
-        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0, pre6=0.08)), "ok")
-        c = dict(code="3230", name="錦明", market="上櫃", conditions=[])
-        txt = n.fmt_next_cand(c, "一", dict(dev=None, thr=53.66, close=None, pre6=-0.37), 26.3, False)
+        # 跌太多才會處置的不買(2026-10-16)：看注意公告原文是不是跌幅/第十一款，不看股價 6 日漲跌
+        import sqlite3, tempfile
+        path = os.path.join(tempfile.mkdtemp(), "t.db")
+        c = sqlite3.connect(path)
+        c.execute("CREATE TABLE attention_clauses (announce_date TEXT, code TEXT, clause_number INT, reason TEXT)")
+        c.executemany("INSERT INTO attention_clauses VALUES (?,?,?,?)", [
+            ("2026-10-15", "2059", 1, "最近六個營業日累積收盤價跌幅達28.57%。且…﹝第一款﹞。"),
+            ("2026-10-15", "8111", 6, "當日本益比為71.93、…當日週轉率達6.94%(第六款)"),
+            ("2026-10-15", "6278", 1, "最近六個營業日累積收盤價漲幅達27.14%。﹝第一款﹞"),
+            ("2026-10-13", "2059", 11, "…當日收盤價為最近六個營業日收盤價最低者﹝第十一款﹞"),
+            ("2026-10-14", "9999", 11, "…﹝第十一款﹞")])
+        c.commit(); c.close()
+        self.assertEqual(n.drop_notice(path, "2059", "2026-10-15"), "10/15 跌幅達28.57%")
+        self.assertIsNone(n.drop_notice(path, "8111", "2026-10-15"))          # 第六款進處置，不是跌
+        self.assertIsNone(n.drop_notice(path, "6278", "2026-10-15"))          # 漲幅
+        self.assertIn("第十一款", n.drop_notice(path, "9999", "2026-10-15"))
+        self.assertIsNone(n.drop_notice(path, "2059", "2026-10-15", inclusive=False) and None)
+        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0), "10/15 跌幅達28.57%"), "drop")
+        self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0), None), "ok")
+        cc = dict(code="2059", name="川湖", market="上市", conditions=[])
+        txt = n.fmt_next_cand(cc, "一", dict(dev=None, thr=1.0, close=None), 9720.0, False, "10/15 跌幅達28.57%")
         self.assertIn("不買", txt)
-        self.assertIn("跌", txt)
-        days, cur = [], date(2026, 10, 8)
-        for _ in range(19):
-            cur = n.prev_trading_day(cur)
-            days.append(cur)
-        daily = {("1111", d): (1000.0, 100.0 + i) for i, d in enumerate(days)}   # 越往前越貴 = 一路下跌
-        di = n.dev20_info("1111", date(2026, 10, 8), date(2026, 10, 8), {}, daily, now_price=95.0)
-        self.assertLess(di["pre6"], 0)
-
+        self.assertIn("跌幅達28.57%", txt)
 
 DEV = 0.35
 
