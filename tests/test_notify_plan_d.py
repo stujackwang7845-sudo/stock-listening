@@ -145,63 +145,6 @@ class ClauseFilterTest(unittest.TestCase):
         self.assertEqual(n.judge("其他", hot), "ok")               # 只有第一款才濾
         self.assertEqual(n.judge("六", hot), "ok")
 
-    def test_candidate_and_message_render(self):
-        c = dict(code="1111", name="測試", market="上市", close=100.0, enter_freq="2分初犯", offense="初犯", days=5,
-                 min_needed=1, progress={"rule1": {"current": 2, "target": 3}}, conditions=["[1] 6日漲幅 > 32% 目標 50.6"])
-        mis = {"1111": dict(price=120.0, up=121.0, prev=110.0, down=99.0)}
-        for clause, di, expect in (("一", dict(dev=0.40, thr=130.0, close=120.0), "不買"),
-                                    ("一", dict(dev=0.20, thr=130.0, close=120.0), "≤ 130"),
-                                    ("其他", dict(dev=0.20, thr=130.0, close=120.0), "可買")):
-            txt, locked, skipped = n.fmt_candidate(c, mis, clause, di)
-            self.assertIn(expect, txt)
-            self.assertEqual(skipped, clause == "一" and di["dev"] > DEV)
-        msg = n.build_pre_message(date(2026, 10, 12), date(2026, 10, 8), [c], 0, [], [], mis, "",
-                                  {"1111": ("其他", dict(dev=0.2, thr=130.0, close=120.0))})
-        self.assertIn("今天收盤前可買", msg)
-        self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
-
-
-    def test_evening_candidates_message(self):
-        c = dict(code="3265", name="台星科", market="上櫃", conditions=["[1-1] 6日漲幅 > 23% 目標 231.50 必進處置"])
-        txt = n.fmt_next_cand(c, "其他", dict(dev=None, thr=300.0, close=None), 262.0, True)
-        self.assertIn("今收 262（漲停）", txt)
-        self.assertIn("可買", txt)                                  # 今天漲停不影響明天買不買
-        self.assertNotIn("買不到", txt)
-        hot = n.fmt_next_cand(c, "一", dict(dev=None, thr=300.0, close=None), 262.0, False)
-        self.assertIn("明日收盤 ≤ 300", hot)
-        msg = n.build_message(date(2026, 10, 12), date(2026, 10, 13), [], [], [], [], 0, set(),
-                              [(c, "其他", None, 262.0, True)], 1)
-        self.assertIn("明日 10/13 收盤前買進", msg)
-        self.assertIn("3265", msg)
-        self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
-        none = n.build_message(date(2026, 10, 12), date(2026, 10, 13), [], [], [], [], 0, set(), [], 0)
-        self.assertIn("預買候選（5 天初犯）｜沒有", none)
-
-
-    def test_intraday_exit_today_shows_entry_stop_profit(self):
-        d = dict(code="3094", name="聯傑", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 14), n_days=5)
-        rr = dict(entry=69.2, stop_price=63.6)
-        msg = n.build_pre_message(date(2026, 10, 14), date(2026, 10, 13), [], 0, [], [(d, {}, rr, {"price": 70.6})], {}, "", {})
-        self.assertIn("盤中提醒", msg)
-        self.assertNotIn("盤前", msg.replace("收盤前", ""))
-        self.assertIn("進 69.2", msg)
-        self.assertIn("停損價 63.6", msg)
-        self.assertIn("+2.0%", msg)
-        self.assertIn("今天收盤賣", msg)
-
-
-    def test_futures_suffix_in_names(self):
-        from unittest import mock
-        import core.futures_stocks as fs
-        with mock.patch.object(fs, "has_futures", side_effect=lambda c: c == "2330"):
-            d = dict(code="2330", name="台積電", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 14), n_days=5)
-            rr = dict(entry=1000.0, stop_price=920.0)
-            msg = n.build_pre_message(date(2026, 10, 14), date(2026, 10, 13), [], 0, [], [(d, {}, rr, {"price": 1010.0})], {}, "", {})
-            self.assertIn("台積電(期)", msg)
-            self.assertEqual(n.nm("3094", "聯傑"), "聯傑")
-            self.assertEqual(n.nm("2330", "台積電(期)"), "台積電(期)")      # 不重複加
-
-
     def test_drop_driven_not_bought(self):
         # 跌太多才會處置的不買(2026-10-16)：看注意公告原文是不是跌幅/第十一款，不看股價 6 日漲跌
         import sqlite3, tempfile
@@ -226,6 +169,50 @@ class ClauseFilterTest(unittest.TestCase):
         txt = n.fmt_next_cand(cc, "一", dict(dev=None, thr=1.0, close=None), 9720.0, False, "10/15 跌幅達28.57%")
         self.assertIn("不買", txt)
         self.assertIn("跌幅達28.57%", txt)
+
+class NewPushLayoutTest(unittest.TestCase):
+    """2026-10-16 新推播：策略說明 → 焦點(做多/放空/出場/停損) → 持有中；7 天初犯結束日前一天賣並反手放空(策略 A)。"""
+
+    def test_enrich_dates(self):
+        five = n.enrich(dict(code="1", name="x", start=date(2026, 10, 12), end=date(2026, 10, 16), n_days=5, offense="初犯",
+                             entry=date(2026, 10, 8)))
+        self.assertEqual(five["long_exit"], date(2026, 10, 16))
+        self.assertNotIn("short_entry", five)
+        seven = n.enrich(dict(code="2", name="y", start=date(2026, 10, 8), end=date(2026, 10, 19), n_days=7, offense="累犯",
+                              entry=date(2026, 10, 8)))
+        self.assertEqual(seven["long_exit"], date(2026, 10, 16))      # 結束日前一天(10/17、18 週末)
+        self.assertEqual(seven["short_entry"], date(2026, 10, 16))
+        self.assertEqual(seven["short_cover"], date(2026, 10, 20))    # 出關日
+
+    def test_lines_and_messages(self):
+        from unittest import mock
+        import core.futures_stocks as fs
+        d7 = n.enrich(dict(code="2330", name="台積電", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
+                           n_days=7, offense="初犯", entry=date(2026, 10, 8)))
+        rr = dict(entry=1000.0, entry_date=date(2026, 10, 8), cur=1050.0, raw=5.0, adj=5.0, suspicious=False, stop_price=920.0)
+        sr = dict(entry=1050.0, cur=1000.0, ret=4.76)
+        with mock.patch.object(fs, "has_futures", side_effect=lambda c: c == "2330"):
+            ll = n.long_line(d7, rr)
+            sl = n.short_line(d7, sr)
+        self.assertIn("台積電(期)", ll)
+        self.assertIn("停損 920", ll)
+        self.assertIn("預計 10/16 收盤賣", ll)
+        self.assertIn("預計 10/20 收盤回補", sl)
+        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), ["• 多A"], ["• 空B"], ["• 出C"], [], [ll], [sl], [])
+        for t in ("策略說明", "明日焦點（10/16 收盤前）", "🟢 做多", "🔴 放空", "⚪ 出場", "持有中", "多 1 檔、空 1 檔"):
+            self.assertIn(t, msg)
+        self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
+        pre = n.build_pre_message(date(2026, 10, 16), date(2026, 10, 15), [], [], [], ["• 停D"], [], [], [])
+        self.assertIn("盤中提醒", pre)
+        self.assertIn("今天收盤前要做的事", pre)
+        self.assertIn("⛔ 停損注意", pre)
+        self.assertIn("做多（今天收盤買進）</b>"+chr(10)+"　無", pre)
+
+    def test_fmt_next_cand_drop(self):
+        c = dict(code="2059", name="川湖", market="上市", conditions=[])
+        txt = n.fmt_next_cand(c, "一", dict(dev=None, thr=1.0, close=None), 9720.0, False, "10/15 第一款跌幅達28.57%")
+        self.assertIn("不買", txt)
+
 
 DEV = 0.35
 
