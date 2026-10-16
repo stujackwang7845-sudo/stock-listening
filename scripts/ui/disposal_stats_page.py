@@ -937,9 +937,7 @@ class DisposalStatsPage(QWidget):
             
         self.populate_table(self.filtered_data)
         
-        rows = len(self.filtered_data)
-        total = len(self.all_records)
-        self.status_label.setText(f"顯示 {rows} 筆資料 (總共 {total} 筆)")
+        self._update_status()
     
     def show_header_context_menu(self, pos):
         """顯示表頭右鍵選單"""
@@ -1132,6 +1130,25 @@ class DisposalStatsPage(QWidget):
         self.apply_filters()
     
     def filter_na_rows(self):
+        """隱藏/顯示資料列(N/A 與數值範圍過濾)，再依「目前看得到的列」重算底部統計(2026-10-16 使用者要求)。"""
+        self._hide_filtered_rows()
+        if self.filtered_data and self.change_columns:
+            self.add_statistics_rows()
+        self._update_status()
+
+    def _update_status(self):
+        if not hasattr(self, "status_label"):
+            return
+        shown = len(self._visible_records())
+        extra = f"，欄位過濾後 {shown} 筆" if shown != len(self.filtered_data) else ""
+        self.status_label.setText(f"顯示 {len(self.filtered_data)} 筆資料{extra} (總共 {len(self.all_records)} 筆)，底部統計依目前顯示的列計算")
+
+    def _visible_records(self):
+        """目前表格上沒被隱藏的資料列(對應 filtered_data 的順序)。"""
+        n = min(len(self.filtered_data), self.table.rowCount())
+        return [self.filtered_data[i] for i in range(n) if not self.table.isRowHidden(i)]
+
+    def _hide_filtered_rows(self):
         """根據欄位級 N/A 過濾狀態隱藏/顯示資料列"""
         if not self.column_na_filters and not self.range_filters:
             # 沒有任何過濾，顯示所有行
@@ -1618,7 +1635,9 @@ class DisposalStatsPage(QWidget):
         ]
         
         # 每個欄位的 10 列統計只算一次(計算本體在 core/disposal_stats_engine.summary_stat_texts)
-        col_texts = {c: summary_stat_texts(column_numeric_values(self.filtered_data, c)) for c in self.change_columns}
+        # [2026-10-16] 只算目前看得到的列(日期/文字/欄位 N/A/數值範圍過濾之後)
+        visible = self._visible_records()
+        col_texts = {c: summary_stat_texts(column_numeric_values(visible, c)) for c in self.change_columns}
 
         for stat_idx, label in enumerate(stat_labels):
             row_idx = data_row_count + stat_idx
