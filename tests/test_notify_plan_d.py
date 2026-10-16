@@ -192,21 +192,41 @@ class NewPushLayoutTest(unittest.TestCase):
         rr = dict(entry=1000.0, entry_date=date(2026, 10, 8), cur=1050.0, raw=5.0, adj=5.0, suspicious=False, stop_price=920.0)
         sr = dict(entry=1050.0, cur=1000.0, ret=4.76)
         with mock.patch.object(fs, "has_futures", side_effect=lambda c: c == "2330"):
-            ll = n.long_line(d7, rr)
-            sl = n.short_line(d7, sr)
+            ll = n.long_card(d7, rr)
+            sl = n.short_card(d7, sr)
         self.assertIn("台積電(期)", ll)
-        self.assertIn("停損 920", ll)
-        self.assertIn("預計 10/16 收盤賣", ll)
-        self.assertIn("預計 10/20 收盤回補", sl)
-        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), ["• 多A"], ["• 空B"], ["• 出C"], [], [ll], [sl], [])
-        for t in ("策略說明", "明日焦點（10/16 收盤前）", "🟢 做多", "🔴 放空", "⚪ 出場", "持有中", "多 1 檔、空 1 檔"):
+        self.assertIn("停損價：920", ll)
+        self.assertIn("預計出場：10/16 收盤賣", ll)
+        self.assertIn("預計回補：10/20 收盤買回", sl)
+        self.assertIn("\n", ll)                                      # 一檔多行
+        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), ["多A", "多A2"], ["空B"], ["出C"], [], [ll], [sl], [])
+        for t in ("策略說明", "明日焦點（10/16 收盤前）", "🟢 <b>做多", "🔴 <b>放空", "⚪ <b>出場", "持有中", "多單 1 檔", "空單 1 檔"):
             self.assertIn(t, msg)
+        self.assertIn("多A\n" + n.SEP + "\n多A2", msg)                 # 每檔之間有分隔線
         self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
-        pre = n.build_pre_message(date(2026, 10, 16), date(2026, 10, 15), [], [], [], ["• 停D"], [], [], [])
+        pre = n.build_pre_message(date(2026, 10, 16), date(2026, 10, 15), [], [], [], ["停D"], [], [], [])
         self.assertIn("盤中提醒", pre)
         self.assertIn("今天收盤前要做的事", pre)
-        self.assertIn("⛔ 停損注意", pre)
-        self.assertIn("做多（今天收盤買進）</b>"+chr(10)+"　無", pre)
+        self.assertIn("⛔ <b>停損注意", pre)
+        self.assertIn("做多（買進）</b>\n　無", pre)
+
+    def test_candidate_shows_predicted_days(self):
+        c = dict(code="3265", name="台星科", market="上櫃", offense="初犯", days=5,
+                 days_note="10日內6次 → 5天", conditions=["收盤漲幅 ≥ 3.2%"])
+        txt = n.fmt_next_cand(c, "六", None, 100.0, False)
+        self.assertIn("明天收盤前：買進（做多）", txt)
+        self.assertIn("<b>5 天</b>", txt)
+        self.assertIn("10日內6次 → 5天", txt)
+        self.assertIn("收盤漲幅 ≥ 3.2%", txt)
+
+    def test_split_message_keeps_items(self):
+        items = [f"項目{i}\n" + "x" * 300 for i in range(30)]
+        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), items, [], [], [], [], [], [])
+        chunks = n.split_message(msg)
+        self.assertTrue(len(chunks) > 1 and all(len(ch) <= 4000 for ch in chunks))
+        self.assertEqual(sum(ch.count("項目") for ch in chunks), 30)
+        for ch in chunks:
+            self.assertEqual(ch.count("<blockquote"), ch.count("</blockquote>"))
 
     def test_fmt_next_cand_drop(self):
         c = dict(code="2059", name="川湖", market="上市", conditions=[])
