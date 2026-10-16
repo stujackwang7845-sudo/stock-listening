@@ -1308,6 +1308,9 @@ class DisposalStatsPage(QWidget):
         for record in data:
             all_change_columns.update(record.get("headers", []))
         
+        # [2026-10-16 使用者要求] 不顯示「出-1」~「出-5」(出關前倒數，和處置期間的逐日欄位重複)；資料仍保留在快取
+        all_change_columns = {c for c in all_change_columns if not c.startswith("出-")}
+
         # 按照邏輯順序排序欄位
         self.change_columns = self._sort_change_columns(list(all_change_columns))
         
