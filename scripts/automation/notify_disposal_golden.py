@@ -142,6 +142,45 @@ def fetch_json(name):
     raise RuntimeError(f"{name} 連續失敗，放棄")
 
 
+def fetch_json_opt(name):
+    """同 fetch_json，失敗回傳 None(由呼叫端改用本地資料)。"""
+    try:
+        return fetch_json(name)
+    except Exception as e:
+        print(f"[WARN] {name} 抓不到，改用本地資料：{e}")
+        return None
+
+
+def disposals_from_db(market, today):
+    """官方處置公告抓不到時：用資料夾裡 disposal_records(run_daily/桌面版每天更新)當備援。"""
+    import sqlite3
+    db = data_file("disposal_history.db")
+    if not db.exists():
+        return []
+    conn = sqlite3.connect(str(db))
+    lo = (today - timedelta(days=60)).isoformat()
+    rows = conn.execute("SELECT code, name, announce_date, period_start, period_end, reason FROM disposal_records "
+                        "WHERE source=? AND period_end>=?", (market, lo)).fetchall()
+    conn.close()
+    out = []
+    for code, name, ann, ps, pe, reason in rows:
+        code = str(code).strip()
+        if not is_stock(code) or not ps or not pe:
+            continue
+        reason = str(reason or "")
+        a = str(ann or ps).replace("/", "-")[:10]
+        try:
+            out.append(dict(code=code, name=str(name or "").strip(), market=market,
+                            announce=datetime.strptime(a, "%Y-%m-%d").date(),
+                            start=datetime.strptime(ps, "%Y-%m-%d").date(), end=datetime.strptime(pe, "%Y-%m-%d").date(),
+                            offense="累犯" if re.search(r"(三十|30)個營業日內曾發布處置", reason) else "初犯",
+                            reason=reason.strip()))
+        except ValueError:
+            continue
+    print(f"[INFO] {market}處置公告改用本地 disposal_records：{len(out)} 筆")
+    return out
+
+
 def roc_to_date(s):
     s = str(s).strip().replace("/", "")
     return date(int(s[:-4]) + 1911, int(s[-4:-2]), int(s[-2:]))
@@ -187,7 +226,10 @@ def load_tpex_portal(today=None):
 
 def load_disposals(today=None):
     out = []
-    for r in fetch_json("twse_punish"):
+    twse = fetch_json_opt("twse_punish")
+    if twse is None:
+        out += disposals_from_db("上市", today or date.today())
+    for r in twse or []:
         code = str(r.get("Code", "")).strip()
         if not is_stock(code):
             continue
@@ -203,7 +245,10 @@ def load_disposals(today=None):
         tpex_rows = []
     except Exception as e:
         print(f"[WARN] 櫃買官網處置公告失敗({e})，改用 OpenAPI(可能落後一天以上)")
-        tpex_rows = fetch_json("tpex_disp")
+        tpex_rows = fetch_json_opt("tpex_disp")
+        if tpex_rows is None:
+            out += disposals_from_db("上櫃", today or date.today())
+            tpex_rows = []
     for r in tpex_rows:
         code = str(r.get("SecuritiesCompanyCode", "")).strip()
         if not is_stock(code):
@@ -228,11 +273,11 @@ def load_disposals(today=None):
 
 def load_company():
     m = {}
-    for r in fetch_json("twse_company"):
+    for r in fetch_json_opt("twse_company") or []:
         reg = str(r.get("外國企業註冊地國", "")).strip()
         m[str(r["公司代號"]).strip()] = dict(industry=str(r.get("產業別", "")).strip(),
                                          ky=reg not in ("", "－", "-"))
-    for r in fetch_json("tpex_company"):
+    for r in fetch_json_opt("tpex_company") or []:
         reg = str(r.get("Registration", "")).strip()
         m[str(r["SecuritiesCompanyCode"]).strip()] = dict(industry=str(r.get("SecuritiesIndustryCode", "")).strip(),
                                                          ky=reg not in ("", "－", "-"))
@@ -242,13 +287,16 @@ def load_company():
 def load_today_volume():
     """官方收盤行情：{code: (日期, 成交股數, 收盤價)}"""
     vol = {}
-    for r in fetch_json("twse_quote"):
+    tw, tp = fetch_json_opt("twse_quote"), fetch_json_opt("tpex_quote")
+    if tw is None or tp is None:
+        vol.update(quotes_from_db())          # 先放本地最新一天，官方有抓到的再覆蓋
+    for r in tw or []:
         try:
             vol[str(r["Code"]).strip()] = (roc_to_date(r["Date"]), float(str(r["TradeVolume"]).replace(",", "")),
                                            float(str(r["ClosingPrice"]).replace(",", "")))
         except Exception:
             pass
-    for r in fetch_json("tpex_quote"):
+    for r in tp or []:
         try:
             vol[str(r["SecuritiesCompanyCode"]).strip()] = (roc_to_date(r["Date"]),
                                                            float(str(r["TradingShares"]).replace(",", "")),
@@ -256,6 +304,25 @@ def load_today_volume():
         except Exception:
             pass
     return vol
+
+
+def quotes_from_db():
+    """官方收盤行情抓不到時：資料夾 market_data.db 最新一天(run_daily 用官方 MI_INDEX/dailyQuotes 寫入)。"""
+    import sqlite3
+    db = data_file("market_data.db")
+    if not db.exists():
+        return {}
+    conn = sqlite3.connect(str(db))
+    d = conn.execute("SELECT MAX(date) FROM price_history").fetchone()[0]
+    out = {}
+    if d:
+        dd = datetime.strptime(d, "%Y-%m-%d").date()
+        for code, v, c in conn.execute("SELECT stock_id, volume, close FROM price_history WHERE date=?", (d,)):
+            if c is not None:
+                out[str(code)] = (dd, float(v or 0), float(c))
+    conn.close()
+    print(f"[INFO] 收盤行情改用本地 market_data.db {d}：{len(out)} 檔")
+    return out
 
 
 def prior_trading_days(start, n=5):
@@ -539,7 +606,8 @@ def dev20_info(code, entry, today, quotes, daily, now_price=None):
     if c is not None and c != c:
         c = None
     s19 = sum(prev)
-    thr = math.floor(DEV_MAX_FACTOR * s19 / (20 - DEV_MAX_FACTOR) * 100) / 100
+    x = DEV_MAX_FACTOR * s19 / (20 - DEV_MAX_FACTOR)
+    thr = round(math.floor(x / tick(x) + 1e-9) * tick(x), 2)      # 取到升降單位(收盤價只會落在合法價位)
     return dict(dev=None if c is None else c / ((s19 + c) / 20) - 1, thr=thr, close=c)
 
 
