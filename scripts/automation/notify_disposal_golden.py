@@ -921,10 +921,20 @@ def px_text(price, prev, up, fallback_close=None, traded=True, src=None):
     return f"現價 {price:g}{chg}{lim}{tag}"
 
 
+def clause1_drop(reason):
+    """注意公告原文裡，第一款那一句是不是「跌幅達x%」(短期股價跌太多被注意)。回傳跌幅數字字串或 None。
+    第十一款(價差＋收盤六日最高/最低)不算：它可能是漲(最高)也可能是跌，使用者定義的跌多只看第一款。"""
+    for m in re.finditer(r"(?<!漲)跌幅(?:達)?\s*([\d.]+)\s*%", reason or ""):
+        k = reason.find("款", m.end())
+        if k >= 2 and reason[k - 2:k + 1] == "第一款" and reason[k - 3:k - 2] != "十":
+            return m.group(1)
+    return None
+
+
 def drop_notice(db_path, code, upto, inclusive=True):
     """
-    最近一次注意公告(upto 當天含/不含)是不是因為「跌」被注意：第一款原文「跌幅達x%」或第十一款(收盤價為六日最低)。
-    是 → 回傳說明文字(例「10/15 跌幅達28.57%」)；否或查不到 → None。
+    最近一次注意公告(upto 當天含/不含)的第一款是不是因為「跌幅」被注意(2026-10-16 使用者定義：短期股價跌太多)。
+    是 → 回傳說明文字(例「10/15 第一款跌幅達28.57%」)；否或查不到 → None。
     """
     if not db_path:
         return None
@@ -940,12 +950,9 @@ def drop_notice(db_path, code, upto, inclusive=True):
     for d, k, reason in rows:
         if d != day:
             break
-        reason = str(reason or "")
-        m = re.search(r"(?<!漲)跌幅(?:達)?\s*([\d.]+)\s*%", reason)
-        if m:
-            return f"{day[5:].replace('-', '/')} 跌幅達{m.group(1)}%"
-        if k == 11:
-            return f"{day[5:].replace('-', '/')} 第十一款(收盤價為六日最低)"
+        pct = clause1_drop(str(reason or ""))
+        if pct:
+            return f"{day[5:].replace('-', '/')} 第一款跌幅達{pct}%"
     return None
 
 

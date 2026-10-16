@@ -215,10 +215,10 @@ class ClauseFilterTest(unittest.TestCase):
             ("2026-10-13", "2059", 11, "…當日收盤價為最近六個營業日收盤價最低者﹝第十一款﹞"),
             ("2026-10-14", "9999", 11, "…﹝第十一款﹞")])
         c.commit(); c.close()
-        self.assertEqual(n.drop_notice(path, "2059", "2026-10-15"), "10/15 跌幅達28.57%")
+        self.assertEqual(n.drop_notice(path, "2059", "2026-10-15"), "10/15 第一款跌幅達28.57%")
         self.assertIsNone(n.drop_notice(path, "8111", "2026-10-15"))          # 第六款進處置，不是跌
         self.assertIsNone(n.drop_notice(path, "6278", "2026-10-15"))          # 漲幅
-        self.assertIn("第十一款", n.drop_notice(path, "9999", "2026-10-15"))
+        self.assertIsNone(n.drop_notice(path, "9999", "2026-10-15"))       # 第十一款不算(可能是漲)
         self.assertIsNone(n.drop_notice(path, "2059", "2026-10-15", inclusive=False) and None)
         self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0), "10/15 跌幅達28.57%"), "drop")
         self.assertEqual(n.judge("其他", dict(dev=0.1, thr=1.0), None), "ok")
