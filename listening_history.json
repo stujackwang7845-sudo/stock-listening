@@ -14480,5 +14480,35 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-16",
+        "code": "3167",
+        "name": "大量",
+        "trigger_info": "115年10月13日至115年10月16日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-16",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年10月13日至115年10月16日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-16",
+        "code": "6716",
+        "name": "應廣",
+        "trigger_info": "115年10月15日至115年10月16日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
