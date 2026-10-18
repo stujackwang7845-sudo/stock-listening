@@ -125,7 +125,7 @@ def patch_fetcher(tape):
             return tape.call(key, lambda: Base.fetch_stock_attention_history(
                 self, code, start_date, end_date, source), sleep=0.6)
 
-        def fetch_stock_history(self, code, source=None, period="180d", allow_fetch=True):
+        def fetch_stock_history(self, code, source=None, period="180d", allow_fetch=True, as_of=None):
             key = ("price_hist", str(code), source, period, allow_fetch)
             return tape.call(key, lambda: Base.fetch_stock_history(
                 self, code, source, period, allow_fetch))

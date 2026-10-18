@@ -329,15 +329,18 @@ class ForecastPage(QWidget):
         self.refresh_btn.setEnabled(False)
 
         # 嘗試從 Shioaji 取得處置清單（用於「目前狀態」欄位）
+        # [2026-10-18] 只有看最新交易日才問 Shioaji：它回的是「今天」的處置清單，看過去日期用不到，
+        # 而且這段在主執行緒同步執行，連線慢時整個畫面會卡住。過去日期一律用本地 disposal_records。
         punish_df = None
-        try:
-            from core.shioaji_client import ShioajiClient
-            sj_client = ShioajiClient()
-            punish_df = sj_client.get_punish()
-            if punish_df is not None:
-                print(f"[ForecastPage] Shioaji punish: {len(punish_df)} 筆處置資料")
-        except Exception as e:
-            print(f"[ForecastPage] Shioaji punish 取得失敗 (將使用本地資料): {e}")
+        if anchor_dt.date() >= DateUtils.get_last_trading_day().date():
+            try:
+                from core.shioaji_client import ShioajiClient
+                sj_client = ShioajiClient()
+                punish_df = sj_client.get_punish()
+                if punish_df is not None:
+                    print(f"[ForecastPage] Shioaji punish: {len(punish_df)} 筆處置資料")
+            except Exception as e:
+                print(f"[ForecastPage] Shioaji punish 取得失敗 (將使用本地資料): {e}")
 
         self.worker = ForecastWorker(agg_data, date_str, attention_list, self.mf_db, self.cb_db, punish_df=punish_df)
         self.worker.progress.connect(self._on_progress)

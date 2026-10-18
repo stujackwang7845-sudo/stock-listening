@@ -587,7 +587,8 @@ class StockFetcher:
                 pass
         return None
 
-    def fetch_stock_history(self, code, source=None, period="180d", allow_fetch=True):
+    def fetch_stock_history(self, code, source=None, period="180d", allow_fetch=True, as_of=None):
+        """as_of：只需要到這天的資料(看過去日期用)；本地快取已涵蓋到 as_of 就不上網補行情與本益比。"""
 
         try:
             # 1. Check Cache
@@ -603,7 +604,9 @@ class StockFetcher:
             # 取得最後一個交易日，避免在週末或盤中還沒收盤時重複下載空資料
             last_trading_dt = DateUtils.get_last_trading_day()
             target_date = pd.Timestamp(last_trading_dt).normalize()
-            
+            if as_of is not None:
+                target_date = min(target_date, pd.Timestamp(as_of).normalize())
+
             need_update = False
             start_fetch_date = None
             
@@ -699,7 +702,7 @@ class StockFetcher:
                 if last_ratio_date is None:
                     need_ratio_update = True
                     start_ratio_fetch = (pd.Timestamp.now() - pd.Timedelta(days=365*2)).strftime('%Y-%m-%d')
-                elif last_date and last_ratio_date < last_date: # Sync with price date
+                elif last_date and last_ratio_date < min(last_date, target_date):  # Sync with price date(看過去日期只要涵蓋到 as_of)
                      need_ratio_update = True
                      start_ratio_fetch = (last_ratio_date + pd.Timedelta(days=1)).strftime('%Y-%m-%d')
                 

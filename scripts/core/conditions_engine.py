@@ -163,6 +163,53 @@ def fetch_has_c2_disp_60(fetcher, code, source, anchor_dt):
     return False
 
 
+def _norm_ymd(s):
+    """disposal_records.announce_date 混了 115/07/20、2026/07/20、2026-07-20、20260720，統一成 YYYYMMDD。"""
+    s = str(s or "").strip()
+    parts = s.replace("-", "/").split("/")
+    if len(parts) == 3 and all(p.isdigit() for p in parts):
+        y = int(parts[0]) + (1911 if len(parts[0]) <= 3 else 0)
+        return f"{y:04d}{int(parts[1]):02d}{int(parts[2]):02d}"
+    return s[:8] if len(s) >= 8 and s[:8].isdigit() else ""
+
+
+def has_c2_disp_60_local(code, disp_records, anchor_dt, db_path=None):
+    """
+    前60日曾因第二款進處置(Rule B，只用在排除條件的「是/否」顯示)，全部查本地 DB、不上網。
+    判斷：近 60 天(含當天)有處置公告，且公告前 14 天內(約 10 個交易日，涵蓋連3/連5/10日6次的計算期間)
+    attention_clauses 有這檔的第二款注意。
+    2026-10-18 取代 fetch_has_c2_disp_60：舊版切換日期時逐檔打證交所/櫃買 API(十幾秒)，而且
+    櫃買回傳格式沒解析到(上櫃永遠「否」)、上市用「款＋二」字樣比對(幾乎任何處置都「是」)。
+    """
+    import sqlite3
+    cutoff = (anchor_dt - timedelta(days=60)).strftime("%Y%m%d")
+    end = anchor_dt.strftime("%Y%m%d")
+    anns = sorted({d for d in (_norm_ymd(r.get("announce_date")) for r in disp_records or []) if cutoff <= d <= end})
+    if not anns:
+        return False
+    if db_path is None:
+        from core.runtime import get_paths
+        db_path = get_paths().disposal_db
+    lo = (datetime.strptime(anns[0], "%Y%m%d") - timedelta(days=14)).strftime("%Y-%m-%d")
+    try:
+        con = sqlite3.connect(str(db_path))
+        try:
+            rows = con.execute("SELECT announce_date FROM attention_clauses WHERE code = ? AND clause_number = 2 "
+                               "AND announce_date BETWEEN ? AND ?",
+                               (str(code), lo, anchor_dt.strftime("%Y-%m-%d"))).fetchall()
+        finally:
+            con.close()
+    except Exception as e:
+        print(f"[conditions_engine] {code} has_c2_disp_60 本地查詢失敗(不影響其他計算): {e}")
+        return False
+    c2 = [str(d).replace("-", "")[:8] for (d,) in rows]
+    for a in anns:
+        a_lo = (datetime.strptime(a, "%Y%m%d") - timedelta(days=14)).strftime("%Y%m%d")
+        if any(a_lo <= d <= a for d in c2):
+            return True
+    return False
+
+
 def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_records,
                              official_reason="", fetcher=None, history_df=None, shares_outstanding=None):
     """
@@ -194,7 +241,9 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
         fetcher = StockFetcher()
 
     if history_df is None:
-        history_df, shares_outstanding = fetcher.fetch_stock_history(code, source, period="180d", allow_fetch=True)
+        # as_of：看過去的日期時，本地快取已涵蓋到該日就不再上網補最新行情/本益比(2026-10-18)
+        history_df, shares_outstanding = fetcher.fetch_stock_history(code, source, period="180d", allow_fetch=True,
+                                                                     as_of=anchor_dt)
     if history_df is None or history_df.empty:
         result["lines"] = ["無法取得歷史股價"]
         return result
@@ -207,7 +256,7 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
 
     # 前30個營業日曾發生第一款(排除條件 Rule A)：用同一份逐日條款資料
     has_c1_30 = any(item["is_clause1"] for item in hist_items)
-    has_c2_disp_60 = fetch_has_c2_disp_60(fetcher, code, source, anchor_dt)
+    has_c2_disp_60 = has_c2_disp_60_local(code, disp_records, anchor_dt)
 
     lines, is_clause2_risk, exclusion_lines = DispositionCalculator.calculate_conditions(
         history_df, source=source, shares_outstanding=shares_outstanding or 0,

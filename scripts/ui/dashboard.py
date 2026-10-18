@@ -1500,6 +1500,11 @@ class Dashboard(QWidget):
 
     def change_date(self, offset):
         new_date = self.current_display_date + dt.timedelta(days=offset)
+        # [2026-10-18] 跳過假日(同處置預測總覽)，週一按「<」直接到上週五，不會停在沒資料的週末
+        for _ in range(15):
+            if DateUtils.is_trading_day(new_date):
+                break
+            new_date += dt.timedelta(days=1 if offset > 0 else -1)
         self.load_data_for_date(new_date)
 
     def open_history_page(self):
@@ -1975,9 +1980,7 @@ class Dashboard(QWidget):
         
     def on_date_selected(self, qdate):
         t_date = datetime(qdate.year(), qdate.month(), qdate.day())
-        self.load_data_for_date(t_date)
-
-        self.load_data_for_date(t_date)
+        self.load_data_for_date(t_date)   # [2026-10-18] 原本連續呼叫兩次，同一天載入兩遍
 
     def _merge_disposal_status_from_db(self, agg_data, target_date):
         """處置狀態以 disposal_records 為準合併進 agg_data(本體在 core/dashboard_engine.py)"""
