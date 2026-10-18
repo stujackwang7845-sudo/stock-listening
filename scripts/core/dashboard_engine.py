@@ -1256,6 +1256,10 @@ def merge_clauses_from_db(agg_data, target_date):
         traceback.print_exc()
 
 
+# 第十三款在日期欄的標記(純文字版，網頁/雲端用)；桌面版 ui/dashboard.py 會換成橘色圓形圖示，14px 的 ⑬ 加粗會糊
+CLAUSE13_HTML = "<span style='color: #FFA500; font-weight: bold;'>⑬</span>"
+
+
 def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
                            today_attention_map, today_attention_names, mf_db, cb_db):
     """
@@ -1825,7 +1829,7 @@ def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
                     else:
                         html_parts.append(f"<span style='color: #4da6ff;'>{c}</span>")
             if (str(code), d) in clause13_cells:
-                html_parts.append("<span style='color: #FFA500; font-weight: bold;'>⑬</span>")
+                html_parts.append(CLAUSE13_HTML)
 
             final_html = ",".join(html_parts)
 

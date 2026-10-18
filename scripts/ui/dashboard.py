@@ -27,8 +27,50 @@ from core.margin_futures_db import MarginFuturesDatabase
 from core.dashboard_engine import (
     build_agg_data, merge_disposal_status_from_db, build_local_agg_data,
     merge_clauses_from_listening_history, merge_clauses_from_db, compute_dashboard_rows,
-    compute_info_boxes, fill_attention_clauses_gap,
+    compute_info_boxes, fill_attention_clauses_gap, CLAUSE13_HTML,
 )
+
+_C13_IMG = None
+
+
+def clause13_badge_html():
+    """
+    第十三款圖示(2026-10-19 使用者反映 ⑬ 不清楚)：程式畫一個橘色實心圓＋粗體黑字 13，
+    存成 1x/2x 兩張 PNG(高解析度螢幕 Qt 會自動用 @2x)，回傳 QLabel 用的 <img>。失敗就退回文字 ⑬。
+    """
+    global _C13_IMG
+    if _C13_IMG is not None:
+        return _C13_IMG
+    try:
+        import os
+        import tempfile
+        from PyQt6.QtCore import QRectF
+        from PyQt6.QtGui import QImage, QPainter
+        folder = os.path.join(tempfile.gettempdir(), "dispo_ui")
+        os.makedirs(folder, exist_ok=True)
+        base = os.path.join(folder, "clause13.png")
+        for px, path in ((18, base), (36, base.replace(".png", "@2x.png"))):
+            img = QImage(px, px, QImage.Format.Format_ARGB32)
+            img.fill(Qt.GlobalColor.transparent)
+            p = QPainter(img)
+            p.setRenderHint(QPainter.RenderHint.Antialiasing)
+            p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor("#FF9800"))
+            p.drawEllipse(QRectF(0.5, 0.5, px - 1, px - 1))
+            f = QFont("Arial")
+            f.setBold(True)
+            f.setPixelSize(int(px * 0.56))
+            p.setFont(f)
+            p.setPen(QColor("#000000"))
+            p.drawText(QRectF(0, 0, px, px), Qt.AlignmentFlag.AlignCenter, "13")
+            p.end()
+            img.save(path)
+        _C13_IMG = f"<img src='{base.replace(chr(92), '/')}' width='18' height='18'>"
+    except Exception as e:
+        print(f"[dashboard] 第十三款圖示產生失敗，改用文字：{e}")
+        _C13_IMG = CLAUSE13_HTML
+    return _C13_IMG
 
 class SortableWidgetItem(QTableWidgetItem):
     def __lt__(self, other):
@@ -1346,7 +1388,7 @@ class Dashboard(QWidget):
                 d = cell["date"]
                 date_col_map[d] = col_idx # Store index
                 
-                final_html = cell["html"]
+                final_html = cell["html"].replace(CLAUSE13_HTML, clause13_badge_html())
                 lbl = QLabel(final_html)
                 lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 # Set background to match row
