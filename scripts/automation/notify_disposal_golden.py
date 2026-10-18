@@ -740,6 +740,12 @@ def enrich(d):
     return d
 
 
+def short_why(d):
+    """放空卡片附處置期間，讓人看得出為什麼是這天空(策略 A：結束日前一天收盤空、出關日收盤補)。"""
+    return (f"・處置 {d['start']:%m/%d}～{d['end']:%m/%d}：{d['short_entry']:%m/%d} 是結束日前一天，"
+            f"{d['short_cover']:%m/%d} 出關日回補")
+
+
 def short_view(d):
     """給 load_prices_for/close_of 用的空單版(進場日換成空單進場日)。"""
     s = dict(d)
@@ -829,45 +835,58 @@ def short_card(d, sr, head_extra="", lines_extra=()):
 
 
 def section_block(title, items, empty="無"):
-    """一個區塊：標題＋每檔之間分隔線。"""
-    return "\n".join([f"{title}", *([f"\n{SEP}\n".join(items)] if items else [f"　{empty}"])])
+    """
+    一個區塊(2026-10-18 使用者要求)：做多/放空/賣出/回補/停損/持有中各自一塊，有內容的用
+    Telegram 可展開引用(點一下展開/收合)，每檔之間分隔線；沒有內容的只留一行「標題：無」。
+    """
+    if not items:
+        return f"{title}：{empty}"
+    return f"<blockquote expandable>{title}（{len(items)} 檔）\n" + f"\n{SEP}\n".join(items) + "</blockquote>"
 
 
-def build_message(today, nxt, f_long, f_short, f_exit, f_stop, holds_long, holds_short, notes, cand_err=None):
-    """盤後推播：策略說明 → 明日焦點(做多/放空/出場/停損) → 持有中。"""
-    wd = "一二三四五六日"
-    parts = [f"🔔 <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤後</b>\n"
-             f"以下是明天 {nxt:%m/%d}({wd[nxt.weekday()]}) 收盤前要做的事", RULES_HTML,
-             f"{BAR}\n🎯 <b>明日焦點（{nxt:%m/%d} 收盤前）</b>\n{BAR}",
-             section_block("🟢 <b>做多（買進）</b>", f_long),
-             section_block("🔴 <b>放空（融券賣出）</b>", f_short),
-             section_block("⚪ <b>出場（賣出多單／回補空單）</b>", f_exit)]
+def day_lbl(word, d):
+    """「明天（10/16）」：訊息裡講明天/今天一律加日期(2026-10-18 使用者要求)。"""
+    return f"{word}（{d:%m/%d}）"
+
+
+def _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, stop_title):
+    parts += [section_block(f"🟢 <b>做多・買進｜{when}收盤</b>", f_long),
+              section_block(f"🔴 <b>放空・融券賣出｜{when}收盤</b>", f_short),
+              section_block(f"🟠 <b>賣出多單｜{when}收盤</b>", f_sell),
+              section_block(f"🔵 <b>回補空單・買回｜{when}收盤</b>", f_cover)]
     if f_stop:
-        parts.append(section_block("⛔ <b>停損</b>", f_stop))
+        parts.append(section_block(stop_title, f_stop))
+
+
+def build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err=None):
+    """盤後推播：策略說明 → 明日焦點(做多/放空/賣出/回補/停損，各自可展開) → 持有中(多/空各自可展開)。"""
+    wd = "一二三四五六日"
+    when = day_lbl("明天", nxt)
+    parts = [f"🔔 <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤後</b>\n"
+             f"以下是{when}({wd[nxt.weekday()]}) 收盤前要做的事；點區塊可展開/收合", RULES_HTML,
+             f"{BAR}\n🎯 <b>明日焦點｜{when}收盤前</b>\n{BAR}"]
+    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, f"⛔ <b>停損｜{when}盡快賣出</b>")
     if cand_err:
-        parts.append(f"⚠️ 5 天初犯預買候選計算失敗，請看明天盤中提醒（{html.escape(cand_err[:80])}）")
-    parts += [f"{BAR}\n📊 <b>持有中（{today:%m/%d} 收盤）</b>\n{BAR}",
-              section_block(f"🟢 <b>多單 {len(holds_long)} 檔</b>", holds_long),
-              section_block(f"🔴 <b>空單 {len(holds_short)} 檔</b>", holds_short)]
+        parts.append(f"⚠️ 5 天初犯預買候選計算失敗，請看{when}盤中提醒（{html.escape(cand_err[:80])}）")
+    parts += [f"{BAR}\n📊 <b>持有中｜{today:%m/%d} 收盤</b>\n{BAR}",
+              section_block("🟢 <b>持有多單</b>", holds_long),
+              section_block("🔴 <b>持有空單</b>", holds_short)]
     if notes:
         parts.append("\n".join(notes))
     return "\n\n".join(parts).strip()
 
 
-def build_pre_message(today, anchor, f_long, f_short, f_exit, f_stop, holds_long, holds_short, notes):
-    """盤中提醒：策略說明 → 今日焦點 → 持有中(即時價)。"""
+def build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes):
+    """盤中提醒：策略說明 → 今日焦點(各自可展開) → 持有中(即時價)。"""
     wd = "一二三四五六日"
+    when = day_lbl("今天", today)
     parts = [f"⏰ <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤中提醒</b>\n"
-             f"以下是今天收盤前要做的事（聽牌預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）", RULES_HTML,
-             f"{BAR}\n🎯 <b>今日焦點（{today:%m/%d} 收盤前）</b>\n{BAR}",
-             section_block("🟢 <b>做多（買進）</b>", f_long),
-             section_block("🔴 <b>放空（融券賣出）</b>", f_short),
-             section_block("⚪ <b>出場（賣出多單／回補空單）</b>", f_exit)]
-    if f_stop:
-        parts.append(section_block("⛔ <b>停損注意</b>", f_stop))
-    parts += [f"{BAR}\n📊 <b>持有中（即時價）</b>\n{BAR}",
-              section_block(f"🟢 <b>多單 {len(holds_long)} 檔</b>", holds_long),
-              section_block(f"🔴 <b>空單 {len(holds_short)} 檔</b>", holds_short)]
+             f"以下是{when}收盤前要做的事（聽牌預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）；點區塊可展開/收合",
+             RULES_HTML, f"{BAR}\n🎯 <b>今日焦點｜{when}收盤前</b>\n{BAR}"]
+    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, "⛔ <b>停損注意</b>")
+    parts += [f"{BAR}\n📊 <b>持有中｜即時價</b>\n{BAR}",
+              section_block("🟢 <b>持有多單</b>", holds_long),
+              section_block("🔴 <b>持有空單</b>", holds_short)]
     if notes:
         parts.append("\n".join(notes))
     return "\n\n".join(parts).strip()
@@ -882,7 +901,7 @@ def positions(disposals, today, clause_db, quotes, daily, corp):
             ok, why = long_bought(d, clause_db, quotes, daily, today)
             if not ok:
                 if d["entry"] == today:
-                    notes.append(f"（{d['code']} {nm(d['code'], d['name'])} 今天是進場日但不買：{why}）")
+                    notes.append(f"（{d['code']} {nm(d['code'], d['name'])} {today:%m/%d} 是進場日但不買：{why}）")
                 continue
             rr = long_status(d, today, quotes, daily, corp)
             if rr is None:
@@ -925,20 +944,20 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
     return "\n".join(x for x in lines if x)
 
 
-def fmt_next_cand(c, cl, di, close, locked, drop=None):
+def fmt_next_cand(c, cl, di, close, locked, drop=None, when="明天", today_lbl="今天"):
     """盤後版明日預買候選(多行卡片)。"""
     v = judge(cl, di, drop)
     if v == "drop":
         act = drop_txt(drop)
     elif cl == "一" and di:
-        act = f"⚠️ 第一款：明天收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
+        act = f"⚠️ 第一款：{when}收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%，不買）"
     elif cl == "一":
         act = f"⚠️ 第一款：乖離資料不足，收盤前自行確認乖離 ≤ {DEV_MAX*100:.0f}%"
     else:
         act = "✅ 可買"
-    px_line = None if close is None else f"・今天收盤：{close:g}" + ("（漲停）" if locked else "")
+    px_line = None if close is None else f"・{today_lbl}收盤：{close:g}" + ("（漲停）" if locked else "")
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]]
-    return cand_card(c, "drop" if v == "drop" else "ok", act, "明天", px_line, cl, cond)
+    return cand_card(c, "drop" if v == "drop" else "ok", act, when, px_line, cl, cond)
 
 
 # ---------------------------------------------------------------- 盤中提醒
@@ -1087,7 +1106,7 @@ def drop_txt(why):
     return f"🚫 不買：注意公告是因為跌（{why}），跌多被處置，濾掉"
 
 
-def fmt_candidate(c, mis, clause, di, drop=None):
+def fmt_candidate(c, mis, clause, di, drop=None, when="今天"):
     """盤中候選(多行卡片)。回傳 (文字, 是否漲停鎖死, 是否不買)。"""
     q = mis.get(c["code"], {})
     price, up = q.get("price"), q.get("up")
@@ -1112,8 +1131,14 @@ def fmt_candidate(c, mis, clause, di, drop=None):
     px_line = "・" + px_text(price, q.get("prev"), up, c.get("close"), q.get("traded", True), q.get("src")) + \
               (f"\n・聽牌進度：{prog}" if prog else "")
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]]
-    txt = cand_card(c, "skip" if verdict in ("skip", "drop") else verdict, act, "今天", px_line, clause, cond)
+    txt = cand_card(c, "skip" if verdict in ("skip", "drop") else verdict, act, when, px_line, clause, cond)
     return txt, locked and verdict != "drop", verdict in ("skip", "drop")
+
+
+def _wrap(body, head, tail, first):
+    if not head:
+        return body
+    return (head.replace("（續）", "") if first else head) + body + tail
 
 
 def split_message(msg, limit=4000):
@@ -1122,17 +1147,25 @@ def split_message(msg, limit=4000):
         return [msg]
     pieces = []
     for para in msg.split("\n\n"):
+        first = True
         if len(para) <= limit:
             pieces.append(para)
             continue
+        head, tail = "", ""
+        if para.startswith("<blockquote expandable>") and para.endswith("</blockquote>"):
+            body = para[len("<blockquote expandable>"):-len("</blockquote>")]
+            title, _, body = body.partition("\n")
+            head, tail, para = f"<blockquote expandable>{title}（續）\n", "</blockquote>", body
+            first = True
         cur = ""
         for it in para.split(f"\n{SEP}\n"):
-            if cur and len(cur) + len(it) + len(SEP) + 2 > limit:
-                pieces.append(cur)
+            if cur and len(cur) + len(it) + len(SEP) + 2 + len(head) + len(tail) > limit:
+                pieces.append(_wrap(cur, head, tail, first))
+                first = False
                 cur = it
             else:
                 cur = f"{cur}\n{SEP}\n{it}" if cur else it
-        pieces.append(cur)
+        pieces.append(_wrap(cur, head, tail, first))
     chunks, cur = [], ""
     for b in pieces:
         if cur and len(cur) + len(b) + 2 > limit:
@@ -1252,12 +1285,13 @@ def main_post(args, today):
     clause_db, _ = load_clause_db(today)
     company = load_company()
 
-    f_long, f_short, f_exit, f_stop = [], [], [], []
+    T, N = day_lbl("今天", today), day_lbl("明天", nxt)
+    f_long, f_short, f_sell, f_cover, f_stop = [], [], [], [], []
     for c in cand_raw:                                   # 做多 1：5 天初犯預買
         cl = clause_type(clause_db, c["code"], nxt)
         di = dev20_info(c["code"], nxt, today, quotes, daily)
         f_long.append(fmt_next_cand(c, cl, di, close_of(c["code"], today, quotes, daily), False,
-                                    drop_notice(clause_db, c["code"], today)))
+                                    drop_notice(clause_db, c["code"], today), when=N, today_lbl=T))
     for d in disposals:                                  # 做多 2：7 天初犯明天處置首日
         if d["offense"] == "初犯" and d["n_days"] == 7 and d["start"] == nxt:
             cl = clause_type(clause_db, d["code"], nxt)
@@ -1266,49 +1300,50 @@ def main_post(args, today):
             if judge(cl, di, drop) == "drop":
                 order = f"👉 <b>不動作</b>｜{drop_txt(drop)}"
             elif cl == "一" and di:
-                order = (f"👉 <b>明天收盤：買進（做多）</b>，但有條件\n"
-                         f"　⚠️ 第一款：明天收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%）")
+                order = (f"👉 <b>{N}收盤：買進（做多）</b>，但有條件\n"
+                         f"　⚠️ 第一款：{N}收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%）")
             else:
-                order = "👉 <b>明天收盤：買進（做多）</b>｜✅ 買"
+                order = f"👉 <b>{N}收盤：買進（做多）</b>｜✅ 買"
             detail = [] if "不動作" in order else [
-                f"・處置：{d['start']:%m/%d}～{d['end']:%m/%d}（明天是處置首日）",
+                f"・處置：{d['start']:%m/%d}～{d['end']:%m/%d}（{N}是處置首日）",
                 f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
                 f"・停損：買價×{1-STOP_PCT:.2f}"]
             f_long.append("\n".join([f"{who(d)}（{kind(d)}）", order, *detail]))
     for d in disposals:                                  # 放空：7 天處置、明天是結束日前一天
         if d["n_days"] == 7 and d["short_entry"] == nxt:
-            order = ("👉 <b>明天收盤：先賣出多單，再放空</b>" if d["offense"] == "初犯" else "👉 <b>明天收盤：放空</b>")
-            f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order,
+            order = (f"👉 <b>{N}收盤：先賣出多單，再融券放空</b>" if d["offense"] == "初犯"
+                     else f"👉 <b>{N}收盤：融券放空</b>")
+            f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, short_why(d),
                                       f"・回補：{d['short_cover']:%m/%d}（出關日）收盤買回", "・停損：無"]))
 
     longs, stops, notes, shorts = positions(disposals, today, clause_db, quotes, daily, corp)
-    for d, rr in longs:                                  # 出場
+    for d, rr in longs:                                  # 賣出多單
         if d["long_exit"] == nxt:
             why = "處置最後一天" if d["n_days"] == 5 else "結束日前一天；接著放空，見放空區"
-            f_exit.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>明天收盤：賣出</b>（{why}）",
+            f_sell.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>{N}收盤：賣出</b>（{why}）",
                                      f"・進場：{rr['entry_date']:%m/%d} 收盤 {rr['entry']:g}",
                                      f"・現價：{rr['cur']:g}（{pct(rr['raw'] if rr['suspicious'] else rr['adj'])}）"]))
     for d, sr in shorts:
         if d["short_cover"] == nxt:
-            f_exit.append("\n".join([f"{who(d)}（{kind(d)}・空單）", "👉 <b>明天收盤：回補（買回）</b>（出關日）",
+            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{N}收盤：回補（買回）</b>（出關日）",
                                      f"・放空：{d['short_entry']:%m/%d} 收盤 {sr['entry']:g}",
                                      f"・現價：{sr['cur']:g}（{pct(sr['ret'])}）"]))
     for d, rr in stops:
         st = rr["stopped"]
-        f_stop.append("\n".join([f"{who(d)}（{kind(d)}・多單）", "👉 <b>明天盡快賣出（停損）</b>",
-                                 f"・今天收盤 {st['close']:g} ≤ 停損價 {rr['stop_price']:g}（{pct(st['ret'])}）",
-                                 "・若今天收盤已賣出就不用動作"]))
+        f_stop.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>{N}盡快賣出（停損）</b>",
+                                 f"・{T}收盤 {st['close']:g} ≤ 停損價 {rr['stop_price']:g}（{pct(st['ret'])}）",
+                                 f"・若{T}收盤已賣出就不用動作"]))
 
     holds_long = []
     for d, rr in sorted(longs, key=lambda x: (x[0]["long_exit"], x[0]["code"])):
         g = golden_check(d, company, daily, quotes)
-        head = ("｜今天進場" if d["entry"] == today else "") + ("｜🔴 明天出場" if d["long_exit"] == nxt else "")
+        head = (f"｜{T}進場" if d["entry"] == today else "") + (f"｜🟠 {N}賣出" if d["long_exit"] == nxt else "")
         extra = [f"・黃金濾網：✗ {html.escape(fail_reasons(g))}（只標註）"] if not g["golden"] else []
         holds_long.append(long_card(d, rr, head_extra=head, lines_extra=extra))
-    holds_short = [short_card(d, sr, head_extra="｜🟢 明天回補" if d["short_cover"] == nxt else "")
+    holds_short = [short_card(d, sr, head_extra=f"｜🔵 {N}回補" if d["short_cover"] == nxt else "")
                    for d, sr in sorted(shorts, key=lambda x: (x[0]["short_cover"], x[0]["code"]))]
 
-    msg = build_message(today, nxt, f_long, f_short, f_exit, f_stop, holds_long, holds_short, notes, cand_err)
+    msg = build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err)
     import hashlib
     sig = hashlib.md5(msg.split("📊")[0].encode("utf-8")).hexdigest()   # 焦點內容沒變就不重推
     if not args.dry_run and not args.force_send and meta.get("last_push_date") == str(today) and meta.get("last_sig") == sig:
@@ -1383,11 +1418,12 @@ def main_pre(args, today):
         q = mis.get(d["code"]) or {}
         return "・" + px_text(q.get("price"), q.get("prev"), q.get("up"), None, q.get("traded", True), q.get("src"))
 
-    f_long, f_short, f_exit, f_stop = [], [], [], []
+    T = day_lbl("今天", today)
+    f_long, f_short, f_sell, f_cover, f_stop = [], [], [], [], []
     for c in cands5:
         cl = clause_type(clause_db, c["code"], today)
         di = dev20_info(c["code"], today, today, {}, daily, now_price=price(c["code"]))
-        txt, _, _ = fmt_candidate(c, mis, cl, di, drop_notice(clause_db, c["code"], today, inclusive=False))
+        txt, _, _ = fmt_candidate(c, mis, cl, di, drop_notice(clause_db, c["code"], today, inclusive=False), when=T)
         f_long.append(txt)
     for d in new7:
         cl = clause_type(clause_db, d["code"], today)
@@ -1399,16 +1435,17 @@ def main_pre(args, today):
         elif v == "skip":
             order = f"👉 <b>不動作</b>｜🚫 不買：第一款、現價乖離 {di['dev']*100:+.0f}% > {DEV_MAX*100:.0f}%"
         elif cl == "一" and di:
-            order = f"👉 <b>今天收盤：買進（做多）</b>，但有條件\n　⚠️ 第一款：收盤 ≤ {di['thr']:g} 才買"
+            order = f"👉 <b>{T}收盤：買進（做多）</b>，但有條件\n　⚠️ 第一款：收盤 ≤ {di['thr']:g} 才買"
         else:
-            order = "👉 <b>今天收盤：買進（做多）</b>｜✅ 買"
+            order = f"👉 <b>{T}收盤：買進（做多）</b>｜✅ 買"
         detail = [] if v in ("drop", "skip") else [
             px_line(d), f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
             f"・停損：買價×{1-STOP_PCT:.2f}"]
-        f_long.append("\n".join([f"{who(d)}（{kind(d)}・今天是處置首日）", order, *detail]))
+        f_long.append("\n".join([f"{who(d)}（{kind(d)}・{T}是處置首日）", order, *detail]))
     for d in short_today:
-        order = ("👉 <b>今天收盤：先賣出多單，再放空</b>" if d["offense"] == "初犯" else "👉 <b>今天收盤：放空</b>")
-        f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, px_line(d),
+        order = (f"👉 <b>{T}收盤：先賣出多單，再融券放空</b>" if d["offense"] == "初犯"
+                 else f"👉 <b>{T}收盤：融券放空</b>")
+        f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, short_why(d), px_line(d),
                                   f"・回補：{d['short_cover']:%m/%d}（出關日）收盤買回", "・停損：無"]))
 
     holds_long, holds_short = [], []
@@ -1419,9 +1456,9 @@ def main_pre(args, today):
         head = ""
         if d["long_exit"] == today:
             why = "處置最後一天" if d["n_days"] == 5 else "結束日前一天；接著放空，見放空區"
-            f_exit.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>今天收盤：賣出</b>（{why}）",
+            f_sell.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>{T}收盤：賣出</b>（{why}）",
                                      f"・進場：{rr['entry_date']:%m/%d} 收盤 {rr['entry']:g}", f"・現價：{cur:g}（{pct(ret)}）"]))
-            head += "｜🔴 今天出場"
+            head += f"｜🟠 {T}賣出"
         if p and p <= rr["stop_price"]:
             f_stop.append("\n".join([f"{who(d)}（{kind(d)}・多單）", "👉 <b>收盤仍 ≤ 停損價就收盤賣出</b>",
                                      f"・現價 {p:g} ≤ 停損價 {rr['stop_price']:g}（{pct(ret)}）"]))
@@ -1438,15 +1475,15 @@ def main_pre(args, today):
             sr = dict(sr, cur=p, ret=(sr["entry"] - p) / sr["entry"] * 100)
         head = ""
         if d["short_cover"] == today:
-            f_exit.append("\n".join([f"{who(d)}（{kind(d)}・空單）", "👉 <b>今天收盤：回補（買回）</b>（出關日）",
+            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{T}收盤：回補（買回）</b>（出關日）",
                                      f"・放空：{d['short_entry']:%m/%d} 收盤 {sr['entry']:g}", f"・現價：{sr['cur']:g}（{pct(sr['ret'])}）"]))
-            head = "｜🟢 今天回補"
+            head = f"｜🔵 {T}回補"
         holds_short.append(short_card(d, sr, head_extra=head))
     notes = [HIT_RATE_NOTE.strip()] if cands5 else []
     if cand_err:
         notes.append(f"⚠️ 5 天初犯候選計算失敗：{html.escape(cand_err[:80])}")
 
-    msg = build_pre_message(today, anchor, f_long, f_short, f_exit, f_stop, holds_long, holds_short, notes)
+    msg = build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes)
     print("\n" + msg + "\n")
     if args.dry_run:
         print("[dry-run] 未推播、未寫紀錄。")

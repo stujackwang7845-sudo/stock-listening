@@ -199,34 +199,46 @@ class NewPushLayoutTest(unittest.TestCase):
         self.assertIn("預計出場：10/16 收盤賣", ll)
         self.assertIn("預計回補：10/20 收盤買回", sl)
         self.assertIn("\n", ll)                                      # 一檔多行
-        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), ["多A", "多A2"], ["空B"], ["出C"], [], [ll], [sl], [])
-        for t in ("策略說明", "明日焦點（10/16 收盤前）", "🟢 <b>做多", "🔴 <b>放空", "⚪ <b>出場", "持有中", "多單 1 檔", "空單 1 檔"):
+        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), ["多A", "多A2"], ["空B"], ["賣C"], ["補D"], [],
+                              [ll], [sl], [])
+        for t in ("策略說明", "明日焦點｜明天（10/16）收盤前", "做多・買進｜明天（10/16）收盤", "放空・融券賣出",
+                  "賣出多單", "回補空單", "持有多單", "持有空單"):
             self.assertIn(t, msg)
         self.assertIn("多A\n" + n.SEP + "\n多A2", msg)                 # 每檔之間有分隔線
+        self.assertIn("<blockquote expandable>🟢 <b>做多・買進｜明天（10/16）收盤</b>（2 檔）", msg)   # 各區塊可展開
+        self.assertIn("<blockquote expandable>🔵 <b>回補空單・買回｜明天（10/16）收盤</b>（1 檔）", msg)
         self.assertEqual(msg.count("<blockquote"), msg.count("</blockquote>"))
-        pre = n.build_pre_message(date(2026, 10, 16), date(2026, 10, 15), [], [], [], ["停D"], [], [], [])
+        self.assertNotIn("明天收盤", msg.replace("RULES", ""))       # 「明天」後面一律帶日期
+        pre = n.build_pre_message(date(2026, 10, 16), date(2026, 10, 15), [], [], [], [], ["停D"], [], [], [])
         self.assertIn("盤中提醒", pre)
-        self.assertIn("今天收盤前要做的事", pre)
+        self.assertIn("今天（10/16）收盤前要做的事", pre)
         self.assertIn("⛔ <b>停損注意", pre)
-        self.assertIn("做多（買進）</b>\n　無", pre)
+        self.assertIn("🟢 <b>做多・買進｜今天（10/16）收盤</b>：無", pre)          # 沒內容只留一行
 
     def test_candidate_shows_predicted_days(self):
         c = dict(code="3265", name="台星科", market="上櫃", offense="初犯", days=5,
                  days_note="10日內6次 → 5天", conditions=["收盤漲幅 ≥ 3.2%"])
-        txt = n.fmt_next_cand(c, "六", None, 100.0, False)
-        self.assertIn("明天收盤前：買進（做多）", txt)
+        txt = n.fmt_next_cand(c, "六", None, 100.0, False, when="明天（10/16）", today_lbl="今天（10/15）")
+        self.assertIn("明天（10/16）收盤前：買進（做多）", txt)
+        self.assertIn("今天（10/15）收盤：100", txt)
         self.assertIn("<b>5 天</b>", txt)
         self.assertIn("10日內6次 → 5天", txt)
         self.assertIn("收盤漲幅 ≥ 3.2%", txt)
 
     def test_split_message_keeps_items(self):
         items = [f"項目{i}\n" + "x" * 300 for i in range(30)]
-        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), items, [], [], [], [], [], [])
+        msg = n.build_message(date(2026, 10, 15), date(2026, 10, 16), items, [], [], [], [], [], [], [])
         chunks = n.split_message(msg)
         self.assertTrue(len(chunks) > 1 and all(len(ch) <= 4000 for ch in chunks))
         self.assertEqual(sum(ch.count("項目") for ch in chunks), 30)
         for ch in chunks:
-            self.assertEqual(ch.count("<blockquote"), ch.count("</blockquote>"))
+            self.assertEqual(ch.count("<blockquote"), ch.count("</blockquote>"))   # 拆開的區塊各自補上開關標籤
+        self.assertTrue(any("（續）" in ch for ch in chunks[1:]))
+
+    def test_short_card_explains_date(self):
+        d = n.enrich(dict(code="6213", name="聯茂", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
+                          n_days=7, offense="初犯", entry=date(2026, 10, 8)))
+        self.assertIn("處置 10/08～10/19：10/16 是結束日前一天，10/20 出關日回補", n.short_why(d))
 
     def test_fmt_next_cand_drop(self):
         c = dict(code="2059", name="川湖", market="上市", conditions=[])
