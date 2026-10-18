@@ -120,7 +120,10 @@ def main():
                           "close": x.get("close"), "enter_freq": x.get("enter_freq"), "offense": offense,
                           "days": days, "days_note": why, "min_needed": need,
                           "progress": {k: tp.get(k) for k in ("rule1", "rule2", "rule3", "rule4")},
-                          "conditions": trigger_lines(x.get("calc_results"))})
+                          "conditions": trigger_lines(x.get("calc_results")),
+                          # 資料不完整警告(股價缺日/注意條款缺日，2026-10-18)：推播要照實標出，不可默默給錯的目標價
+                          "data_warning": [strip_html(l) for l in x.get("calc_results") or []
+                                           if "股價資料不完整" in l or "注意條款資料缺" in l]})
         out = {"anchor": iso, "n_listening": len(res["listening"]), "candidates": cands}
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)
         Path(a.out).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

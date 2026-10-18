@@ -638,89 +638,138 @@ def build_agg_data(history_manager, target_date=None, cache_mgr=None, progress=N
     return agg_data
 
 
-def fill_attention_clauses_gap(target_date, db_path=None):
+CLAUSE_LOG_START = "2026-10-18"   # 這天之前沒有抓取紀錄：表裡已有該市場資料就視為完成
+CLAUSE_LOOKBACK = 40              # 每次檢查最近幾個交易日(30 日 12 次規則 + 緩衝)
+
+
+def _clause_records(day_iso, items):
+    from core.clause_parser import ClauseNumberParser
+    out = []
+    for item in items:
+        code = item.get('code', '').strip()
+        if not code or len(code) != 4:
+            continue
+        reason = item.get('reason', '')
+        for clause_num in (ClauseNumberParser.parse(reason) or [0]):
+            out.append({
+                'announce_date': day_iso,
+                'code': code,
+                'name': item.get('name', ''),
+                'source': item.get('source', 'TWSE'),
+                'clause_number': clause_num,
+                'reason': reason,
+            })
+    return out
+
+
+def fill_attention_clauses_gap(target_date, db_path=None, lookback=CLAUSE_LOOKBACK, since=None, pause=0.3):
     """
-    attention_clauses 表回補(原 ui/dashboard.py ClausesGapFetchWorker.run，2026-10-05 P4 原樣搬出)：
-    查表裡最新公告日，只回補「最新公告日+1」到 target_date 的交易日；表是空的就回補往前 8 個交易日。
+    attention_clauses 回補(2026-10-18 改寫)。
+    舊版只補「表裡最新公告日+1 ~ target_date」，中間某天(或某個市場)抓失敗後永遠不會回頭補
+    (實測 6/25~7/8 整段缺)。新版：
+      - 檢查 target_date 往前 lookback 個交易日(或 since 起)的每一天、上市/上櫃各自檢查；
+      - attention_fetch_log 記錄「哪天哪個市場已成功抓過」，當天真的沒有注意股(0 筆)也算完成，不會一直重抓；
+      - 只有「已經過去的日子」才記完成：當天還沒公布時官網也回 0 筆，必須下次再查；
+      - 抓失敗(連線/格式錯)記 fail，下次重抓。
     回傳寫入筆數；例外交給呼叫端處理。
     """
     import sqlite3
-    from datetime import timedelta
+    import time as _time
+    from datetime import date as _date, timedelta
     from core.scraper_twse_notice import NoticeFetcher
-    from core.clause_parser import ClauseNumberParser
     from core import database_clause_ext
     from core.runtime import get_paths
 
     conn = sqlite3.connect(db_path or get_paths().disposal_db)
-    cursor = conn.cursor()
-
-    # 找出表裡目前最新的公告日，只回補「最新公告日+1」到「顯示日期」這段
-    cursor.execute("SELECT MAX(announce_date) FROM attention_clauses")
-    row = cursor.fetchone()
-    latest = row[0] if row else None
-
-    target_date_only = target_date.date() if hasattr(target_date, 'date') else target_date
-
-    if latest:
-        try:
-            start_date = datetime.strptime(latest, "%Y-%m-%d").date() + timedelta(days=1)
-        except Exception:
-            start_date = None
-    else:
-        start_date = None
-
-    if start_date is None:
-        # 表是空的或解析失敗，退回跟手動按鈕一樣的預設範圍(往前 8 個交易日)
+    try:
+        conn.execute("CREATE TABLE IF NOT EXISTS attention_fetch_log (announce_date TEXT, source TEXT, status TEXT, "
+                     "n INTEGER, fetched_at TEXT, PRIMARY KEY (announce_date, source))")
+        conn.commit()
+        target = target_date.date() if hasattr(target_date, 'date') else target_date
+        today = _date.today()
         dates = []
-        if DateUtils.is_trading_day(target_date_only):
-            dates.append(target_date_only)
-        count = 0
-        test_date = target_date_only - timedelta(days=1)
-        while count < 8:
-            if DateUtils.is_trading_day(test_date):
-                dates.append(test_date)
-                count += 1
-            test_date -= timedelta(days=1)
+        d = target
+        if since is not None:
+            since_d = since.date() if hasattr(since, 'date') else since
+            while d >= since_d:
+                if DateUtils.is_trading_day(d):
+                    dates.append(d)
+                d -= timedelta(days=1)
+        else:
+            while len(dates) < lookback:
+                if DateUtils.is_trading_day(d):
+                    dates.append(d)
+                d -= timedelta(days=1)
         dates.reverse()
-    else:
-        dates = []
-        d = start_date
-        while d <= target_date_only:
-            if DateUtils.is_trading_day(d):
-                dates.append(d)
-            d += timedelta(days=1)
-
-    if not dates:
+        if not dates:
+            return 0
+        lo, hi = dates[0].isoformat(), dates[-1].isoformat()
+        done = {(a, s) for a, s in conn.execute(
+            "SELECT announce_date, source FROM attention_fetch_log WHERE status = 'ok' AND announce_date BETWEEN ? AND ?",
+            (lo, hi))}
+        have = {(a, s) for a, s in conn.execute(
+            "SELECT DISTINCT announce_date, source FROM attention_clauses WHERE announce_date BETWEEN ? AND ?", (lo, hi))}
+        saved = 0
+        for day in dates:
+            iso = day.isoformat()
+            for mk in ("TWSE", "TPEX"):
+                if (iso, mk) in done or (iso < CLAUSE_LOG_START and (iso, mk) in have):
+                    continue
+                ok, items = NoticeFetcher.fetch_market(datetime(day.year, day.month, day.day), mk)
+                if ok:
+                    recs = _clause_records(iso, items)
+                    if recs:
+                        saved += database_clause_ext.save_attention_clauses(conn, recs)
+                    if day < today:
+                        conn.execute("INSERT OR REPLACE INTO attention_fetch_log VALUES (?, ?, 'ok', ?, ?)",
+                                     (iso, mk, len(items), datetime.now().isoformat(timespec="seconds")))
+                else:
+                    print(f"[注意條款回補] {iso} {mk} 抓取失敗，下次再補")
+                    conn.execute("INSERT OR REPLACE INTO attention_fetch_log VALUES (?, ?, 'fail', 0, ?)",
+                                 (iso, mk, datetime.now().isoformat(timespec="seconds")))
+                conn.commit()
+                if pause:
+                    _time.sleep(pause)
+        return saved
+    finally:
         conn.close()
-        return 0
 
-    all_records = []
-    for date in dates:
-        date_dt = datetime(date.year, date.month, date.day)
-        data = NoticeFetcher.fetch_notice(date_dt)
-        if not data:
-            continue
-        for item in data:
-            code = item.get('code', '').strip()
-            if not code or len(code) != 4:
+
+def attention_clause_holes(target_date, db_path=None, lookback=CLAUSE_LOOKBACK):
+    """最近 lookback 個交易日中，上市或上櫃還沒成功抓到的日子(給畫面標示用，不連網)。回傳 [(日期, 市場)]。"""
+    import sqlite3
+    from datetime import date as _date, timedelta
+    from core.runtime import get_paths
+    target = target_date.date() if hasattr(target_date, 'date') else target_date
+    dates, d = [], target
+    while len(dates) < lookback:
+        if DateUtils.is_trading_day(d):
+            dates.append(d)
+        d -= timedelta(days=1)
+    lo, hi = min(dates).isoformat(), max(dates).isoformat()
+    conn = sqlite3.connect(db_path or get_paths().disposal_db)
+    try:
+        try:
+            done = {(a, s) for a, s in conn.execute(
+                "SELECT announce_date, source FROM attention_fetch_log WHERE status = 'ok' AND announce_date BETWEEN ? AND ?",
+                (lo, hi))}
+        except sqlite3.OperationalError:
+            done = set()
+        have = {(a, s) for a, s in conn.execute(
+            "SELECT DISTINCT announce_date, source FROM attention_clauses WHERE announce_date BETWEEN ? AND ?", (lo, hi))}
+    finally:
+        conn.close()
+    today = _date.today()
+    holes = []
+    for day in sorted(dates):
+        iso = day.isoformat()
+        for mk in ("TWSE", "TPEX"):
+            if (iso, mk) in done or (iso, mk) in have:
                 continue
-            reason = item.get('reason', '')
-            clauses = ClauseNumberParser.parse(reason)
-            if not clauses:
-                clauses = [0]
-            for clause_num in clauses:
-                all_records.append({
-                    'announce_date': date.strftime('%Y-%m-%d'),
-                    'code': code,
-                    'name': item.get('name', ''),
-                    'source': item.get('source', 'TWSE'),
-                    'clause_number': clause_num,
-                    'reason': reason
-                })
-
-    saved_count = database_clause_ext.save_attention_clauses(conn, all_records) if all_records else 0
-    conn.close()
-    return saved_count
+            if day >= today:
+                continue                     # 今天可能還沒公布
+            holes.append((day, mk))
+    return holes
 
 
 def merge_disposal_status_from_db(agg_data, target_date, history_manager):

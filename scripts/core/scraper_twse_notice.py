@@ -16,7 +16,18 @@ class NoticeFetcher:
         return twse_data + tpex_data
 
     @staticmethod
-    def _fetch_twse_notice(date_obj: datetime):
+    def fetch_market(date_obj: datetime, market: str):
+        """
+        單一市場、帶成功與否(2026-10-18)：回傳 (ok, rows)。
+        ok=True 代表官網正常回應(含「當天沒有注意股」的 0 筆)；ok=False 代表連線/格式失敗，要重抓。
+        原本兩個函式失敗時回 []，跟「當天沒有」分不出來，回補邏輯就會把失敗的日子當成已完成。
+        """
+        if market == "TWSE":
+            return NoticeFetcher._fetch_twse_notice(date_obj, with_status=True)
+        return NoticeFetcher._fetch_tpex_notice(date_obj, with_status=True)
+
+    @staticmethod
+    def _fetch_twse_notice(date_obj: datetime, with_status=False):
         """
         抓取 TWSE 指定日期的公布注意交易資訊 (含第X款)
         URL: https://www.twse.com.tw/rwd/zh/announcement/notice
@@ -35,12 +46,14 @@ class NoticeFetcher:
         }
         
         results = []
+        ok = False
         try:
             r = requests.get(url, params=params, headers=headers, verify=False, timeout=10)
             if r.status_code == 200:
                 data = r.json()
                 if data.get('stat', '').lower() == 'ok':
-                    rows = data.get('data', [])
+                    ok = True
+                    rows = data.get('data', []) or []
                     for row in rows:
                         if len(row) >= 6:
                             # [1] 代號, [2] 名稱, [4] 注意交易資訊(條款)
@@ -55,12 +68,13 @@ class NoticeFetcher:
                                 'source': 'TWSE'
                             })
         except Exception as e:
+            ok = False
             print(f"[NoticeFetcher] TWSE Error for {date_str}: {e}")
-            
-        return results
+
+        return (ok, results) if with_status else results
 
     @staticmethod
-    def _fetch_tpex_notice(date_obj: datetime):
+    def _fetch_tpex_notice(date_obj: datetime, with_status=False):
         """
         抓取 TPEX 指定日期的公布注意交易資訊 (含第X款)
         URL: https://www.tpex.org.tw/www/zh-tw/bulletin/attention
@@ -83,10 +97,12 @@ class NoticeFetcher:
         }
         
         results = []
+        ok = False
         try:
             r = requests.get(url, params=params, headers=headers, verify=False, timeout=10)
             if r.status_code == 200:
                 data = r.json()
+                ok = data.get('stat', '').lower() == 'ok' and isinstance(data.get('tables'), list)
                 if data.get('stat', '').lower() == 'ok' and 'tables' in data and data['tables']:
                     # TPEX returns a list of tables, usually the first one is what we need
                     table = data['tables'][0]
@@ -105,9 +121,10 @@ class NoticeFetcher:
                                 'source': 'TPEX'
                             })
         except Exception as e:
+            ok = False
             print(f"[NoticeFetcher] TPEX Error for {date_str}: {e}")
-            
-        return results
+
+        return (ok, results) if with_status else results
 
 if __name__ == "__main__":
     import urllib3

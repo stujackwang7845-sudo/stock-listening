@@ -16,6 +16,7 @@ from core.disposal_stats_analytics import (  # noqa: E402
 def _make_price_frame() -> pd.DataFrame:
     dates = pd.to_datetime(
         [
+            "2023-12-29",   # T-1 要用前一天收盤算漲跌(2026-08-25 改依日期找 T-1 後必須有這天)
             "2024-01-02",
             "2024-01-03",
             "2024-01-04",
@@ -25,8 +26,8 @@ def _make_price_frame() -> pd.DataFrame:
     )
     frame = pd.DataFrame(
         {
-            "open": [100.0, 101.0, 103.0, 100.0, 102.0],
-            "close": [100.0, 103.0, 101.0, 102.0, 104.0],
+            "open": [100.0, 100.0, 101.0, 103.0, 100.0, 102.0],
+            "close": [100.0, 100.0, 103.0, 101.0, 102.0, 104.0],
         },
         index=dates,
     )

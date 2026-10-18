@@ -668,6 +668,23 @@ class StockFetcher:
                     # Re-read full from cache to return
                     cached_df = self.cache.get_price_history(code)
             
+            # 2b. [2026-10-18] 補中間缺的交易日：上面只看「最後一天」，中間某天沒抓到就永遠缺，
+            # calculator 以「往前數第幾筆」算 6/30 日漲幅會整個算錯。先用本機官方行情 parquet 補，
+            # 還缺才上網(每檔每次執行最多一次)，仍缺的日期放 attrs["missing_days"] 讓畫面標示。
+            missing_days = []
+            if cached_df is not None and not cached_df.empty:
+                try:
+                    from core import price_gapfill
+                    idx = pd.to_datetime(cached_df.index).normalize()
+                    hi = min(idx.max(), target_date).date()
+                    lo = max(idx.min(), target_date - pd.Timedelta(days=200)).date()
+                    added, missing_days = price_gapfill.fill_code(
+                        self.cache.db_path, code, idx, lo, hi, self.fm_client, allow_fetch)
+                    if added:
+                        cached_df = self.cache.get_price_history(code)
+                except Exception as e:
+                    print(f"[Fetcher] {code} 補洞檢查失敗：{e}")
+
             # 3. Get Stock Info (Shares)
             # [Fix] 股本(shares_outstanding)只在快取為空時才重抓，增資/減資後
             # 快取數字會永久卡在舊的股本，導致周轉率相關的張數門檻算錯（曾發生
@@ -687,9 +704,17 @@ class StockFetcher:
             
             # --- [Fix] Fetch and Merge PER/PBR ---
             if cached_df is not None and not cached_df.empty:
+                # [2026-10-18] 本益比同樣只往後補、中間會缺；先用 DB 專案 per_daily_raw 補(本機、不覆蓋)
+                try:
+                    from core import price_gapfill
+                    pidx = pd.to_datetime(cached_df.index).normalize()
+                    price_gapfill.fill_ratios(self.cache.db_path, code, pidx,
+                                              (target_date - pd.Timedelta(days=200)).date(), target_date.date())
+                except Exception as e:
+                    print(f"[Fetcher] {code} 本益比補洞失敗：{e}")
                 # Try to get Ratios from Cache
                 ratios_df = self.cache.get_ratios(code)
-                
+
                 # Check if we need to update ratios
                 # If cached_df has new dates that ratios_df doesn't cover?
                 last_ratio_date = None
@@ -734,6 +759,7 @@ class StockFetcher:
                  # Filter if cols exist
                  valid_cols = [c for c in cols if c in cached_df.columns]
                  final_df = cached_df[valid_cols].copy()
+                 final_df.attrs["missing_days"] = missing_days
                  print(f"[Fetcher] returning final_df for {code}, len={len(final_df)}")
                  return final_df, shares
                  

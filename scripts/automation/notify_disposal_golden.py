@@ -918,6 +918,7 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
     lines += [f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
              f"・天數依據：{html.escape(note)}" if note else None,
              px_line,
+             *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
              f"・進處置條件（{when}收盤達任一）：",
              *(cond_lines or ["　　（再被注意即進處置，無單一價位條件）"]),
              f"・出場：處置最後一天收盤賣；停損＝買價×{1 - STOP_PCT:.2f}"]

@@ -18,7 +18,8 @@ from core.utils import DateUtils
 
 # 快取裡的 calc_results 若不是這個版本算的，一律重算(舊版結果分區是錯的)
 # v3(2026-10-05)：行情快取修正(Shioaji 量張→股、未收盤 K 棒)與 [3] 款量比較單位修正後重算
-CONDITIONS_VERSION = 3
+# v4(2026-10-18)：股價快取補洞(中間缺日)後重算、缺日標示、前60日第二款處置改查本地
+CONDITIONS_VERSION = 4
 
 CLAUSE_1_8 = ['一', '二', '三', '四', '五', '六', '七', '八']
 
@@ -249,10 +250,24 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
         return result
 
     import pandas as pd
+    missing = list(history_df.attrs.get("missing_days") or [])
     history_df = history_df[pd.to_datetime(history_df.index).date <= anchor_dt.date()]
     if history_df.empty:
         result["lines"] = ["資料截斷後為空"]
         return result
+    # [2026-10-18] 股價缺日要標出來，不可默默算錯：
+    #   (a) 快取中間缺的交易日(fetch_stock_history 補不到的)；
+    #   (b) 快取最後一天早於顯示日(那幾天補抓失敗)，否則會把舊的一天當成顯示日來算。
+    try:
+        from core import price_gapfill
+        last = pd.to_datetime(history_df.index).max().date()
+        if last < anchor_dt.date():
+            missing += price_gapfill.trading_days(last + timedelta(days=1), anchor_dt.date())
+    except Exception as e:
+        print(f"[conditions_engine] {code} 缺日檢查失敗：{e}")
+    lo = anchor_dt.date() - timedelta(days=100)       # 6/30 日漲幅、60 日均量會用到的範圍
+    missing = sorted({d for d in missing if lo <= d <= anchor_dt.date()})
+    result["missing_days"] = missing
 
     # 前30個營業日曾發生第一款(排除條件 Rule A)：用同一份逐日條款資料
     has_c1_30 = any(item["is_clause1"] for item in hist_items)
@@ -263,6 +278,19 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
         needed_c1=needed_c1, needed_any=needed_any, stock_name=name,
         has_c1_30=has_c1_30, has_c2_disp_60=has_c2_disp_60,
     )
+    if missing:
+        from core.price_gapfill import missing_text
+        lines = [f"<span style='color:#FFB000;'>⚠ 股價資料不完整：缺 {missing_text(missing)}，下列條件可能不準</span>"] + list(lines)
+    # 注意條款缺日(官網抓失敗還沒補到)：聽牌進度/還差幾次會算錯，一樣要標示(只查本地，不連網)
+    try:
+        from core.dashboard_engine import attention_clause_holes
+        holes = attention_clause_holes(anchor_dt)
+        if holes:
+            txt = "、".join(f"{d:%m/%d}{'上市' if mk == 'TWSE' else '上櫃'}" for d, mk in holes[:4])
+            lines = [f"<span style='color:#FFB000;'>⚠ 注意條款資料缺 {txt}{' 等' if len(holes) > 4 else ''}，聽牌進度可能不準</span>"] + list(lines)
+            result["clause_holes"] = holes
+    except Exception as e:
+        print(f"[conditions_engine] 注意條款缺日檢查失敗：{e}")
     result.update({
         "lines": lines,
         "exclusion_lines": exclusion_lines,
