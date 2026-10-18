@@ -912,8 +912,10 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
     days = c.get("days") or 5
     note = c.get("days_note") or ""
     lines = [f"<b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）｜{CLAUSE_TXT[clause]}",
-             order,
-             f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
+             order]
+    if verdict in ("drop", "skip"):                      # 濾掉的只留名稱＋原因(2026-10-18 使用者要求)
+        return "\n".join(lines)
+    lines += [f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
              f"・天數依據：{html.escape(note)}" if note else None,
              px_line,
              f"・進處置條件（{when}收盤達任一）：",
@@ -1267,10 +1269,11 @@ def main_post(args, today):
                          f"　⚠️ 第一款：明天收盤 ≤ {di['thr']:g} 才買（超過代表乖離 > {DEV_MAX*100:.0f}%）")
             else:
                 order = "👉 <b>明天收盤：買進（做多）</b>｜✅ 買"
-            f_long.append("\n".join([f"{who(d)}（{kind(d)}）", order,
-                                     f"・處置：{d['start']:%m/%d}～{d['end']:%m/%d}（明天是處置首日）",
-                                     f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
-                                     f"・停損：買價×{1-STOP_PCT:.2f}"]))
+            detail = [] if "不動作" in order else [
+                f"・處置：{d['start']:%m/%d}～{d['end']:%m/%d}（明天是處置首日）",
+                f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
+                f"・停損：買價×{1-STOP_PCT:.2f}"]
+            f_long.append("\n".join([f"{who(d)}（{kind(d)}）", order, *detail]))
     for d in disposals:                                  # 放空：7 天處置、明天是結束日前一天
         if d["n_days"] == 7 and d["short_entry"] == nxt:
             order = ("👉 <b>明天收盤：先賣出多單，再放空</b>" if d["offense"] == "初犯" else "👉 <b>明天收盤：放空</b>")
@@ -1398,9 +1401,10 @@ def main_pre(args, today):
             order = f"👉 <b>今天收盤：買進（做多）</b>，但有條件\n　⚠️ 第一款：收盤 ≤ {di['thr']:g} 才買"
         else:
             order = "👉 <b>今天收盤：買進（做多）</b>｜✅ 買"
-        f_long.append("\n".join([f"{who(d)}（{kind(d)}・今天是處置首日）", order, px_line(d),
-                                 f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
-                                 f"・停損：買價×{1-STOP_PCT:.2f}"]))
+        detail = [] if v in ("drop", "skip") else [
+            px_line(d), f"・出場：{d['long_exit']:%m/%d} 收盤賣（結束日前一天，同時改放空）",
+            f"・停損：買價×{1-STOP_PCT:.2f}"]
+        f_long.append("\n".join([f"{who(d)}（{kind(d)}・今天是處置首日）", order, *detail]))
     for d in short_today:
         order = ("👉 <b>今天收盤：先賣出多單，再放空</b>" if d["offense"] == "初犯" else "👉 <b>今天收盤：放空</b>")
         f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, px_line(d),

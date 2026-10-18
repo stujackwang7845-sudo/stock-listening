@@ -232,6 +232,8 @@ class NewPushLayoutTest(unittest.TestCase):
         c = dict(code="2059", name="川湖", market="上市", conditions=[])
         txt = n.fmt_next_cand(c, "一", dict(dev=None, thr=1.0, close=None), 9720.0, False, "10/15 第一款跌幅達28.57%")
         self.assertIn("不買", txt)
+        self.assertNotIn("預估", txt)                                # 濾掉的只留名稱＋原因兩行
+        self.assertEqual(len(txt.split("\n")), 2)
 
 
 DEV = 0.35
