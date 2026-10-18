@@ -17,12 +17,12 @@ class DispositionCalculator:
         #     return ["面額不為10,無法計算"], False
         
         if history_df is None or len(history_df) < 5:
-            return ["資料不足 (Need > 5 days)"], False
+            return ["資料不足 (Need > 5 days)"], False, []   # 呼叫端一律拆 3 個值(2026-10-18：原本回 2 個會 ValueError)
         
         # 過濾掉收盤價為 NaN 的資料列（停牌、無成交等）
         history_df = history_df.dropna(subset=['Close'])
         if len(history_df) < 5:
-            return ["資料不足 (有效收盤價不足 5 天)"], False
+            return ["資料不足 (有效收盤價不足 5 天)"], False, []   # 呼叫端一律拆 3 個值(2026-10-18：原本回 2 個會 ValueError)
             
         # Ensure descending for index convenience (Latest is Last)
         closes = history_df['Close'].tolist()
@@ -30,7 +30,7 @@ class DispositionCalculator:
         
         # NaN 防護：檢查 last_close 是否有效
         if last_close is None or (isinstance(last_close, float) and math.isnan(last_close)) or last_close <= 0:
-            return ["收盤價異常 (NaN 或 ≤0)"], False
+            return ["收盤價異常 (NaN 或 ≤0)"], False, []   # 呼叫端一律拆 3 個值(2026-10-18：原本回 2 個會 ValueError)
         
         # Helper to get source label
         source_label = f"({source})" if source else ""

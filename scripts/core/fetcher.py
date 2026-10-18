@@ -672,6 +672,7 @@ class StockFetcher:
             # calculator 以「往前數第幾筆」算 6/30 日漲幅會整個算錯。先用本機官方行情 parquet 補，
             # 還缺才上網(每檔每次執行最多一次)，仍缺的日期放 attrs["missing_days"] 讓畫面標示。
             missing_days = []
+            ratio_missing = []
             if cached_df is not None and not cached_df.empty:
                 try:
                     from core import price_gapfill
@@ -747,6 +748,10 @@ class StockFetcher:
                         # Reload full ratios
                         ratios_df = self.cache.get_ratios(code)
                 
+                # [2026-10-18] 本益比「整列沒有」與「有列但值是 NULL(虧損)」合併後都是 NaN，calculator 會一律當虧損
+                # (第六款本益比條件直接成立)。把最近 10 個交易日沒有本益比列的日子記下來，讓畫面標示。
+                ratio_dates = set(pd.to_datetime(ratios_df.index).normalize()) if ratios_df is not None and not ratios_df.empty else set()
+                ratio_missing = [d.date() for d in pd.to_datetime(cached_df.index).normalize()[-10:] if d not in ratio_dates]
                 # Merge Ratios into Main DF
                 if ratios_df is not None and not ratios_df.empty:
                     # Join on Date index
@@ -760,6 +765,7 @@ class StockFetcher:
                  valid_cols = [c for c in cols if c in cached_df.columns]
                  final_df = cached_df[valid_cols].copy()
                  final_df.attrs["missing_days"] = missing_days
+                 final_df.attrs["ratio_missing_days"] = ratio_missing
                  print(f"[Fetcher] returning final_df for {code}, len={len(final_df)}")
                  return final_df, shares
                  

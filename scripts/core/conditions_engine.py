@@ -251,6 +251,7 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
 
     import pandas as pd
     missing = list(history_df.attrs.get("missing_days") or [])
+    ratio_missing = anchor_dt.date() in set(history_df.attrs.get("ratio_missing_days") or [])
     history_df = history_df[pd.to_datetime(history_df.index).date <= anchor_dt.date()]
     if history_df.empty:
         result["lines"] = ["資料截斷後為空"]
@@ -281,6 +282,8 @@ def compute_stock_conditions(code, source, name, anchor_dt, clauses_map, disp_re
     if missing:
         from core.price_gapfill import missing_text
         lines = [f"<span style='color:#FFB000;'>⚠ 股價資料不完整：缺 {missing_text(missing)}，下列條件可能不準</span>"] + list(lines)
+    if ratio_missing:
+        lines = [f"<span style='color:#FFB000;'>⚠ 本益比資料缺 {anchor_dt:%m/%d}，第六款(本益比)會被當成虧損而成立，可能不準</span>"] + list(lines)
     # 注意條款缺日(官網抓失敗還沒補到)：聽牌進度/還差幾次會算錯，一樣要標示(只查本地，不連網)
     try:
         from core.dashboard_engine import attention_clause_holes

@@ -235,6 +235,31 @@ class NewPushLayoutTest(unittest.TestCase):
             self.assertEqual(ch.count("<blockquote"), ch.count("</blockquote>"))   # 拆開的區塊各自補上開關標籤
         self.assertTrue(any("（續）" in ch for ch in chunks[1:]))
 
+    def test_watch_card_for_7day_candidate(self):
+        c = dict(code="6217", name="中探針", market="上櫃", offense="初犯", days=7, days_note="連5日 期間有第十三款")
+        txt = n.watch_card(c, "明天（10/19）", "後天（10/20）")
+        self.assertIn("明天（10/19）不動作", txt)
+        self.assertIn("後天（10/20）（處置首日）收盤買進", txt)
+        msg = n.build_message(date(2026, 10, 16), date(2026, 10, 19), [], [], [], [], [], [], [], [], f_watch=[txt])
+        self.assertIn("👀 <b>觀察（7 天聽牌，明天（10/19）不動作）</b>（1 檔）", msg)
+        c2 = dict(c, offense="累犯")
+        self.assertIn("累犯不做多", n.watch_card(c2, "明天（10/19）", "後天（10/20）"))
+
+    def test_positions_keeps_short_on_long_exit_day(self):
+        """7 天初犯：同一收盤賣多單再放空，那天的持倉要有空單(2026-10-18 6213 漏掉的回歸測試)。"""
+        from unittest import mock
+        d = n.enrich(dict(code="6213", name="聯茂", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
+                          n_days=7, offense="初犯", entry=date(2026, 10, 8)))
+        rr = dict(entry=806.0, entry_date=date(2026, 10, 8), cur=774.0, raw=-4.0, adj=-4.0, suspicious=False,
+                  stop_price=741.0, stopped=None)
+        sr = dict(entry=774.0, cur=774.0, ret=0.0, blocked=False)
+        with mock.patch.object(n, "long_bought", return_value=(True, "")), \
+                mock.patch.object(n, "long_status", return_value=rr), \
+                mock.patch.object(n, "short_status", return_value=sr):
+            longs, stops, notes, shorts = n.positions([d], date(2026, 10, 16), None, {}, {}, {})
+        self.assertEqual(longs, [])                                   # 多單今天收盤已賣
+        self.assertEqual([x[0]["code"] for x in shorts], ["6213"])    # 空單今天收盤已空
+
     def test_short_card_explains_date(self):
         d = n.enrich(dict(code="6213", name="聯茂", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
                           n_days=7, offense="初犯", entry=date(2026, 10, 8)))

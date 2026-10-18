@@ -849,23 +849,43 @@ def day_lbl(word, d):
     return f"{word}（{d:%m/%d}）"
 
 
-def _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, stop_title):
+def watch_card(c, when, start):
+    """
+    觀察(2026-10-18 使用者問 6217)：預估 7 天的聽牌股不用預買，但要講清楚「明天不動作、公告後哪天做什麼」，
+    不能直接略過讓人以為漏掉。when=明天/今天標籤，start=若公告處置的處置首日標籤。
+    """
+    if c.get("offense") == "初犯":
+        plan = f"若{when}收盤後公告處置 → {start}（處置首日）收盤買進（做多）"
+    else:
+        plan = "累犯不做多；若進處置，處置結束日前一天收盤融券放空（策略 A）"
+    return "\n".join(x for x in [
+        f"<b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）"
+        f"｜聽牌，預估 {c.get('days')} 天{c.get('offense', '')}",
+        f"👉 <b>{when}不動作</b>；{plan}",
+        f"・天數依據：{html.escape(c.get('days_note') or '')}" if c.get("days_note") else None,
+        *[f"・{html.escape(w)}" for w in c.get("data_warning") or []]] if x)
+
+
+def _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, stop_title, f_watch=()):
     parts += [section_block(f"🟢 <b>做多・買進｜{when}收盤</b>", f_long),
               section_block(f"🔴 <b>放空・融券賣出｜{when}收盤</b>", f_short),
               section_block(f"🟠 <b>賣出多單｜{when}收盤</b>", f_sell),
               section_block(f"🔵 <b>回補空單・買回｜{when}收盤</b>", f_cover)]
     if f_stop:
         parts.append(section_block(stop_title, f_stop))
+    if f_watch:
+        parts.append(section_block(f"👀 <b>觀察（7 天聽牌，{when}不動作）</b>", list(f_watch)))
 
 
-def build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err=None):
+def build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err=None,
+                  f_watch=()):
     """盤後推播：策略說明 → 明日焦點(做多/放空/賣出/回補/停損，各自可展開) → 持有中(多/空各自可展開)。"""
     wd = "一二三四五六日"
     when = day_lbl("明天", nxt)
     parts = [f"🔔 <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤後</b>\n"
              f"以下是{when}({wd[nxt.weekday()]}) 收盤前要做的事；點區塊可展開/收合", RULES_HTML,
              f"{BAR}\n🎯 <b>明日焦點｜{when}收盤前</b>\n{BAR}"]
-    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, f"⛔ <b>停損｜{when}盡快賣出</b>")
+    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, f"⛔ <b>停損｜{when}盡快賣出</b>", f_watch)
     if cand_err:
         parts.append(f"⚠️ 5 天初犯預買候選計算失敗，請看{when}盤中提醒（{html.escape(cand_err[:80])}）")
     parts += [f"{BAR}\n📊 <b>持有中｜{today:%m/%d} 收盤</b>\n{BAR}",
@@ -876,14 +896,15 @@ def build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_lo
     return "\n\n".join(parts).strip()
 
 
-def build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes):
+def build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes,
+                      f_watch=()):
     """盤中提醒：策略說明 → 今日焦點(各自可展開) → 持有中(即時價)。"""
     wd = "一二三四五六日"
     when = day_lbl("今天", today)
     parts = [f"⏰ <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤中提醒</b>\n"
              f"以下是{when}收盤前要做的事（聽牌預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）；點區塊可展開/收合",
              RULES_HTML, f"{BAR}\n🎯 <b>今日焦點｜{when}收盤前</b>\n{BAR}"]
-    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, "⛔ <b>停損注意</b>")
+    _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, "⛔ <b>停損注意</b>", f_watch)
     parts += [f"{BAR}\n📊 <b>持有中｜即時價</b>\n{BAR}",
               section_block("🟢 <b>持有多單</b>", holds_long),
               section_block("🔴 <b>持有空單</b>", holds_short)]
@@ -896,23 +917,29 @@ def positions(disposals, today, clause_db, quotes, daily, corp):
     """照規則推算目前部位(以 today 收盤為準)。
     回傳 (多單 [(d, rr)], 多單今天停損 [(d, rr)], 沒買的說明, 空單 [(d, sr)])。"""
     longs, stops, notes, shorts = [], [], [], []
+
+    def long_part(d):
+        # 多單判斷獨立成函式：這裡的 return 只結束多單，不會連帶跳過下面的空單
+        # (2026-10-18 修：原本在迴圈裡 continue，7 天初犯「同一收盤賣多再放空」那天空單被漏掉，6213 10/16)
+        ok, why = long_bought(d, clause_db, quotes, daily, today)
+        if not ok:
+            if d["entry"] == today:
+                notes.append(f"（{d['code']} {nm(d['code'], d['name'])} {today:%m/%d} 是進場日但不買：{why}）")
+            return
+        rr = long_status(d, today, quotes, daily, corp)
+        if rr is None:
+            return
+        if rr["stopped"]:
+            if rr["stopped"]["date"] == today:
+                stops.append((d, rr))
+            return                             # 更早就停損出場了
+        if d["long_exit"] == today:
+            return                             # 今天收盤已出場
+        longs.append((d, rr))
+
     for d in disposals:
         if d["offense"] == "初犯" and d["entry"] <= today <= d["long_exit"]:
-            ok, why = long_bought(d, clause_db, quotes, daily, today)
-            if not ok:
-                if d["entry"] == today:
-                    notes.append(f"（{d['code']} {nm(d['code'], d['name'])} {today:%m/%d} 是進場日但不買：{why}）")
-                continue
-            rr = long_status(d, today, quotes, daily, corp)
-            if rr is None:
-                continue
-            if rr["stopped"]:
-                if rr["stopped"]["date"] == today:
-                    stops.append((d, rr))
-                continue                       # 更早就停損出場了
-            if d["long_exit"] == today:
-                continue                       # 今天收盤已出場
-            longs.append((d, rr))
+            long_part(d)
         if d["n_days"] == 7 and d["short_entry"] <= today < d["short_cover"]:
             sr = short_status(d, today, quotes, daily)
             if sr and not sr["blocked"]:
@@ -1266,11 +1293,12 @@ def main_post(args, today):
     log = load_log()
     meta = log.setdefault("_meta", {})
 
-    cand_raw, cand_err = [], None
+    cand_raw, cand7, cand_err = [], [], None
     try:
         data = run_worker(today, Path(PROJ / "temp" / f"evening_{today:%Y%m%d}.json"))
         busy = {d["code"] for d in disposals if d["end"] >= nxt}
         cand_raw = [c for c in data["candidates"] if c["code"] not in busy and c["offense"] == "初犯" and c["days"] == 5]
+        cand7 = [c for c in data["candidates"] if c["code"] not in busy and c["days"] == 7]
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 明日預買候選計算失敗：{e}")
@@ -1343,7 +1371,9 @@ def main_post(args, today):
     holds_short = [short_card(d, sr, head_extra=f"｜🔵 {N}回補" if d["short_cover"] == nxt else "")
                    for d, sr in sorted(shorts, key=lambda x: (x[0]["short_cover"], x[0]["code"]))]
 
-    msg = build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err)
+    f_watch = [watch_card(c, N, day_lbl("後天", next_trading_day(nxt))) for c in cand7]
+    msg = build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err,
+                        f_watch)
     import hashlib
     sig = hashlib.md5(msg.split("📊")[0].encode("utf-8")).hexdigest()   # 焦點內容沒變就不重推
     if not args.dry_run and not args.force_send and meta.get("last_push_date") == str(today) and meta.get("last_sig") == sig:
@@ -1387,10 +1417,11 @@ def main_pre(args, today):
 
     disposals = [enrich(d) for d in load_disposals(today) if d["n_days"] in (5, 7)]
     busy = {d["code"] for d in disposals if d["end"] >= today}
-    cands5, cand_err = [], None
+    cands5, cand7, cand_err = [], [], None
     try:
         data = run_worker(anchor, Path(PROJ / "temp" / f"preclose_{today:%Y%m%d}.json"))
         cands5 = [c for c in data["candidates"] if c["code"] not in busy and c["offense"] == "初犯" and c["days"] == 5]
+        cand7 = [c for c in data["candidates"] if c["code"] not in busy and c["days"] == 7]
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 盤中候選計算失敗：{e}")
@@ -1483,7 +1514,9 @@ def main_pre(args, today):
     if cand_err:
         notes.append(f"⚠️ 5 天初犯候選計算失敗：{html.escape(cand_err[:80])}")
 
-    msg = build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes)
+    f_watch = [watch_card(c, T, day_lbl("明天", next_trading_day(today))) for c in cand7]
+    msg = build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes,
+                            f_watch)
     print("\n" + msg + "\n")
     if args.dry_run:
         print("[dry-run] 未推播、未寫紀錄。")

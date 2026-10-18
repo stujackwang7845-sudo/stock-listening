@@ -167,3 +167,17 @@ class ClauseGapTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RatioMissingWarnTest(unittest.TestCase):
+    def test_warns_when_anchor_has_no_per_row(self):
+        import pandas as pd
+        idx = pd.to_datetime(["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15"])
+        df = pd.DataFrame({"Open": 10.0, "High": 10.0, "Low": 10.0, "Close": 10.0, "Volume": 1e6,
+                           "PER": float("nan"), "PBR": 2.0}, index=idx)
+        df.attrs["ratio_missing_days"] = [date(2026, 10, 15)]
+        with mock.patch("core.dashboard_engine.attention_clause_holes", return_value=[]), \
+                mock.patch.object(pg, "trading_days", lambda lo, hi: []):
+            r = ce.compute_stock_conditions("1234", "上市", "x", datetime(2026, 10, 15), clauses_map={}, disp_records=[],
+                                            history_df=df, shares_outstanding=1e7)
+        self.assertTrue(any("本益比資料缺 10/15" in l for l in r["lines"]))
