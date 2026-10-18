@@ -103,6 +103,25 @@ def recent_clauses(code, until_iso, n_days=10, db_path=None):
     return out
 
 
+def recent_clause13(code, until_iso, n_days=10, db_path=None):
+    """
+    近期第十三款(當日沖銷占比過高)：{日期: 那天是否只有第十三款(沒有第 1~8 款以外的其他款)}。
+    2026-10-19 使用者要求「近期注意條款」也顯示 13 款；只給畫面用，不放進 recent_clauses 的字串——
+    那個字串也拿來算下次進處置的規則進度(只能有第 1~8 款)。
+    """
+    days = recent_trading_days(until_iso, n_days)
+    conn = sqlite3.connect(db_path or get_paths().disposal_db)
+    try:
+        rows = conn.execute("SELECT announce_date, clause_number FROM attention_clauses "
+                            "WHERE code = ? AND announce_date BETWEEN ? AND ?", (str(code), days[0], days[-1])).fetchall()
+    finally:
+        conn.close()
+    by_day = {}
+    for d, c in rows:
+        by_day.setdefault(d, set()).add(c)
+    return {d: not (cs - set(CLAUSE_CN) - {13}) for d, cs in by_day.items() if 13 in cs}
+
+
 def next_disposal_outlook(code, source, disp_d, mine, db_path=None):
     """
     「下次進處置」：跟總覽(forecast_engine.run_forecast)同一套算法——最近 30 個交易日的注意條款
@@ -244,6 +263,7 @@ def outlook_detail(code, disp_d, disp_iso, mine, next_hint, last):
             "state": state, "freq": m.group(1) if m else "—", "total_days": days, "days_note": why,
             "progress": progress, "offense": offense, "next_label": label, "last_disposal": last_txt,
             "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
+            "recent_c13": recent_clause13(code, disp_iso),
             "next": nx, "stats_bucket": None, "stats_title": "",
             "next_stats_bucket": nb, "next_stats_title": nt, "next_stats_basis": nbasis}
 
@@ -354,6 +374,7 @@ def compute_disposal_detail(code, display_date, records=None, next_hint=None):
         "condition": cond or "—", "again_within_30": again,
         "official_reason": official_reason_text(rec.get("reason") or ""),
         "recent_clauses": recent_clauses(code, disp_iso), "recent_days": recent_trading_days(disp_iso),
+            "recent_c13": recent_clause13(code, disp_iso),
         "stats_bucket": stats_bucket, "stats_title": stats_title,
         "next": _next(code, rec.get("source", ""), disp_d, mine, next_hint),
     }

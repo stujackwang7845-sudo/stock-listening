@@ -248,8 +248,21 @@ class DetailsTab(QWidget):
         t.setHorizontalHeaderLabels([day[5:].replace("-", "/") + (" (今)" if day == d.get("display_date") else "")
                                      for day in days])
         t.horizontalHeader().setStyleSheet("QHeaderView::section { color: #4da6ff; font-weight: bold; }")
+        c13 = d.get("recent_c13") or {}
         for i, day in enumerate(days):
             c = by_day.get(day, "")
+            if day in c13:
+                # 第十三款(當日沖銷占比過高)：圓形圖示附在條款後面(2026-10-19 使用者要求)。
+                # 那天只有第十三款時 recent_clauses 會寫「其他」，改成只顯示圖示
+                from ui.badges import clause13_badge_html
+                base = "" if (c == "其他" and c13[day]) else c
+                color = "#9a9a9a" if base == "其他" else "#E0E0E0"
+                lbl = QLabel((f"<span style='color: {color};'>{base}</span>," if base else "") + clause13_badge_html())
+                lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                lbl.setStyleSheet("QLabel { background: transparent; border: none; }")
+                t.setItem(0, i, QTableWidgetItem(""))
+                t.setCellWidget(0, i, lbl)
+                continue
             it = QTableWidgetItem(c)
             it.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             it.setForeground(QBrush(QColor("#9a9a9a" if c == "其他" else "#E0E0E0")))
