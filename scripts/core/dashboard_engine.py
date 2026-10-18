@@ -1281,6 +1281,25 @@ def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
     except Exception as e:
         print(f"[populate_table] disposal_records 讀取失敗(初犯/累犯標示將略過): {e}")
 
+    # [2026-10-18 使用者要求] 日期欄加顯示第十三款(當日沖銷占比過高)為「⑬」：新制只有連續3日/連續5日型
+    # 且計算期間內有第十三款才處置 7 天，看得到才知道會不會變 7 天。只加在顯示用的 HTML，
+    # 不放進 clauses 字串——那個字串也拿來算 10日6次/30日12次 的累計，只能有第 1~8 款。
+    clause13_cells = set()
+    try:
+        import sqlite3
+        from core.runtime import get_paths
+        _lo = (display_date - dt.timedelta(days=45)).strftime("%Y-%m-%d")
+        _hi = (display_date + dt.timedelta(days=15)).strftime("%Y-%m-%d")
+        _c = sqlite3.connect(get_paths().disposal_db)
+        try:
+            for _code, _d in _c.execute("SELECT code, announce_date FROM attention_clauses "
+                                        "WHERE clause_number = 13 AND announce_date BETWEEN ? AND ?", (_lo, _hi)):
+                clause13_cells.add((str(_code), f"{_d[5:7]}/{_d[8:10]}"))
+        finally:
+            _c.close()
+    except Exception as e:
+        print(f"[populate_table] 第十三款讀取失敗(表格不顯示⑬): {e}")
+
     # [Crawler Integration] Fetch Official Attention List
     # [Crawler Integration] Fetch Official Attention List - ALREADY DONE in update_info_boxes
     # today_attention_map should be ready
@@ -1805,7 +1824,9 @@ def compute_dashboard_rows(agg_data, display_date, calendar, history_manager,
                         html_parts.append(f"<span style='color: #FF4444; font-weight: bold;'>{c}</span>")
                     else:
                         html_parts.append(f"<span style='color: #4da6ff;'>{c}</span>")
-            
+            if (str(code), d) in clause13_cells:
+                html_parts.append("<span style='color: #FFA500; font-weight: bold;'>⑬</span>")
+
             final_html = ",".join(html_parts)
 
             # Add Sort Item (Hidden value for sorting)
