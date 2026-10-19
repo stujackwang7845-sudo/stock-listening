@@ -1508,6 +1508,11 @@ class Dashboard(QWidget):
             if DateUtils.is_trading_day(new_date):
                 break
             new_date += dt.timedelta(days=1 if offset > 0 else -1)
+        # 系統設定「只顯示新制」：不往前翻到 2026-08-10 以前(2026-10-20)
+        from core.app_settings import new_regime_only, NEW_REGIME_START
+        if new_regime_only() and new_date.strftime("%Y-%m-%d") < NEW_REGIME_START:
+            self.status_message_updated.emit("系統設定為「只顯示新制」，不顯示 2026/08/10 以前的日期")
+            return
         self.load_data_for_date(new_date)
 
     def open_history_page(self):
@@ -1947,6 +1952,9 @@ class Dashboard(QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             
             cal = QCalendarWidget()
+            from core.app_settings import new_regime_only
+            if new_regime_only():
+                cal.setMinimumDate(QDate(2026, 8, 10))   # 系統設定「只顯示新制」
             cal.setSelectedDate(QDate(self.current_display_date.year, self.current_display_date.month, self.current_display_date.day))
             cal.clicked.connect(lambda d: dlg.accept())
             layout.addWidget(cal)

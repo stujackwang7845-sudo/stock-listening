@@ -83,7 +83,8 @@ class MainWindow(QMainWindow):
         self.tab_disposal_stats = DisposalStatsPage(self.history_manager)
         self.tab_disposal_stats_chart = DisposalStatsOverviewWidget(auto_refresh=True)
         self.tab_forecast = ForecastPage()
-        self.tab4 = QWidget()
+        from ui.settings_page import SettingsPage
+        self.tab4 = SettingsPage()   # 系統設定(2026-10-20：只顯示新制開關)
         
         # Connect Signal (Use grid_table for Dashboard)
         # Note: Dashboard mockup might load async, but widget exists immediately
@@ -105,8 +106,9 @@ class MainWindow(QMainWindow):
         # Connect Tag update signal to refresh history page
         self.tab_tag_mgmt.tag_updated.connect(self.tab3.load_items)
         
-        # Setup placeholders for empty tabs (Only for tab4 now)
-        self.setup_tab_placeholder(self.tab4, "系統設定 (Settings)")
+        # 系統設定「只顯示新制」切換時，各頁立即重新整理(不用重開程式)
+        from core import app_settings
+        app_settings.on_change(self._on_regime_setting_changed)
         
         main_layout.addWidget(self.tabs)
         
@@ -146,6 +148,32 @@ class MainWindow(QMainWindow):
             hint = fp.forecast_entry(code)
         self.tab2.show_stock(code, display_date, name, next_hint=hint)
         self.tabs.setCurrentWidget(self.tab2)
+
+    def _on_regime_setting_changed(self, new_only):
+        """系統設定「只顯示新制」切換後：各頁套用新設定並重新整理。單一頁失敗不影響其他頁。"""
+        from datetime import datetime
+        from core.app_settings import NEW_REGIME_START
+        from core.utils import DateUtils
+        steps = [
+            ("歷史紀錄", lambda: (setattr(self.tab3, "current_page", 0), self.tab3.load_items())),
+            ("處置統計", lambda: self.tab_disposal_stats.apply_regime_setting()),
+            ("統計圖表", lambda: self.tab_disposal_stats_chart.apply_regime_setting()),
+        ]
+        if getattr(self.tab2, "_last_show", None):
+            steps.append(("詳細條件", lambda: self.tab2.show_stock(*self.tab2._last_show)))
+        if new_only:
+            latest = DateUtils.get_last_trading_day()
+            if self.tab_forecast.current_display_date.strftime("%Y-%m-%d") < NEW_REGIME_START:
+                steps.append(("處置預測總覽", lambda: (setattr(self.tab_forecast, "current_display_date", latest),
+                                                    self.tab_forecast.reload_data())))
+            if self.tab1.current_display_date.strftime("%Y-%m-%d") < NEW_REGIME_START:
+                steps.append(("監控儀表板", lambda: self.tab1.load_data_for_date(latest)))
+        for name, fn in steps:
+            try:
+                fn()
+            except Exception as e:
+                print(f"[MainWindow] 套用「只顯示新制」設定到 {name} 失敗：{e}")
+        self.statusBar().showMessage("已切換：只顯示新制資料" if new_only else "已切換：顯示全部資料（含舊制）", 5000)
 
     def setup_tab_placeholder(self, tab, text):
         layout = QVBoxLayout(tab)

@@ -287,6 +287,7 @@ class DisposalStatsPage(QWidget):
         self.start_date_edit.setCalendarPopup(True)
         self.start_date_edit.setDate(QDate(2026, 8, 10))  # [2026-10-16 使用者要求] 預設新制(2026-08-10)起
         toolbar.addWidget(self.start_date_edit)
+        self.apply_regime_setting(refresh=False)
         
         toolbar.addWidget(QLabel("結束日:"))
         self.end_date_edit = QDateEdit()
@@ -1035,6 +1036,21 @@ class DisposalStatsPage(QWidget):
         
         # 顯示選單
         menu.exec(self.table.horizontalHeader().mapToGlobal(pos))
+
+    def apply_regime_setting(self, refresh=True):
+        """
+        系統設定「只顯示新制」(2026-10-20)：開 → 開始日最早只能選 2026-08-10(早於就拉回)；
+        關 → 不限制。依公告日過濾，跟新制「8/10(含)以後公告」的定義一致。
+        """
+        from core.app_settings import new_regime_only
+        if new_regime_only():
+            self.start_date_edit.setMinimumDate(QDate(2026, 8, 10))
+            if self.start_date_edit.date() < QDate(2026, 8, 10):
+                self.start_date_edit.setDate(QDate(2026, 8, 10))
+        else:
+            self.start_date_edit.setMinimumDate(QDate(1990, 1, 1))
+        if refresh and getattr(self, "all_records", None):
+            self.apply_filters()
 
     def _records_in_date_range(self):
         """日期範圍(與「只顯示個股」)內的紀錄：過濾選項只列這些紀錄裡有的值(2026-10-16 使用者要求)。"""

@@ -459,7 +459,9 @@ def disposal_history_rows(code, records=None):
         db = DisposalDatabase(get_paths().disposal_db)
         records = db.get_all_records()
         db.close()
-    rule_iso = RULE_CHANGE_DATE.isoformat()
+    # 系統設定「只顯示新制」(預設開)：只列新制；關掉列全部(2026-10-20)
+    from core.app_settings import new_regime_only
+    rule_iso = RULE_CHANGE_DATE.isoformat() if new_regime_only() else ""
     mine = [r for r in records if str(r.get("code", "")).strip().removesuffix(".0") == code
             and (r.get("period_start") or "") >= rule_iso]
     if not mine:

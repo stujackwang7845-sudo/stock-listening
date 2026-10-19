@@ -311,8 +311,27 @@ class DisposalStatsOverviewWidget(QWidget):
         self.chart_canvas: FigureCanvasQTAgg | None = None
 
         self._build_ui()
+        self.apply_regime_setting()
         if auto_refresh:
             self.refresh(force_refresh=False)
+
+    def apply_regime_setting(self) -> None:
+        """
+        系統設定「只顯示新制」(2026-10-20)：開 → 隱藏「全樣本／5 分(舊制)／20 分(舊制)」，停在「2 分(新制)」；
+        關 → 全部按鈕都顯示(原本行為)。
+        """
+        from core.app_settings import new_regime_only
+        only = new_regime_only()
+        for value in ("all", 5, 20):
+            button = self._interval_buttons.get(value)
+            if button:
+                button.setVisible(not only)
+        if only and self.current_interval in ("all", 5, 20):
+            self._interval_buttons[2].setChecked(True)
+            if self.dataset is not None:
+                self._set_interval(2)
+            else:
+                self.current_interval = 2
 
     def _build_ui(self) -> None:
         self.setStyleSheet(

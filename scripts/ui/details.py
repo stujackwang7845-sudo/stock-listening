@@ -142,6 +142,7 @@ class DetailsTab(QWidget):
     def show_stock(self, code, display_date, name="", next_hint=None):
         """雙擊入口：code 股票代號、display_date 該頁目前的顯示日。"""
         from core.disposal_detail import compute_disposal_detail
+        self._last_show = (code, display_date, name, next_hint)   # 系統設定切換時重畫用
         try:
             d = compute_disposal_detail(code, display_date, next_hint=next_hint)
         except Exception as e:
@@ -282,7 +283,8 @@ class DetailsTab(QWidget):
             self.hist_table.setVisible(False)
             return
         rows, cols = h["rows"], h["columns"]
-        self.hist_title.setText(f"歷史處置前後漲跌幅（新制 {len(rows)} 次，處置前一天～出關後一天的逐日漲跌；處置期間漲跌幅＝處置末日收盤÷處置前一天收盤−1）")
+        from core.app_settings import new_regime_only
+        self.hist_title.setText(f"歷史處置前後漲跌幅（{'新制' if new_regime_only() else '含舊制共'} {len(rows)} 次，處置前一天～出關後一天的逐日漲跌；處置期間漲跌幅＝處置末日收盤÷處置前一天收盤−1）")
         self.hist_title.setVisible(True)
         if not rows:
             self.hist_table.setVisible(False)

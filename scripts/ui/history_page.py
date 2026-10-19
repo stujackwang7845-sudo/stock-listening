@@ -730,7 +730,9 @@ class HistoryPage(QWidget):
         mode = self.sort_combo.currentText()
         
         records = self.manager.get_all()
-        
+        from core.app_settings import new_regime_only
+        new_only = new_regime_only()
+
         # Sort
         if '舊->新' in mode:
             records.sort(key=lambda x: x['date'])
@@ -753,6 +755,9 @@ class HistoryPage(QWidget):
                 except:
                     pass
             if not is_valid_day:
+                continue
+            # 系統設定「只顯示新制」(預設開，2026-10-20)：只留若進處置會適用新制的紀錄
+            if new_only and not self._is_new_regime_record(r, date_str):
                 continue
                 
             code = str(r.get('code', ''))
@@ -891,6 +896,14 @@ class HistoryPage(QWidget):
     def _entry_freq(self, code, date_str, source):
         info = self._entry_freq_info(code, date_str, source)
         return info["text"], info["tip"]
+
+    def _is_new_regime_record(self, r, date_str):
+        """這筆紀錄若進處置會不會適用新制(2026-08-10 起公告)。8/1 前一定舊制、8/10 起一定新制，中間看預估公告日。"""
+        if not date_str or date_str >= self.NEW_REGIME_ANNOUNCE:
+            return True
+        if date_str < "2026-08-01":
+            return False
+        return self._entry_freq_info(str(r.get("code", "")), date_str, r.get("source", ""))["regime"] == "新制"
 
     def _ef_match(self, info, mode):
         """過濾：進處置頻率下拉選單的條件。"""

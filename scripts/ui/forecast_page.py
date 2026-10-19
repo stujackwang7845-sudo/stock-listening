@@ -553,10 +553,16 @@ class ForecastPage(QWidget):
 
     def change_date(self, offset):
         from datetime import timedelta
-        self.current_display_date += timedelta(days=offset)
+        from core.app_settings import new_regime_only, NEW_REGIME_START
+        new_date = self.current_display_date + timedelta(days=offset)
         # Skip non-trading days
-        while not DateUtils.is_trading_day(self.current_display_date):
-            self.current_display_date += timedelta(days=1 if offset > 0 else -1)
+        while not DateUtils.is_trading_day(new_date):
+            new_date += timedelta(days=1 if offset > 0 else -1)
+        # 系統設定「只顯示新制」：不往前翻到 2026-08-10 以前(2026-10-20)
+        if new_regime_only() and new_date.strftime("%Y-%m-%d") < NEW_REGIME_START:
+            self.status_message_updated.emit("系統設定為「只顯示新制」，不顯示 2026/08/10 以前的日期")
+            return
+        self.current_display_date = new_date
         self.reload_data()
 
     def toggle_calendar(self):
@@ -566,6 +572,10 @@ class ForecastPage(QWidget):
         dialog.setWindowTitle("選擇日期")
         layout = QVBoxLayout(dialog)
         cal = QCalendarWidget()
+        from core.app_settings import new_regime_only
+        if new_regime_only():
+            from PyQt6.QtCore import QDate
+            cal.setMinimumDate(QDate(2026, 8, 10))   # 系統設定「只顯示新制」
         cal.setSelectedDate(self.current_display_date.date())
         layout.addWidget(cal)
         btn = QPushButton("確定")
