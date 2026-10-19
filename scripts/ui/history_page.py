@@ -623,9 +623,10 @@ class HistoryPage(QWidget):
         
         # Table Widget
         self.table = QTableWidget()
-        self.table.setColumnCount(10)
+        self.table.setColumnCount(11)
+        # [2026-10-20] 股號/名稱右邊加「進處置頻率」：聽牌當天若再被注意而進處置，會是幾分、5/7 天、初犯/累犯
         self.table.setHorizontalHeaderLabels([
-            "日期", "股號/名稱", "觸發說明", 
+            "日期", "股號/名稱", "進處置頻率", "觸發說明",
             "聽牌日(T)", "隔日(T+1)", "狀態", "頻率", "隔二日(T+2)", "註解", "檢討"
         ])
         
@@ -633,22 +634,23 @@ class HistoryPage(QWidget):
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # Date
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # Code
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed) # Trigger (Fixed Spec)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed) # Chart - Swapped
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed) # Chart T+1 - Swapped
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents) # Status
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents) # Frequency
-        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Fixed) # Chart T+2
-        header.setSectionResizeMode(8, QHeaderView.ResizeMode.Interactive) # Comment
-        header.setSectionResizeMode(9, QHeaderView.ResizeMode.Interactive) # Review
-        
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # 進處置頻率(預測)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed) # Trigger (Fixed Spec)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed) # Chart - Swapped
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Chart T+1 - Swapped
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents) # Status
+        header.setSectionResizeMode(7, QHeaderView.ResizeMode.ResizeToContents) # Frequency
+        header.setSectionResizeMode(8, QHeaderView.ResizeMode.Fixed) # Chart T+2
+        header.setSectionResizeMode(9, QHeaderView.ResizeMode.Interactive) # Comment
+        header.setSectionResizeMode(10, QHeaderView.ResizeMode.Interactive) # Review
+
         # Fixed width
-        self.table.setColumnWidth(2, 420)
-        self.table.setColumnWidth(3, 280) # Chart T
-        self.table.setColumnWidth(4, 280) # Chart T+1
-        self.table.setColumnWidth(7, 280) # Chart T+2
-        self.table.setColumnWidth(8, 350) # Comment
-        self.table.setColumnWidth(9, 350) # Review
+        self.table.setColumnWidth(3, 420)
+        self.table.setColumnWidth(4, 280) # Chart T
+        self.table.setColumnWidth(5, 280) # Chart T+1
+        self.table.setColumnWidth(8, 280) # Chart T+2
+        self.table.setColumnWidth(9, 350) # Comment
+        self.table.setColumnWidth(10, 350) # Review
         
         self.table.verticalHeader().setDefaultSectionSize(180) # Default Row Height
         
@@ -810,10 +812,49 @@ class HistoryPage(QWidget):
             self.current_page += 1
             self.load_items()
 
+    def _entry_freq(self, code, date_str, source):
+        """
+        進處置頻率(預測，2026-10-20 使用者要求)：以這筆紀錄的日期為準，若再被注意而進處置，
+        會是幾分撮合、處置 5 或 7 天、初犯或累犯。跟推播/詳細條件同一套算法：
+        頻率與初犯/累犯 = forecast_engine.predict_exact_disposal_frequency(經 next_disposal_outlook)，
+        天數 = disposal_detail.predict_next_days(連續3/5日型且期間有第十三款才 7 天)。
+        只用這天(含)以前公告的處置紀錄，不偷看之後的資料。回傳 (顯示文字, 說明)。
+        """
+        cache = self.__dict__.setdefault("_entry_freq_cache", {})
+        key = (str(code), date_str)
+        if key in cache:
+            return cache[key]
+        text, tip = "—", ""
+        try:
+            from core.conditions_engine import _norm_ymd
+            from core.disposal_detail import next_disposal_outlook, predict_next_days
+            from core.disposal_database import DisposalDatabase
+            if not hasattr(self, "_ef_db"):
+                self._ef_db = DisposalDatabase()
+            ymd = date_str.replace("-", "")
+            recs = [x for x in self._ef_db.get_disposal_by_code(str(code))
+                    if _norm_ymd(x.get("announce_date")) and _norm_ymd(x.get("announce_date")) <= ymd]
+            d = datetime.strptime(date_str, "%Y-%m-%d").date()
+            o = next_disposal_outlook(str(code), source, d, recs)
+            days, why = predict_next_days(str(code), date_str, o["trigger_progress"])
+            label = o.get("next_label") or ""
+            freq, off = (label[:-2], label[-2:]) if label[-2:] in ("初犯", "累犯") else (label, "")
+            text = f"{freq}\n{days}天{off}"
+            mn = o.get("min_needed")
+            if days == 5 and "會變 7 天" in (why or ""):
+                text += "\n(之後有⑬→7天)"      # 連續3/5日型：觸發前那幾天若出現第十三款就變 7 天(例 6213 10/06)
+            if isinstance(mn, int) and mn > 1:
+                text += f"\n(還差{mn}次)"
+            tip = why
+        except Exception as e:
+            print(f"[HistoryPage] {code} {date_str} 進處置頻率計算失敗：{e}")
+        cache[key] = (text, tip)
+        return cache[key]
+
     def _batch_update_charts(self):
         self._update_queue = []
         for row in range(self.table.rowCount()):
-            for col in [3, 4, 7]:
+            for col in [4, 5, 8]:
                 widget = self.table.cellWidget(row, col)
                 if isinstance(widget, HistoryChartWidget) and getattr(widget, 'is_no_cache', False):
                     self._update_queue.append(widget)
@@ -908,12 +949,22 @@ class HistoryPage(QWidget):
             item_name = QTableWidgetItem(display_text)
             item_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(r_idx, 1, item_name)
-            
+
+            # 2. 進處置頻率(預測)：這天若再被注意而進處置 → 幾分、5/7 天、初犯/累犯
+            ef_text, ef_tip = self._entry_freq(code, r['date'], source)
+            item_ef = QTableWidgetItem(ef_text)
+            item_ef.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if ef_tip:
+                item_ef.setToolTip(ef_tip)
+            if "7天" in ef_text:
+                item_ef.setForeground(QColor(255, 165, 0))
+            self.table.setItem(r_idx, 2, item_ef)
+
             # 2. Trigger Info (Swapped to Col 2)
             # 2. Trigger Info (HTML Table Spec)
             trigger_info = r.get('trigger_info', '')
             t_widget = self._render_trigger_cell(trigger_info, r['date'], code)
-            self.table.setCellWidget(r_idx, 2, t_widget)
+            self.table.setCellWidget(r_idx, 3, t_widget)
             
             # Charts Variables
             token = "unused" 
@@ -933,7 +984,7 @@ class HistoryPage(QWidget):
             d1 = base_delay
                 
             c1 = HistoryChartWidget(token, code, base_date_str, "(聽牌)", stock_name=name, delay_ms=d1, cache_manager=self.cache_manager, source=source, strict_local=True)
-            self.table.setCellWidget(r_idx, 3, c1)
+            self.table.setCellWidget(r_idx, 4, c1)
             
             # 4. Chart T+1 (Swapped to Col 4)
             dt2 = DateUtils.get_next_trading_day(base_dt)
@@ -942,7 +993,7 @@ class HistoryPage(QWidget):
             d2 = base_delay + 30
                  
             c2 = HistoryChartWidget(token, code, d_str2, "(隔日)", stock_name=name, delay_ms=d2, cache_manager=self.cache_manager, source=source, strict_local=True)
-            self.table.setCellWidget(r_idx, 4, c2)
+            self.table.setCellWidget(r_idx, 5, c2)
 
             # 5. Status (Swapped to Col 5)
             # [Fix] History Status Accuracy
@@ -1002,7 +1053,7 @@ class HistoryPage(QWidget):
             elif "處置中" in status_text:
                 item_status.setForeground(QColor(255, 165, 0)) # Orange
                 item_status.setFont(self.table.font())
-            self.table.setItem(r_idx, 5, item_status)
+            self.table.setItem(r_idx, 6, item_status)
             
             # 6. Frequency (New)
             freq_text = ""
@@ -1059,7 +1110,7 @@ class HistoryPage(QWidget):
             
             item_freq = QTableWidgetItem(freq_text)
             item_freq.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setItem(r_idx, 6, item_freq)
+            self.table.setItem(r_idx, 7, item_freq)
             
             # 7. Chart T+2
             dt3 = DateUtils.get_next_trading_day(dt2)
@@ -1068,7 +1119,7 @@ class HistoryPage(QWidget):
             d3 = base_delay + 60
                  
             c3 = HistoryChartWidget(token, code, d_str3, "(隔二日)", stock_name=name, delay_ms=d3, cache_manager=self.cache_manager, source=source, strict_local=True)
-            self.table.setCellWidget(r_idx, 7, c3)
+            self.table.setCellWidget(r_idx, 8, c3)
             
             # 8. Comment Widget with Tag Support (Compact Design)
             comment_container = QWidget()
@@ -1130,7 +1181,7 @@ class HistoryPage(QWidget):
                 
             comm_edit.textChanged.connect(on_text_changed)
             
-            self.table.setCellWidget(r_idx, 8, comment_container)
+            self.table.setCellWidget(r_idx, 9, comment_container)
 
             # 9. Review Widget (New)
             # Similar to Comment but saves to 'review' key
@@ -1191,7 +1242,7 @@ class HistoryPage(QWidget):
             
             rev_edit.textChanged.connect(on_rev_changed)
             
-            self.table.setCellWidget(r_idx, 9, review_container)
+            self.table.setCellWidget(r_idx, 10, review_container)
         
         self._update_pager_ui()
 
