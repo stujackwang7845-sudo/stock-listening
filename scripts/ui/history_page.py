@@ -18,6 +18,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import mplfinance as mpf
 import requests
+import re
 import io
 
 from core.history_manager import HistoryManager
@@ -599,7 +600,8 @@ class HistoryPage(QWidget):
         toolbar.addWidget(self.search_input)
         
         self.sort_combo = QComboBox()
-        self.sort_combo.addItems(["日期 (新->舊)", "日期 (舊->新)", "股號"])
+        self.sort_combo.addItems(["日期 (新->舊)", "日期 (舊->新)", "股號",
+                                  "進處置頻率 (7天/累犯優先)", "進處置頻率 (5天/初犯優先)"])
         self.sort_combo.currentIndexChanged.connect(self.sort_items)
         toolbar.addWidget(QLabel("排序:"))
         toolbar.addWidget(self.sort_combo)
@@ -610,6 +612,13 @@ class HistoryPage(QWidget):
         self.tag_filter_combo.currentIndexChanged.connect(self.filter_items)
         toolbar.addWidget(QLabel("標籤:"))
         toolbar.addWidget(self.tag_filter_combo)
+
+        # 進處置頻率過濾(2026-10-20)
+        self.ef_filter_combo = QComboBox()
+        self.ef_filter_combo.addItems(self.EF_FILTERS)
+        self.ef_filter_combo.currentIndexChanged.connect(self.filter_items)
+        toolbar.addWidget(QLabel("進處置:"))
+        toolbar.addWidget(self.ef_filter_combo)
         
         # [NEW] Refresh Button
         self.refresh_btn = QPushButton(" 刷新數據")
@@ -632,6 +641,7 @@ class HistoryPage(QWidget):
         
         # Adjust header sizing
         header = self.table.horizontalHeader()
+        header.sectionClicked.connect(self._on_header_clicked)   # 點「進處置頻率」標題切換排序
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # Date
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # Code
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # 進處置頻率(預測)
@@ -768,9 +778,17 @@ class HistoryPage(QWidget):
             if selected_tag:
                 tag_match = selected_tag in r.get('tags', [])
             
+            ef_mode = self.ef_filter_combo.currentText() if hasattr(self, "ef_filter_combo") else "全部"
+            if text_match and tag_match and ef_mode != "全部":
+                text_match = self._ef_match(self._entry_freq_info(code, date_str, r.get("source", "")), ef_mode)
+
             if text_match and tag_match:
                 result.append(r)
-                
+
+        if "進處置頻率" in mode:
+            seven_first = "7天" in mode
+            result.sort(key=lambda x: self._ef_sort_key(
+                self._entry_freq_info(str(x.get("code", "")), x.get("date", ""), x.get("source", "")), x, seven_first))
         self.filtered_records = result
 
     def _total_pages(self):
@@ -812,19 +830,25 @@ class HistoryPage(QWidget):
             self.current_page += 1
             self.load_items()
 
-    def _entry_freq(self, code, date_str, source):
+    EF_FILTERS = ["全部", "新制｜5天初犯", "新制｜5天累犯", "新制｜7天初犯", "新制｜7天累犯",
+                  "新制｜5天但之後有⑬可能變7天", "只看聽牌(還差1次)", "變更交易方法(10/20/25分)", "舊制(8/10 前)"]
+    NEW_REGIME_ANNOUNCE = "2026-08-10"   # 新制只適用 8/10(含)以後公告的處置
+
+    def _entry_freq_info(self, code, date_str, source):
         """
         進處置頻率(預測，2026-10-20 使用者要求)：以這筆紀錄的日期為準，若再被注意而進處置，
-        會是幾分撮合、處置 5 或 7 天、初犯或累犯。跟推播/詳細條件同一套算法：
+        會是幾分撮合、處置幾天、初犯或累犯。跟推播/詳細條件同一套算法：
         頻率與初犯/累犯 = forecast_engine.predict_exact_disposal_frequency(經 next_disposal_outlook)，
-        天數 = disposal_detail.predict_next_days(連續3/5日型且期間有第十三款才 7 天)。
-        只用這天(含)以前公告的處置紀錄，不偷看之後的資料。回傳 (顯示文字, 說明)。
+        新制天數 = disposal_detail.predict_next_days(連續3/5日型且期間有第十三款才 7 天)。
+        舊制(預估公告日在 8/10 前)：初犯 5分 10天、累犯 20分 10天；變更交易方法 初犯 20分、累犯 25分
+        (2026-01~08 舊制處置實際紀錄核對)。只用這天(含)以前公告的處置紀錄，不偷看之後的資料。
+        回傳 dict：text、tip、regime、days、offense、freq、freq_min、needed、may7、full。
         """
         cache = self.__dict__.setdefault("_entry_freq_cache", {})
         key = (str(code), date_str)
         if key in cache:
             return cache[key]
-        text, tip = "—", ""
+        info = dict(text="—", tip="", regime="", days=0, offense="", freq="", freq_min=0, needed=99, may7=False, full=False)
         try:
             from core.conditions_engine import _norm_ymd
             from core.disposal_detail import next_disposal_outlook, predict_next_days
@@ -836,20 +860,72 @@ class HistoryPage(QWidget):
                     if _norm_ymd(x.get("announce_date")) and _norm_ymd(x.get("announce_date")) <= ymd]
             d = datetime.strptime(date_str, "%Y-%m-%d").date()
             o = next_disposal_outlook(str(code), source, d, recs)
-            days, why = predict_next_days(str(code), date_str, o["trigger_progress"])
             label = o.get("next_label") or ""
             freq, off = (label[:-2], label[-2:]) if label[-2:] in ("初犯", "累犯") else (label, "")
-            text = f"{freq}\n{days}天{off}"
+            full = freq in ("10分", "25分")
             mn = o.get("min_needed")
-            if days == 5 and "會變 7 天" in (why or ""):
+            needed = mn if isinstance(mn, int) and mn >= 1 else 99
+            # 預估公告日：還差 n 次 → 最快第 n 個交易日收盤後公告
+            ann = datetime.strptime(date_str, "%Y-%m-%d")
+            for _ in range(needed if needed < 99 else 1):
+                ann = DateUtils.get_next_trading_day(ann)
+            if ann.strftime("%Y-%m-%d") >= self.NEW_REGIME_ANNOUNCE:
+                days, why = predict_next_days(str(code), date_str, o["trigger_progress"])
+                regime, may7 = "新制", days == 5 and "會變 7 天" in (why or "")
+            else:
+                freq = ("20分" if off == "初犯" else "25分") if full else ("5分" if off == "初犯" else "20分")
+                days, why, regime, may7 = 10, "舊制(2026-08-10 前公告)：初犯 5分、累犯 20分(變更交易方法 20/25分)，處置 10 個營業日。", "舊制", False
+            text = f"{freq}\n{days}天{off}" + ("(舊制)" if regime == "舊制" else "")
+            if may7:
                 text += "\n(之後有⑬→7天)"      # 連續3/5日型：觸發前那幾天若出現第十三款就變 7 天(例 6213 10/06)
-            if isinstance(mn, int) and mn > 1:
-                text += f"\n(還差{mn}次)"
-            tip = why
+            if 1 < needed < 99:
+                text += f"\n(還差{needed}次)"
+            m = re.match(r"(\d+)", freq)
+            info = dict(text=text, tip=why, regime=regime, days=days, offense=off, freq=freq,
+                        freq_min=int(m.group(1)) if m else 0, needed=needed, may7=may7, full=full)
         except Exception as e:
             print(f"[HistoryPage] {code} {date_str} 進處置頻率計算失敗：{e}")
-        cache[key] = (text, tip)
-        return cache[key]
+        cache[key] = info
+        return info
+
+    def _entry_freq(self, code, date_str, source):
+        info = self._entry_freq_info(code, date_str, source)
+        return info["text"], info["tip"]
+
+    def _ef_match(self, info, mode):
+        """過濾：進處置頻率下拉選單的條件。"""
+        if not mode or mode == "全部":
+            return True
+        if mode.startswith("新制｜") and info["regime"] != "新制":
+            return False
+        if mode == "新制｜5天但之後有⑬可能變7天":
+            return info["may7"]
+        if mode.startswith("新制｜"):
+            return f"{info['days']}天{info['offense']}" == mode.split("｜")[1]
+        if mode.startswith("只看聽牌"):
+            return info["needed"] == 1
+        if mode.startswith("變更交易方法"):
+            return info["full"]
+        if mode.startswith("舊制"):
+            return info["regime"] == "舊制"
+        return True
+
+    @staticmethod
+    def _ef_sort_key(info, r, seven_first):
+        """排序：新制在前；7天/累犯優先(或 5天/初犯優先)；同組聽牌(差1次)在前、日期新的在前。"""
+        old = info["regime"] != "新制"
+        days = -info["days"] if seven_first else info["days"]
+        off = (0 if info["offense"] == "累犯" else 1) if seven_first else (0 if info["offense"] == "初犯" else 1)
+        neg_date = -int(r.get("date", "0000-00-00").replace("-", "") or 0)
+        return (old, days, off, info["needed"], neg_date)
+
+    def _on_header_clicked(self, col):
+        """點「進處置頻率」欄標題：在 7天/累犯優先 ↔ 5天/初犯優先 之間切換排序。"""
+        if col != 2:
+            return
+        cur = self.sort_combo.currentText()
+        target = "進處置頻率 (5天/初犯優先)" if cur == "進處置頻率 (7天/累犯優先)" else "進處置頻率 (7天/累犯優先)"
+        self.sort_combo.setCurrentIndex(self.sort_combo.findText(target))
 
     def _batch_update_charts(self):
         self._update_queue = []
