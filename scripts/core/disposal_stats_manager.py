@@ -226,6 +226,24 @@ class DisposalStatsManager:
             else:
                 missing_days.append(day)
         
+        # 1b. [2026-10-20] DB 專案官方行情有的日子一律以官方收盤為準(本機、不連網)。
+        # stock_prices.db 曾有 3 筆 FinMind 收盤跟官方不同(4991 9/09 存 517、官方 499；2486、3362 9/01)，
+        # 統計頁的處置期間逐日漲跌因此錯了兩格且一直沿用。官方沒有的日子才用原本的來源。
+        try:
+            from core import price_gapfill
+            official = price_gapfill.parquet_rows(code, [d.date() for d in trading_days])
+            for day in trading_days:
+                row = official.get(day.date())
+                if row is None:
+                    continue
+                if day in prices and prices[day] is not None and abs(prices[day] - row[3]) > 1e-6:
+                    print(f"[stats] {code} {day:%Y-%m-%d} 收盤 {prices[day]} 與官方 {row[3]} 不同，改用官方")
+                prices[day] = row[3]
+                if day in missing_days:
+                    missing_days.remove(day)
+        except Exception as e:
+            print(f"[stats] {code} 官方行情比對失敗(沿用原來源)：{e}")
+
         # 2. 如果有缺失
         if missing_days:
             # [Fix] Filter out future dates to avoid redundant downloads

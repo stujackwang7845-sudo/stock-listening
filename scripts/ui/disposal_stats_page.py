@@ -1476,7 +1476,25 @@ class DisposalStatsPage(QWidget):
         try:
             val = float(text)
             formatted_text = f"{val:+.2f}%"
-            
+
+            # [2026-10-20] 存成手動值之前先確認：手動值會永遠蓋過系統計算值(詳細條件頁也一樣)。
+            # 3441 的出關日曾被誤存成 5.0(實際 +9.76%)，畫面一直顯示錯的數字。
+            rec = self.filtered_data[row]
+            col_idx = col - 9
+            col_label = self.change_columns[col_idx] if 0 <= col_idx < len(self.change_columns) else "?"
+            old = (rec.get("changes") or {}).get(col_label)
+            old_txt = f"{old:+.2f}%" if isinstance(old, (int, float)) else "N/A"
+            ans = QMessageBox.question(
+                self, "確認手動修改",
+                f"要把 {rec.get('code', '')} {rec.get('name', '')}「{col_label}」從 {old_txt} 改成 {formatted_text}，"
+                f"並存成手動值嗎？\n\n手動值會永遠蓋過系統依行情算出的數字（詳細條件頁也會顯示這個值）。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+            if ans != QMessageBox.StandardButton.Yes:
+                self.table.blockSignals(True)
+                item.setText(old_txt)
+                self.table.blockSignals(False)
+                return
+
             self.table.blockSignals(True)
             item.setText(formatted_text)
             
