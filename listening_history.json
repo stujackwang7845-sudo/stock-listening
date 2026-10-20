@@ -14530,5 +14530,35 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-20",
+        "code": "3230",
+        "name": "錦明",
+        "trigger_info": "115年10月19日至115年10月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-20",
+        "code": "3287",
+        "name": "廣寰科",
+        "trigger_info": "115年10月19日至115年10月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-20",
+        "code": "8291",
+        "name": "尚茂",
+        "trigger_info": "115年10月19日至115年10月20日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
