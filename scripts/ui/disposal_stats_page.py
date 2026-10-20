@@ -432,9 +432,18 @@ class DisposalStatsPage(QWidget):
             if count % 50 != 0:
                 return
 
-            def _deferred_call(cb=cb, text=text):
+            # [2026-10-20] 同一時間只排一個待執行的回報，新的進度只更新文字(取最新)。
+            # 原本每 50 筆排一個 singleShot，13,506 筆會排上百個；外部回呼(開機畫面)內的
+            # processEvents 會立刻執行下一個，一層疊一層 → 堆疊溢位閃退。
+            self._pending_progress_text = text
+            if getattr(self, "_progress_call_pending", False):
+                return
+            self._progress_call_pending = True
+
+            def _deferred_call(cb=cb):
+                self._progress_call_pending = False
                 try:
-                    cb(text)
+                    cb(self._pending_progress_text)
                 except Exception as e:
                     print(f"[DisposalStatsPage] progress_callback error: {e}")
 

@@ -151,7 +151,22 @@ def main():
     window = MainWindow(auto_start=False) 
     
     # Callback: Update Splash Message
+    _splash_busy = [False]
+
     def update_splash(msg):
+        # [2026-10-20] 重入保護：這裡會 app.processEvents()，處理事件時若又觸發 update_splash
+        # (例如處置統計自動刷新排隊的進度回報)，原本會一層疊一層無限遞迴 → 堆疊溢位閃退
+        # (crash_faulthandler.log：update_splash ↔ disposal_stats_page._deferred_call)。
+        # 已在更新中就直接略過這次(不再 processEvents)；下一次進度回報會再畫上最新文字。
+        if _splash_busy[0]:
+            return
+        _splash_busy[0] = True
+        try:
+            _draw_splash(msg)
+        finally:
+            _splash_busy[0] = False
+
+    def _draw_splash(msg):
         # Update text by repainting on base canvas copy
         new_pix = base_canvas.copy()
         p = QPainter(new_pix)
