@@ -32,6 +32,16 @@ class AppSettingsTest(unittest.TestCase):
         app_settings.set_new_regime_only(True)
         self.assertTrue(app_settings.new_regime_only())
 
+    def test_manual_edit_default_off_and_independent(self):
+        self.assertFalse(app_settings.allow_manual_edit())
+        got_regime, got_edit = [], []
+        app_settings.on_change(got_regime.append)
+        app_settings.on_change(got_edit.append, key="allow_manual_edit")
+        app_settings.set_allow_manual_edit(True)
+        self.assertTrue(app_settings.allow_manual_edit())
+        self.assertTrue(app_settings.new_regime_only())          # 另一個設定不受影響
+        self.assertEqual((got_regime, got_edit), ([], [True]))   # 只通知對應的設定
+
     def test_broken_file_falls_back_to_default(self):
         with open(os.path.join(self.tmp, "app_settings.json"), "w", encoding="utf-8") as f:
             f.write("{壞掉")

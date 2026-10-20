@@ -317,6 +317,7 @@ class DisposalStatsPage(QWidget):
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.show_context_menu)
         self.table.itemChanged.connect(self.on_item_changed)
+        self.apply_edit_setting()      # 系統設定「允許手動修改漲跌幅」(預設關＝格子不能編輯)
         
         # 表頭右鍵選單
         self.table.horizontalHeader().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -1460,10 +1461,26 @@ class DisposalStatsPage(QWidget):
         
         self.table.blockSignals(False)
 
+    def apply_edit_setting(self):
+        """
+        系統設定「允許手動修改漲跌幅」(2026-10-20，預設關)：
+        關 → 表格完全不能編輯；開 → 只能雙擊或按 F2 編輯(不再「按任何鍵就進入編輯」，3441 就是這樣誤存的)。
+        """
+        from core.app_settings import allow_manual_edit
+        from PyQt6.QtWidgets import QAbstractItemView
+        if allow_manual_edit():
+            self.table.setEditTriggers(QAbstractItemView.EditTrigger.DoubleClicked
+                                       | QAbstractItemView.EditTrigger.EditKeyPressed)
+        else:
+            self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
     def on_item_changed(self, item):
         """處理表格單元格修改"""
         col = item.column()
         row = item.row()
+        from core.app_settings import allow_manual_edit
+        if not allow_manual_edit():
+            return          # 雙重保險：設定關閉時任何修改都不存
         
         # 僅處理漲跌幅欄位 (index >= 9) 且排除統計行
         if col < 9 or row >= len(self.filtered_data):

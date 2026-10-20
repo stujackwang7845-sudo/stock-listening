@@ -109,6 +109,7 @@ class MainWindow(QMainWindow):
         # 系統設定「只顯示新制」切換時，各頁立即重新整理(不用重開程式)
         from core import app_settings
         app_settings.on_change(self._on_regime_setting_changed)
+        app_settings.on_change(lambda _v: self.tab_disposal_stats.apply_edit_setting(), key="allow_manual_edit")
         
         main_layout.addWidget(self.tabs)
         
