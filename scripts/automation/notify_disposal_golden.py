@@ -719,7 +719,8 @@ RULES_HTML = (
     f"• 停損：收盤 ≤ 進場價×{1-STOP_PCT:.2f}，當天收盤賣；無停利，抱到出場日\n"
     f"• 不買：第一款且進場日 20MA 乖離 > {DEV_MAX*100:.0f}%；第一款原文是「跌幅」(短期跌太多被處置)；進場日收盤漲停\n"
     "<b>放空</b>（策略 A）\n"
-    "• 7 天處置(初犯、累犯都做)：處置結束日前一天收盤空 → 出關日收盤回補；無停損\n"
+    "• 7 天處置(初犯、累犯都做)：處置結束日前一天收盤空 → 初犯<b>出關日</b>、累犯<b>出關日+1</b> 收盤回補；無停損\n"
+    "  （7 天累犯延到出關日+1：9 件 +6.02% vs 出關日 +2.41%；初犯維持出關日：+5.29% vs 延一天 +3.03%）\n"
     "• 進場日收盤跌停空不到就不做；出關日若漲停鎖死，空單會回補不了\n"
     "<b>回測</b>（新制 8/10～10/15，每筆等額、不加槓桿）\n"
     "• 做多＋放空合計 77 筆：單筆平均 +5.45%、勝率 78%、組合 MDD −2.7%（只做多：MDD −3.9%）\n"
@@ -739,7 +740,17 @@ def enrich(d):
     if d["n_days"] == 7:
         d["short_entry"] = prev_trading_day(d["end"])
         d["short_cover"] = next_trading_day(d["end"])
+        d["cover_lbl"] = "出關日"
+        if d["offense"] == "累犯":
+            # [2026-10-22] 7 天累犯回補延到出關日+1(出關日的隔一個交易日)：出關日、出關日+1 都偏跌
+            d["short_cover"] = next_trading_day(d["short_cover"])
+            d["cover_lbl"] = "出關日+1"
     return d
+
+
+def cover_lbl(d):
+    """空單回補日的名稱：7 天初犯「出關日」、7 天累犯「出關日+1」。"""
+    return d.get("cover_lbl", "出關日")
 
 
 def apply_chain(disposals):
@@ -781,7 +792,7 @@ def chain_note(d):
 def short_why(d):
     """放空卡片附處置期間，讓人看得出為什麼是這天空(策略 A：結束日前一天收盤空、出關日收盤補)。"""
     return (f"・處置 {d['start']:%m/%d}～{d['end']:%m/%d}：{d['short_entry']:%m/%d} 是結束日前一天，"
-            f"{d['short_cover']:%m/%d} 出關日回補")
+            f"{d['short_cover']:%m/%d}（{cover_lbl(d)}）回補")
 
 
 def short_view(d):
@@ -867,7 +878,7 @@ def short_card(d, sr, head_extra="", lines_extra=()):
     out = [f"{who(d)}｜空單｜{kind(d)}{head_extra}",
            f"・放空：{d['short_entry']:%m/%d} 收盤 {sr['entry']:g}",
            f"・現價：{sr['cur']:g}（{pct(sr['ret'])}）",
-           f"・預計回補：{d['short_cover']:%m/%d} 收盤買回（出關日）",
+           f"・預計回補：{d['short_cover']:%m/%d} 收盤買回（{cover_lbl(d)}）",
            "・停損：無"]
     return "\n".join(out + list(lines_extra))
 
@@ -1380,7 +1391,7 @@ def main_post(args, today):
             order = (f"👉 <b>{N}收盤：先賣出多單，再融券放空</b>" if d["offense"] == "初犯"
                      else f"👉 <b>{N}收盤：融券放空</b>")
             f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, short_why(d),
-                                      f"・回補：{d['short_cover']:%m/%d}（出關日）收盤買回", "・停損：無"]))
+                                      f"・回補：{d['short_cover']:%m/%d}（{cover_lbl(d)}）收盤買回", "・停損：無"]))
 
     longs, stops, notes, shorts = positions(disposals, today, clause_db, quotes, daily, corp)
     for d, rr in longs:                                  # 賣出多單
@@ -1392,7 +1403,7 @@ def main_post(args, today):
                                      f"・現價：{rr['cur']:g}（{pct(rr['raw'] if rr['suspicious'] else rr['adj'])}）"]))
     for d, sr in shorts:
         if d["short_cover"] == nxt:
-            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{N}收盤：回補（買回）</b>（出關日）",
+            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{N}收盤：回補（買回）</b>（{cover_lbl(d)}）",
                                      f"・放空：{d['short_entry']:%m/%d} 收盤 {sr['entry']:g}",
                                      f"・現價：{sr['cur']:g}（{pct(sr['ret'])}）"]))
     for d, rr in stops:
@@ -1518,7 +1529,7 @@ def main_pre(args, today):
         order = (f"👉 <b>{T}收盤：先賣出多單，再融券放空</b>" if d["offense"] == "初犯"
                  else f"👉 <b>{T}收盤：融券放空</b>")
         f_short.append("\n".join([f"{who(d)}（{kind(d)}）", order, short_why(d), px_line(d),
-                                  f"・回補：{d['short_cover']:%m/%d}（出關日）收盤買回", "・停損：無"]))
+                                  f"・回補：{d['short_cover']:%m/%d}（{cover_lbl(d)}）收盤買回", "・停損：無"]))
 
     holds_long, holds_short = [], []
     for d, rr in sorted(longs, key=lambda x: (x[0]["long_exit"], x[0]["code"])):
@@ -1550,7 +1561,7 @@ def main_pre(args, today):
             sr = dict(sr, cur=p, ret=(sr["entry"] - p) / sr["entry"] * 100)
         head = ""
         if d["short_cover"] == today:
-            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{T}收盤：回補（買回）</b>（出關日）",
+            f_cover.append("\n".join([f"{who(d)}（{kind(d)}・空單）", f"👉 <b>{T}收盤：回補（買回）</b>（{cover_lbl(d)}）",
                                      f"・放空：{d['short_entry']:%m/%d} 收盤 {sr['entry']:g}", f"・現價：{sr['cur']:g}（{pct(sr['ret'])}）"]))
             head = f"｜🔵 {T}回補"
         holds_short.append(short_card(d, sr, head_extra=head))

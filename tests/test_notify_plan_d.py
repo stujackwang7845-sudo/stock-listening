@@ -182,7 +182,12 @@ class NewPushLayoutTest(unittest.TestCase):
                               entry=date(2026, 10, 8)))
         self.assertEqual(seven["long_exit"], date(2026, 10, 16))      # 結束日前一天(10/17、18 週末)
         self.assertEqual(seven["short_entry"], date(2026, 10, 16))
-        self.assertEqual(seven["short_cover"], date(2026, 10, 20))    # 出關日
+        self.assertEqual(seven["short_cover"], date(2026, 10, 21))    # 7 天累犯：出關日+1(10/20 出關日的隔一個交易日)
+        self.assertEqual(n.cover_lbl(seven), "出關日+1")
+        first = n.enrich(dict(code="3", name="z", start=date(2026, 10, 8), end=date(2026, 10, 19), n_days=7, offense="初犯",
+                              entry=date(2026, 10, 8)))
+        self.assertEqual(first["short_cover"], date(2026, 10, 20))    # 7 天初犯：出關日
+        self.assertEqual(n.cover_lbl(first), "出關日")
 
     def test_lines_and_messages(self):
         from unittest import mock
@@ -285,7 +290,7 @@ class NewPushLayoutTest(unittest.TestCase):
     def test_short_card_explains_date(self):
         d = n.enrich(dict(code="6213", name="聯茂", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
                           n_days=7, offense="初犯", entry=date(2026, 10, 8)))
-        self.assertIn("處置 10/08～10/19：10/16 是結束日前一天，10/20 出關日回補", n.short_why(d))
+        self.assertIn("處置 10/08～10/19：10/16 是結束日前一天，10/20（出關日）回補", n.short_why(d))
 
     def test_fmt_next_cand_drop(self):
         c = dict(code="2059", name="川湖", market="上市", conditions=[])
