@@ -14560,5 +14560,55 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-21",
+        "code": "6269",
+        "name": "台郡",
+        "trigger_info": "115年10月20日至115年10月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-21",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年10月16日至115年10月21日連續四次<br>115年10月08日至115年10月21日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-21",
+        "code": "5205",
+        "name": "中茂",
+        "trigger_info": "115年10月20日至115年10月21日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-21",
+        "code": "8358",
+        "name": "金居",
+        "trigger_info": "115年10月16日至115年10月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-21",
+        "code": "8437",
+        "name": "大地-KY",
+        "trigger_info": "115年10月20日至115年10月21日連續二次<br>115年10月16日至115年10月21日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
