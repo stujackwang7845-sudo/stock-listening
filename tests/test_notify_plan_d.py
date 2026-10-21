@@ -260,6 +260,28 @@ class NewPushLayoutTest(unittest.TestCase):
         self.assertEqual(longs, [])                                   # 多單今天收盤已賣
         self.assertEqual([x[0]["code"] for x in shorts], ["6213"])    # 空單今天收盤已空
 
+    def test_apply_chain_extends_exit_to_second_disposal_exit(self):
+        """接力處置(3287)：5 天初犯期間又公告 5 天累犯 → 多單出場改到第二次的出關日；7 天或期間外公告不改。"""
+        d1 = n.enrich(dict(code="3287", name="廣寰科", market="上櫃", announce=date(2026, 10, 16), start=date(2026, 10, 19),
+                           end=date(2026, 10, 23), n_days=5, offense="初犯", entry=date(2026, 10, 16)))
+        d2 = n.enrich(dict(code="3287", name="廣寰科", market="上櫃", announce=date(2026, 10, 21), start=date(2026, 10, 22),
+                           end=date(2026, 10, 29), n_days=5, offense="累犯", entry=date(2026, 10, 21)))
+        n.apply_chain([d1, d2])
+        self.assertEqual(d1["long_exit"], n.next_trading_day(date(2026, 10, 29)))
+        self.assertIn("接力處置", n.chain_note(d1))
+        e1 = n.enrich(dict(code="1111", name="x", market="上市", announce=date(2026, 10, 16), start=date(2026, 10, 19),
+                           end=date(2026, 10, 23), n_days=5, offense="初犯", entry=date(2026, 10, 16)))
+        e7 = n.enrich(dict(code="1111", name="x", market="上市", announce=date(2026, 10, 21), start=date(2026, 10, 22),
+                           end=date(2026, 11, 2), n_days=7, offense="累犯", entry=date(2026, 10, 22)))
+        late = n.enrich(dict(code="2222", name="y", market="上市", announce=date(2026, 10, 16), start=date(2026, 10, 19),
+                             end=date(2026, 10, 23), n_days=5, offense="初犯", entry=date(2026, 10, 16)))
+        late2 = n.enrich(dict(code="2222", name="y", market="上市", announce=date(2026, 10, 26), start=date(2026, 10, 27),
+                              end=date(2026, 11, 2), n_days=5, offense="累犯", entry=date(2026, 10, 26)))
+        n.apply_chain([e1, e7, late, late2])
+        self.assertEqual(e1["long_exit"], date(2026, 10, 23))        # 第二次是 7 天：不改
+        self.assertEqual(late["long_exit"], date(2026, 10, 23))      # 第一次結束後才公告：不是接力
+        self.assertNotIn("chain", e1)
+
     def test_short_card_explains_date(self):
         d = n.enrich(dict(code="6213", name="聯茂", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 19),
                           n_days=7, offense="初犯", entry=date(2026, 10, 8)))

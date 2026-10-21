@@ -714,6 +714,8 @@ RULES_HTML = (
     "<b>做多</b>（只做初犯）\n"
     "• 5 天初犯：處置前一天(公告日)收盤買 → 處置最後一天收盤賣（要靠聽牌候選預先買）\n"
     "• 7 天初犯：處置首日收盤買 → <b>處置結束日前一天</b>收盤賣（同一收盤改放空，見下）\n"
+    "• <b>接力處置</b>：5 天初犯處置期間又被公告 5 天累犯 → 續抱到<b>那次累犯處置的出關日</b>收盤賣"
+    "（新制 15 件：續抱平均 +14.85%、勝率 80%；第一次結束就賣 +4.18%）\n"
     f"• 停損：收盤 ≤ 進場價×{1-STOP_PCT:.2f}，當天收盤賣；無停利，抱到出場日\n"
     f"• 不買：第一款且進場日 20MA 乖離 > {DEV_MAX*100:.0f}%；第一款原文是「跌幅」(短期跌太多被處置)；進場日收盤漲停\n"
     "<b>放空</b>（策略 A）\n"
@@ -738,6 +740,42 @@ def enrich(d):
         d["short_entry"] = prev_trading_day(d["end"])
         d["short_cover"] = next_trading_day(d["end"])
     return d
+
+
+def apply_chain(disposals):
+    """
+    接力處置(2026-10-22 使用者要求，例 3287)：5 天初犯處置期間(首日~最後一天)內又公告下一次處置、
+    且那次是 5 天 → 多單出場日改成那次處置的出關日(結束後第一個交易日)收盤。
+    回測(新制 15 件，全部在第一次處置第 3 天公告、隔天開始第二次)：第一次結束就賣 +4.18%，
+    續抱到第二次出關日 +14.85%、勝率 80%(去掉最好 2 件，從第一次結束起算仍 +4.08%)。
+    第二次是 7 天的不套用：樣本只有 1 件，而且策略 A 會在 7 天處置結束日前一天放空，會衝突。
+    """
+    by = {}
+    for d in disposals:
+        by.setdefault(d["code"], []).append(d)
+    for lst in by.values():
+        for d in lst:
+            if d["offense"] != "初犯" or d["n_days"] != 5:
+                continue
+            nxt = [x for x in lst if x is not d and x["start"] > d["start"] and x.get("announce")
+                   and d["start"] <= x["announce"] <= d["end"]]
+            if not nxt:
+                continue
+            d2 = min(nxt, key=lambda x: x["start"])
+            if d2["n_days"] != 5:
+                continue
+            d["chain"] = d2
+            d["long_exit"] = next_trading_day(d2["end"])
+    return disposals
+
+
+def chain_note(d):
+    """接力處置的出場說明。"""
+    d2 = d.get("chain")
+    if not d2:
+        return ""
+    return (f"接力處置：{d2['announce']:%m/%d} 又公告 5 天{d2['offense']}（{d2['start']:%m/%d}～{d2['end']:%m/%d}），"
+            f"續抱到出關日 {d['long_exit']:%m/%d}")
 
 
 def short_why(d):
@@ -967,7 +1005,7 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
              *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
              f"・進處置條件（{when}收盤達任一）：",
              *(cond_lines or ["　　（再被注意即進處置，無單一價位條件）"]),
-             f"・出場：處置最後一天收盤賣；停損＝買價×{1 - STOP_PCT:.2f}"]
+             f"・出場：處置最後一天收盤賣（處置期間若又被公告 5 天累犯 → 改抱到那次的出關日）；停損＝買價×{1 - STOP_PCT:.2f}"]
     return "\n".join(x for x in lines if x)
 
 
@@ -1289,7 +1327,7 @@ def main_post(args, today):
     """盤後推播：用今天收盤後的最新資料，告訴使用者明天收盤前要做什麼，並列出目前持有部位。"""
     nxt = next_trading_day(today)
     print(f"[{datetime.now()}] 今天 {today}，下一個交易日 {nxt}")
-    disposals = [enrich(d) for d in load_disposals(today) if d["n_days"] in (5, 7)]
+    disposals = apply_chain([enrich(d) for d in load_disposals(today) if d["n_days"] in (5, 7)])
     log = load_log()
     meta = log.setdefault("_meta", {})
 
@@ -1347,7 +1385,8 @@ def main_post(args, today):
     longs, stops, notes, shorts = positions(disposals, today, clause_db, quotes, daily, corp)
     for d, rr in longs:                                  # 賣出多單
         if d["long_exit"] == nxt:
-            why = "處置最後一天" if d["n_days"] == 5 else "結束日前一天；接著放空，見放空區"
+            why = ("接力處置的出關日" if d.get("chain") else "處置最後一天") if d["n_days"] == 5 \
+                else "結束日前一天；接著放空，見放空區"
             f_sell.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>{N}收盤：賣出</b>（{why}）",
                                      f"・進場：{rr['entry_date']:%m/%d} 收盤 {rr['entry']:g}",
                                      f"・現價：{rr['cur']:g}（{pct(rr['raw'] if rr['suspicious'] else rr['adj'])}）"]))
@@ -1367,6 +1406,8 @@ def main_post(args, today):
         g = golden_check(d, company, daily, quotes)
         head = (f"｜{T}進場" if d["entry"] == today else "") + (f"｜🟠 {N}賣出" if d["long_exit"] == nxt else "")
         extra = [f"・黃金濾網：✗ {html.escape(fail_reasons(g))}（只標註）"] if not g["golden"] else []
+        if d.get("chain"):
+            extra = [f"・🔁 {chain_note(d)}"] + extra
         holds_long.append(long_card(d, rr, head_extra=head, lines_extra=extra))
     holds_short = [short_card(d, sr, head_extra=f"｜🔵 {N}回補" if d["short_cover"] == nxt else "")
                    for d, sr in sorted(shorts, key=lambda x: (x[0]["short_cover"], x[0]["code"]))]
@@ -1415,7 +1456,7 @@ def main_pre(args, today):
         print("  今天的盤中提醒已推播過，結束。")
         return
 
-    disposals = [enrich(d) for d in load_disposals(today) if d["n_days"] in (5, 7)]
+    disposals = apply_chain([enrich(d) for d in load_disposals(today) if d["n_days"] in (5, 7)])
     busy = {d["code"] for d in disposals if d["end"] >= today}
     cands5, cand7, cand_err = [], [], None
     try:
@@ -1486,7 +1527,8 @@ def main_pre(args, today):
         ret = (cur / rr["entry"] - 1) * 100
         head = ""
         if d["long_exit"] == today:
-            why = "處置最後一天" if d["n_days"] == 5 else "結束日前一天；接著放空，見放空區"
+            why = ("接力處置的出關日" if d.get("chain") else "處置最後一天") if d["n_days"] == 5 \
+                else "結束日前一天；接著放空，見放空區"
             f_sell.append("\n".join([f"{who(d)}（{kind(d)}・多單）", f"👉 <b>{T}收盤：賣出</b>（{why}）",
                                      f"・進場：{rr['entry_date']:%m/%d} 收盤 {rr['entry']:g}", f"・現價：{cur:g}（{pct(ret)}）"]))
             head += f"｜🟠 {T}賣出"
@@ -1499,6 +1541,8 @@ def main_pre(args, today):
                                      f"・現價 {p:g}，停損價 {rr['stop_price']:g}（{pct(ret)}）"]))
         g = golden_check(d, company, daily, quotes)
         extra = [f"・黃金濾網：✗ {html.escape(fail_reasons(g))}（只標註）"] if not g["golden"] else []
+        if d.get("chain"):
+            extra = [f"・🔁 {chain_note(d)}"] + extra
         holds_long.append(long_card(d, rr, now_price=p, head_extra=head, lines_extra=extra))
     for d, sr in sorted(shorts, key=lambda x: (x[0]["short_cover"], x[0]["code"])):
         p = price(d["code"])
