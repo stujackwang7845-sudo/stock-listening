@@ -4,6 +4,7 @@
 提供處置股票統計分析的視覺化界面
 """
 
+from ui.thread_utils import retire
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QHeaderView, QLabel, QLineEdit, QComboBox, QFrame, QPushButton,
@@ -579,6 +580,7 @@ class DisposalStatsPage(QWidget):
             else:
                 target_year = "全部"  # 離線模式忽略年度選擇
             
+            retire(getattr(self, "worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
             self.worker = StatsWorker(records, allow_download=download_missing, api_token=api_token, target_year=target_year)
             self.worker.progress_update.connect(self._emit_status)
             self.worker.data_ready.connect(self.on_data_ready)
@@ -742,6 +744,7 @@ class DisposalStatsPage(QWidget):
         if hasattr(self, 'import_btn'): self.import_btn.setEnabled(False)
 
         # 建立並啟動背景工作執行緒
+        retire(getattr(self, "web_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.web_worker = WebUpdateWorker(target_year)
         self.web_worker.progress_update.connect(self._emit_status)
         self.web_worker.finished_update.connect(self.on_web_update_finished)
@@ -808,6 +811,7 @@ class DisposalStatsPage(QWidget):
         self.reload_btn.setEnabled(False)
         self.status_label.setText("正在準備更新股本...")
         
+        retire(getattr(self, "cap_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.cap_worker = CapitalWorker(codes, api_token=api_token)
         self.cap_worker.progress_update.connect(self.status_label.setText)
         self.cap_worker.finished.connect(self.on_capital_update_finished)
@@ -1651,6 +1655,7 @@ class DisposalStatsPage(QWidget):
         selected_user = self.api_combo.currentText()
         api_token = self.API_TOKENS.get(selected_user)
         
+        retire(getattr(self, "worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.worker = StatsWorker(selected_records, allow_download=True, api_token=api_token, force_refresh=True)
         self.worker.data_ready.connect(self.on_partial_update_finished)
         self.worker.finished.connect(self.on_worker_finished)

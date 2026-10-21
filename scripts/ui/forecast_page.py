@@ -3,6 +3,7 @@
 分三個區塊：聽牌(官方) → 一進聽(預測) → 處置中
 與 Dashboard 觀察區使用完全相同的判斷邏輯。
 """
+from ui.thread_utils import retire
 import re, math, json
 from datetime import datetime, timedelta
 from PyQt6.QtWidgets import (
@@ -342,6 +343,7 @@ class ForecastPage(QWidget):
             except Exception as e:
                 print(f"[ForecastPage] Shioaji punish 取得失敗 (將使用本地資料): {e}")
 
+        retire(getattr(self, "worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.worker = ForecastWorker(agg_data, date_str, attention_list, self.mf_db, self.cb_db, punish_df=punish_df)
         self.worker.progress.connect(self._on_progress)
         self.worker.finished.connect(self._on_finished)

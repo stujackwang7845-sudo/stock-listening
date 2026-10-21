@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QTabl
                              QTableWidgetItem, QHeaderView, QLabel, QFrame, QTextEdit, 
                              QGridLayout, QScrollArea, QAbstractItemView, QMessageBox,
                              QPushButton, QCalendarWidget, QDialog, QLineEdit, QApplication)
+from ui.thread_utils import retire
 from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal, QDate
 from PyQt6.QtGui import QColor, QBrush, QFont
 from datetime import datetime
@@ -556,7 +557,13 @@ class Dashboard(QWidget):
                 return
 
             self.condition_lbl.setText("正在計算中...")
-            
+
+            # [2026-10-22] 同一檔已在計算就不重開：資訊框「雙擊」會先觸發兩次單擊，第二次時第一個還沒算完、
+            # 快取還沒有 → 原本會再開一個 worker 把第一個換掉(多打一次 FinMind，且是閃退的觸發點之一)
+            _running = getattr(self, "calc_worker", None)
+            if _running is not None and _running.isRunning() and getattr(_running, "code", None) == code:
+                return
+
             # Start Worker
             # 獲取股票名稱 - 優先從 agg_data,若不存在則從表格
             stock_name = ""
@@ -572,6 +579,7 @@ class Dashboard(QWidget):
                             stock_name = name_item.text()
                         break
             
+            retire(getattr(self, "calc_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
             self.calc_worker = CalculationWorker(code, source, stock_name=stock_name, target_date=self.current_display_date,
                                                  agg_entry=getattr(self, 'agg_data', {}).get(code))
             self.calc_worker.result_ready.connect(self.update_conditions)
@@ -695,6 +703,7 @@ class Dashboard(QWidget):
                 print(f"Cache Load Failed: {e}")
 
         self.status_message_updated.emit("正在下載歷史資料...") # Emit Signal
+        retire(getattr(self, "worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.worker = HistoryWorker([], history_manager=self.history_manager)
         self.worker.progress_update.connect(self.update_status)
         self.worker.data_ready.connect(self.on_data_ready)
@@ -708,6 +717,7 @@ class Dashboard(QWidget):
         確保 forecast_page 讀到的 history_manager 已經是當天最新的聽牌名單。
         """
         self._listening_refresh_on_complete = on_complete
+        retire(getattr(self, "_listening_fetch_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self._listening_fetch_worker = ListeningFetchWorker(self.current_display_date)
         self._listening_fetch_worker.fetched.connect(self._on_listening_fetched)
         self._listening_fetch_worker.start()
@@ -786,6 +796,7 @@ class Dashboard(QWidget):
         才退回跟手動按鈕一樣的預設範圍(往前 8 個交易日)。
         """
         self._clauses_refresh_on_complete = on_complete
+        retire(getattr(self, "_clauses_fetch_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self._clauses_fetch_worker = ClausesGapFetchWorker(self.current_display_date)
         self._clauses_fetch_worker.finished_ok.connect(self._on_clauses_refreshed)
         self._clauses_fetch_worker.start()
@@ -1058,6 +1069,7 @@ class Dashboard(QWidget):
         self.refresh_date_btn.setText("⏳")
         
         # 建立並啟動 Worker
+        retire(getattr(self, "refresh_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.refresh_worker = HistoricalDataRefreshWorker(
             target_date=self.current_display_date,
             lookback_days=14
@@ -1614,6 +1626,7 @@ class Dashboard(QWidget):
         
         # Start Worker
         from ui.clause_download_worker import ClauseDownloadWorker
+        retire(getattr(self, "clause_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.clause_worker = ClauseDownloadWorker(dates)
         self.clause_worker.progress.connect(lambda msg: self.status_message_updated.emit(msg))
         self.clause_worker.finished.connect(self.on_clause_download_finished)

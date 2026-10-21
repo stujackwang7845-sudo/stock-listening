@@ -15,6 +15,7 @@ import pandas as pd
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from ui.thread_utils import retire
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import (
     QButtonGroup,
@@ -546,6 +547,7 @@ class DisposalStatsOverviewWidget(QWidget):
         self.status_label.setText("正在載入處置統計...")
         self.refresh_btn.setEnabled(False)
 
+        retire(getattr(self, "worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self.worker = DisposalStatsOverviewWorker(
             db_path=self.db_path,
             parquet_root=self.parquet_root,

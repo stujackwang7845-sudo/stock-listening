@@ -1,4 +1,5 @@
 
+from ui.thread_utils import retire
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QTabWidget,
                              QToolBar, QLabel, QStatusBar, QStyle, QApplication)
 from PyQt6.QtCore import Qt, QSize, QThread, pyqtSignal
@@ -363,6 +364,7 @@ class MainWindow(QMainWindow):
             self.tab1.start_worker(force_refresh=force_refresh_flag)
 
         status_callback("正在更新全市場股數資料...")
+        retire(getattr(self, "_shares_refresh_worker", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self._shares_refresh_worker = SharesRefreshWorker()
         self._shares_refresh_worker.finished_ok.connect(start_dashboard_load)
         self._shares_refresh_worker.start()

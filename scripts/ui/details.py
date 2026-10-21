@@ -6,6 +6,7 @@
 下半：依處置天數與初犯/累犯對應的統計圖表(新制「5天初犯」等)：平均漲跌幅、開收差幅、紅黑機率
 三張圖＋明細表(畫法與「統計圖表」頁共用 ui.disposal_stats_overview 的模組函式)。
 """
+from ui.thread_utils import retire
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QColor
@@ -374,6 +375,7 @@ class DetailsTab(QWidget):
         """跟「統計圖表」頁同一支 worker：今天已算過就讀快取，否則背景重算(不卡畫面)。"""
         if self._loader is not None and self._loader.isRunning():
             return
+        retire(getattr(self, "_loader", None))   # 舊的還在跑就保管到跑完(避免 QThread 被回收閃退)
         self._loader = DisposalStatsOverviewWorker(force_refresh=False)
         self._loader.finished_data.connect(self._on_dataset)
         self._loader.failed.connect(lambda msg: self.stats_note.setText(f"統計資料載入失敗：{msg}"))
