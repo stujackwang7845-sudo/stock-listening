@@ -14610,5 +14610,55 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-22",
+        "code": "2033",
+        "name": "佳大",
+        "trigger_info": "115年10月21日至115年10月22日連續二次<br>115年10月19日至115年10月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-22",
+        "code": "3354",
+        "name": "律勝",
+        "trigger_info": "115年10月21日至115年10月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-22",
+        "code": "5475",
+        "name": "德宏",
+        "trigger_info": "115年10月19日至115年10月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-22",
+        "code": "6751",
+        "name": "智聯服務",
+        "trigger_info": "115年10月21日至115年10月22日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-22",
+        "code": "6925",
+        "name": "意藍",
+        "trigger_info": "115年10月21日至115年10月22日連續二次<br>115年10月19日至115年10月22日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
