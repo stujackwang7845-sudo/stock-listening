@@ -75,9 +75,13 @@ class DateUtils:
         "2026-04-03", "2026-04-06", "2026-05-01", 
         "2026-06-19", "2026-07-10", "2026-09-25", "2026-09-28", 
         "2026-10-09", "2026-10-26", "2026-12-25",
+        "2026-10-23",  # 颱風(臺北市停止上班)臨時休市
         # 可依需求擴充
     }
-    
+    # 臨時休市(颱風等天災，2026-10-24)：交易所事先公告的處置期間沒扣掉這些天 → 處置要順延。
+    # 自動偵測：core/market_closure.py(人事總處停班停課＋官方行情兩市都沒資料)，寫進 twse_holidays.json 的 unscheduled
+    UNSCHEDULED = {"2026-07-10", "2026-10-23"}
+
     _TWSE_CACHE_FILE = get_paths().twse_holidays_json
     _TWSE_HOLIDAYS_LOADED = False
 
@@ -95,6 +99,8 @@ class DateUtils:
                 with open(cls._TWSE_CACHE_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     cached_holidays = set(data.get("holidays", []))
+                    cls.UNSCHEDULED.update(data.get("unscheduled", []))
+                    cached_holidays |= set(data.get("unscheduled", []))
             except Exception as e:
                 print(f"[DateUtils] Error reading holiday cache: {e}")
                 
@@ -129,10 +135,53 @@ class DateUtils:
                     cls.HOLIDAYS.update(new_fetched)
                     all_new = sorted(list(cls.HOLIDAYS))
                     with open(cls._TWSE_CACHE_FILE, "w", encoding="utf-8") as f:
-                        json.dump({"holidays": all_new}, f, indent=4)
+                        json.dump({"holidays": all_new, "unscheduled": sorted(cls.UNSCHEDULED)}, f, indent=4)
                     print(f"[DateUtils] 成功下載並快取證交所資料！")
             except Exception as e:
                 print(f"[DateUtils] 從 TWSE 同步假日失敗: {e}")
+
+    @classmethod
+    def add_unscheduled(cls, iso):
+        """臨時休市(颱風)加進這個行程的休市表；寫檔由 core.market_closure.record_unscheduled 負責。"""
+        cls._sync_twse_holidays()
+        cls.HOLIDAYS.add(iso)
+        cls.UNSCHEDULED.add(iso)
+
+    @classmethod
+    def postpone_period(cls, start, end):
+        """
+        處置期間碰到臨時休市(颱風)順延：交易所公告的起訖是用公告當時的行事曆算的，期間內遇休市「順延執行」。
+        例：8437 公告 10/23～10/30(5 個營業日)，10/23 颱風 → 10/27～11/02。start/end 可為 date 或 datetime。
+        回傳 (start, end, 碰到的臨時休市日 list)；沒碰到原樣回傳。
+        """
+        cls._sync_twse_holidays()
+        one = timedelta(days=1)
+        hit, cur = [], start
+        while cur <= end:
+            if cur.weekday() < 5 and cur.strftime("%Y-%m-%d") in cls.UNSCHEDULED:
+                hit.append(cur)
+            cur += one
+        if not hit:
+            return start, end, []
+        n, cur = len(hit), start
+        while cur <= end:
+            if cls.is_trading_day(cur):
+                n += 1
+            cur += one
+        s = start
+        while not cls.is_trading_day(s):
+            s += one
+        e, k = s, 1
+        while k < n:
+            e += one
+            if cls.is_trading_day(e):
+                k += 1
+        return s, e, hit
+
+    @classmethod
+    def is_unscheduled_closure(cls, date_obj):
+        cls._sync_twse_holidays()
+        return date_obj.strftime("%Y-%m-%d") in cls.UNSCHEDULED
 
     @classmethod
     def is_trading_day(cls, date_obj):

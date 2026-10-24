@@ -30,7 +30,7 @@ import sqlite3
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time as dtime, timedelta
 
 import requests
 
@@ -223,15 +223,25 @@ def _fmt(target):
     return {"ymd": target.strftime("%Y%m%d"), "slash": target.strftime("%Y/%m/%d")}
 
 
-def fetch_day(client, target, with_ratios=False, today=None):
-    """抓一天的上市＋上櫃行情(可選本益比)。"""
-    today = today or date.today()
+EVENING_HOLIDAY_AT = dtime(17, 30)   # 當天這個時間後兩市都沒行情 → 休市(平常 15:00 前就公布)
+
+
+def fetch_day(client, target, with_ratios=False, today=None, now=None):
+    """
+    抓一天的上市＋上櫃行情(可選本益比)。
+    [2026-10-24] 實際執行(沒指定 today)時，當天 17:30 後兩市都查無資料也記休市(10/23 颱風休市，
+    18:30 推播還當成交易日；原本要等隔天才記)。測試指定 today 時不套用，維持「當天＝還沒公布」。
+    """
+    if today is None:
+        now = now or datetime.now()
+        today = now.date()
     twse = parse_twse_quotes(client.get_json(TWSE_QUOTES[0].format(**_fmt(target)), TWSE_QUOTES[1]), target)
     tpex = parse_tpex_quotes(client.get_json(TPEX_QUOTES[0].format(**_fmt(target)), TPEX_QUOTES[1]), target)
 
     if twse is None and tpex is None:
         # 今天(或未來)查無資料只代表還沒公布，不能記成休市
-        status = "holiday" if target < today else "pending"
+        evening = now is not None and target == today and now.time() >= EVENING_HOLIDAY_AT
+        status = "holiday" if (target < today or evening) else "pending"
         return DayQuotes(target, status)
     if twse is None or tpex is None:
         missing = "上市" if twse is None else "上櫃"
@@ -268,18 +278,25 @@ def save_day(day, market_db):
     return len(price_rows)
 
 
-def record_holiday(target, holidays_json):
-    """休市日併入 twse_holidays.json({"holidays": [YYYY-MM-DD...]}，DateUtils 讀的格式)。"""
+def record_holiday(target, holidays_json, unscheduled=False):
+    """
+    休市日併入 twse_holidays.json({"holidays": [YYYY-MM-DD...]}，DateUtils 讀的格式)。
+    unscheduled=True(原本以為是交易日，例：颱風)另記進 "unscheduled"，處置期間要順延。
+    """
     data = {"holidays": []}
     if os.path.exists(holidays_json):
         with open(holidays_json, "r", encoding="utf-8") as f:
             data = json.load(f)
     days = set(data.get("holidays", []))
+    uns = set(data.get("unscheduled", []))
     iso = target.strftime("%Y-%m-%d")
-    if iso in days:
+    if iso in days and (not unscheduled or iso in uns):
         return False
     days.add(iso)
     data["holidays"] = sorted(days)
+    if unscheduled:
+        uns.add(iso)
+        data["unscheduled"] = sorted(uns)
     tmp = holidays_json + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
@@ -342,7 +359,7 @@ def backfill(end, n_days, market_db, holidays_json, client=None, today=None, log
             log(f"[official_quotes] {cur} 寫入 {n} 檔{('，本益比 ' + str(len(day.ratios)) + ' 檔') if day.ratios else ''}"
                 f"{('，' + day.note) if day.note else ''}")
         elif day.status == "holiday":
-            record_holiday(cur, holidays_json)
+            record_holiday(cur, holidays_json, unscheduled=DateUtils.is_trading_day(cur))
             log(f"[official_quotes] {cur} 上市上櫃皆無資料，記為休市")
         else:
             # partial / pending：不寫入，仍算一個交易日位置，避免往回多抓

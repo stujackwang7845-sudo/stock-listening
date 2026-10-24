@@ -181,6 +181,16 @@ def clause13_days(code, until_iso, n_days, db_path=None):
     return sorted(r[0] for r in rows)
 
 
+def fastest_rule(trigger_progress):
+    """還差次數最少的規則(同樣少時連續型優先)：(needed, rule) 或 None。"""
+    tp = trigger_progress or {}
+    cands = [(tp[k]["needed"], i, k) for i, k in enumerate(("rule1", "rule2", "rule3", "rule4")) if k in tp]
+    if not cands:
+        return None
+    needed, _, rule = min(cands)
+    return needed, rule
+
+
 def predict_next_days(code, disp_iso, trigger_progress):
     """
     下次處置是 5 天還是 7 天(證交所/櫃買 2026-08-10 新制)。
@@ -191,11 +201,10 @@ def predict_next_days(code, disp_iso, trigger_progress):
     取還差次數最少的規則；同樣少時連續型優先(官方公告處置原因以連續型為主)。
     回傳 (天數, 說明)。
     """
-    tp = trigger_progress or {}
-    cands = [(tp[k]["needed"], i, k) for i, k in enumerate(("rule1", "rule2", "rule3", "rule4")) if k in tp]
-    if not cands:
+    fr = fastest_rule(trigger_progress)
+    if fr is None:
         return 5, ""
-    needed, _, rule = min(cands)
+    needed, rule = fr
     if rule in ("rule3", "rule4"):
         return 5, (f"最快達標的是「{_RULE_NAME[rule]}」：新制只有連續3日/連續5日型且期間內有第十三款(當沖占比過高)"
                    f"才處置 7 天，這種累積型一律 5 個營業日。")

@@ -129,6 +129,35 @@ def n_trading_days(s, e):
                if DateUtils.is_trading_day(datetime.combine(s + timedelta(days=i), datetime.min.time())))
 
 
+def is_trading(day):
+    return DateUtils.is_trading_day(datetime.combine(day, datetime.min.time()))
+
+
+def closures_between(a, b):
+    """a(不含)～b(不含)之間的臨時休市日(颱風等；週末與既定假日不算)。"""
+    out, cur = [], a + timedelta(days=1)
+    while cur < b:
+        if DateUtils.is_unscheduled_closure(datetime.combine(cur, datetime.min.time())):
+            out.append(cur)
+        cur += timedelta(days=1)
+    return out
+
+
+def postpone_for_closures(d):
+    """
+    [2026-10-24] 臨時休市(颱風)順延：交易所公告的處置期間是用公告當時的行事曆算的，期間內碰到臨時休市
+    「順延執行」(公告原文：如遇休市…則順延執行)。例：8437 公告 10/23～10/29(5 個營業日)，10/23 颱風休市
+    → 10/27～11/02。原公告起訖留在 start_official / end_official。
+    """
+    s, e = d["start"], d["end"]
+    start, end, hit = DateUtils.postpone_period(s, e)
+    if not hit:
+        return d
+    d.update(start_official=s, end_official=e, start=start, end=end, postponed=hit)
+    print(f"[INFO] {d['code']} 處置 {s}～{e} 碰到臨時休市 {[str(x) for x in hit]} → 順延為 {start}～{end}")
+    return d
+
+
 def prev_trading_day(day):
     return DateUtils.get_last_trading_day(datetime.combine(day, datetime.min.time()) - timedelta(days=1)).date()
 
@@ -276,6 +305,7 @@ def load_disposals(today=None):
         uniq.setdefault((d["code"], d["start"], d["end"]), d)
     res = list(uniq.values())
     for d in res:
+        postpone_for_closures(d)
         d["n_days"] = n_trading_days(d["start"], d["end"])
         # 方案 D 進場日：5 天初犯＝處置前一天(公告日)收盤買；其餘＝處置首日收盤買
         d["entry"] = prev_trading_day(d["start"]) if d["n_days"] == 5 else d["start"]
@@ -944,6 +974,8 @@ def missed_predictions(log, day, disposals):
     回傳 (沒中的預買 [(code, name)], 沒中的預空 [(code, name)])。下一個交易日開始處置才算中；
     預空還要是 7 天累犯。
     """
+    if not is_trading(day):
+        return [], []                    # [2026-10-24] 那天臨時休市(颱風)：沒進場，預測順延到下一個交易日重新列
     nxt = next_trading_day(day)
     started = {}
     for d in disposals:
@@ -999,13 +1031,23 @@ def _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, stop_title, f_
         parts.append(section_block(f"👀 <b>觀察（7 天聽牌，{when}不動作）</b>", list(f_watch)))
 
 
-def build_message(today, nxt, f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err=None,
+def closure_note(a, b):
+    """a～b 之間有臨時休市(颱風)時，開頭加一行說明。"""
+    hit = closures_between(a, b)
+    if not hit:
+        return ""
+    days = "、".join(f"{x:%m/%d}" for x in hit)
+    return (f"\n🌀 <b>{days} 臨時休市</b>（颱風，臺北市停止上班）：原定那天的進出場全部順延到 {b:%m/%d}，"
+            f"碰到休市的處置期間也往後順延")
+
+
+def build_message(today, nxt,f_long, f_short, f_sell, f_cover, f_stop, holds_long, holds_short, notes, cand_err=None,
                   f_watch=()):
     """盤後推播：策略說明 → 明日焦點(做多/放空/賣出/回補/停損，各自可展開) → 持有中(多/空各自可展開)。"""
     wd = "一二三四五六日"
     when = day_lbl("明天", nxt)
     parts = [f"🔔 <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤後</b>\n"
-             f"以下是{when}({wd[nxt.weekday()]}) 收盤前要做的事；點區塊可展開/收合", RULES_HTML,
+             f"以下是{when}({wd[nxt.weekday()]}) 收盤前要做的事；點區塊可展開/收合" + closure_note(today, nxt), RULES_HTML,
              f"{BAR}\n🎯 <b>明日焦點｜{when}收盤前</b>\n{BAR}"]
     _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, f"⛔ <b>停損｜{when}盡快賣出</b>", f_watch)
     if cand_err:
@@ -1024,7 +1066,8 @@ def build_pre_message(today, anchor, f_long, f_short, f_sell, f_cover, f_stop, h
     wd = "一二三四五六日"
     when = day_lbl("今天", today)
     parts = [f"⏰ <b>處置策略｜{today:%m/%d}({wd[today.weekday()]}) 盤中提醒</b>\n"
-             f"以下是{when}收盤前要做的事（聽牌預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）；點區塊可展開/收合",
+             f"以下是{when}收盤前要做的事（聽牌預測以 {anchor:%m/%d} 收盤為準，現價為即時行情）；點區塊可展開/收合"
+             + closure_note(anchor, today),
              RULES_HTML, f"{BAR}\n🎯 <b>今日焦點｜{when}收盤前</b>\n{BAR}"]
     _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, "⛔ <b>停損注意</b>", f_watch)
     parts += [f"{BAR}\n📊 <b>持有中｜即時價</b>\n{BAR}",
@@ -1085,6 +1128,9 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
         return "\n".join(lines)
     lines += [f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
              f"・天數依據：{html.escape(note)}" if note else None,
+             f"・{html.escape(c['clause13'])}" if c.get("clause13") else None,
+             "　⚠️ <b>預估會出現第十三款 → 處置可能變 7 天</b>（不是 5 天；7 天初犯策略是處置首日收盤才買）"
+             if c.get("clause13_hit") else None,
              px_line,
              *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
              f"・進處置條件（{when}收盤達任一）：",
@@ -1685,6 +1731,40 @@ def main_pre(args, today):
     save_log(log)
 
 
+def check_closure(args):
+    """
+    [2026-10-24] 推播前查人事總處停班停課：臺北市今天/明天停止上班 → 記成臨時休市(休市以臺北市為準)。
+    dry-run 只更新這個行程的休市表、不寫檔。查不到就照舊(事後還有「兩市都沒行情」的判定)。
+    """
+    from core import market_closure
+    hj = None if args.dry_run else DateUtils._TWSE_CACHE_FILE
+    res = market_closure.check_and_record(date.today(), hj)
+    for d, (st, seg) in sorted((res or {}).items()):
+        print(f"[closure] 臺北市 {d}：{st}（{seg}）")
+
+
+def closure_notice(args, day):
+    """臨時休市當天(盤中時段)發一則短訊息，一天一次：昨晚推播寫的「今天」動作都順延。"""
+    log = load_log()
+    meta = log.setdefault("_meta", {})
+    if meta.get("closure_notice") == str(day) and not args.force_send:
+        return
+    nxt = next_trading_day(day)
+    wd = "一二三四五六日"
+    msg = (f"🌀 <b>處置策略｜{day:%m/%d}({wd[day.weekday()]}) 臨時休市</b>\n"
+           f"臺北市停止上班，證券市場今天全日休市（颱風）。\n"
+           f"前一次推播寫「{day:%m/%d}」要做的買進、放空、賣出、回補全部<b>不用做</b>，順延到 "
+           f"{nxt:%m/%d}({wd[nxt.weekday()]})；碰到休市的處置期間也往後順延一個交易日。\n"
+           f"今晚盤後推播會依新的日期重新列出。")
+    print("\n" + msg + "\n")
+    if args.dry_run:
+        print("[dry-run] 未推播、未寫紀錄。")
+        return
+    push(msg)
+    meta["closure_notice"] = str(day)
+    save_log(log)
+
+
 HIT_RATE_NOTE = ("\n命中率樣本不足：目前唯一沒有資料外洩的回測日(10/02)，官方聽牌「非處置」8 檔中 6 檔隔天公告處置"
                  "(沒中的 2 檔是累犯)；之後每天的候選與結果會記在 disposal_golden_signals.json，盤後推播會標示有沒有列入候選。")
 
@@ -1698,6 +1778,8 @@ def main():
     args = ap.parse_args()
 
     start_log()
+    if not args.date:
+        check_closure(args)
     if args.date:
         today = datetime.strptime(args.date, "%Y%m%d").date()
     elif args.pre_close:
@@ -1712,6 +1794,8 @@ def main():
             print(f"[{now}] 補跑：以最近一個已收盤交易日 {today} 為盤後日")
     if not DateUtils.is_trading_day(datetime.combine(today, datetime.min.time())) and not args.force_send:
         print(f"[{datetime.now()}] {today} 不是交易日，結束。")
+        if args.pre_close and DateUtils.is_unscheduled_closure(datetime.combine(today, datetime.min.time())):
+            closure_notice(args, today)
         return
     (main_pre if args.pre_close else main_post)(args, today)
 

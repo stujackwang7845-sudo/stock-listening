@@ -72,6 +72,7 @@ def main():
     a = ap.parse_args()
 
     tmp = prepare_copy()
+    keep_dir = os.environ.get("DISPO_DATA_DIR") or str(PROJ / "data")   # 當沖快取放原本的資料夾(副本會刪)
     os.environ["DISPO_DATA_DIR"] = tmp
     os.environ["DISPO_NO_SHIOAJI"] = "1"        # 不連本機 StockGateway
     os.environ.setdefault("PYTHONIOENCODING", "utf-8")
@@ -86,7 +87,9 @@ def main():
             build_agg_data, fill_attention_clauses_gap, merge_clauses_from_db,
             merge_clauses_from_listening_history, merge_disposal_status_from_db)
         from core.forecast_engine import build_forecast_inputs, run_forecast
-        from core.disposal_detail import predict_next_days
+        from core.disposal_detail import predict_next_days, fastest_rule, clause13_days
+        from core.clause13 import Clause13Data, outlook as c13_outlook, describe as c13_describe
+        from core.utils import DateUtils
         from core.runtime import get_paths
 
         D = datetime.strptime(a.anchor, "%Y%m%d")
@@ -106,6 +109,8 @@ def main():
         res = run_forecast(agg_f, a.anchor, attention, mf, cb, punish_df=None)
 
         iso = D.strftime("%Y-%m-%d")
+        ann = DateUtils.get_next_trading_day(D).date()     # 會公告注意股(＝決定進不進處置)的那天
+        c13src = Clause13Data(keep_dir, paths.market_db)
         cands = []
         for x in res["listening"]:
             tp = x.get("trigger_progress") or {}
@@ -116,7 +121,17 @@ def main():
                 continue
             offense = "累犯" if "累犯" in (x.get("enter_freq") or "") else "初犯"
             days, why = predict_next_days(x["code"], iso, tp)
-            cands.append({"code": x["code"], "name": x["name"], "market": x.get("source", ""),
+            # [2026-10-24] 5 天(連續型)：決定天數的第十三款看 D 的當沖，收盤後就算得出來；標出數字與門檻
+            c13 = {}
+            fr = fastest_rule(tp)
+            if days == 5 and fr and fr[1] in ("rule1", "rule2"):
+                try:
+                    o = c13_outlook(x["code"], x.get("source", ""), D.date(), c13src,
+                                    recent13=[datetime.strptime(h, "%Y-%m-%d").date() for h in clause13_days(x["code"], iso, 5)])
+                    c13 = {"clause13": c13_describe(o, ann), "clause13_hit": o["hit"]}
+                except Exception as e:
+                    c13 = {"clause13": f"第十三款預估失敗：{e}", "clause13_hit": None}
+            cands.append({**c13, "code": x["code"], "name": x["name"], "market": x.get("source", ""),
                           "close": x.get("close"), "enter_freq": x.get("enter_freq"), "offense": offense,
                           "days": days, "days_note": why, "min_needed": need,
                           "progress": {k: tp.get(k) for k in ("rule1", "rule2", "rule3", "rule4")},

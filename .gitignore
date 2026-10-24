@@ -85,3 +85,6 @@ data/disposal_golden_signals.tmp
 
 # 雲端每日總控輸出(GitHub Pages 用 deploy-pages 部署，不進 git 歷史)
 site/
+
+# 第十三款當沖資料快取(2026-10-24，core/clause13.py)
+data/daytrade_cache/

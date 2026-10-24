@@ -289,32 +289,32 @@ class NewPushLayoutTest(unittest.TestCase):
 
     def test_recidivist_7day_early_short(self):
         """7 天累犯：處置前一天(>= 規則上線日)收盤空 → 出關日+1 回補；上線前已過的照舊結束日前一天。"""
-        new = n.enrich(dict(code="4542", name="科嶠", market="上櫃", announce=date(2026, 10, 23), start=date(2026, 10, 26),
-                            end=date(2026, 11, 3), n_days=7, offense="累犯", entry=date(2026, 10, 26)))
-        self.assertEqual(new["short_entry"], date(2026, 10, 23))          # 處置前一天
+        new = n.enrich(dict(code="4542", name="科嶠", market="上櫃", announce=date(2026, 10, 22), start=date(2026, 10, 27),
+                            end=date(2026, 11, 3), n_days=7, offense="累犯", entry=date(2026, 10, 27)))
+        self.assertEqual(new["short_entry"], date(2026, 10, 22))          # 處置前一天(10/23 颱風休市、10/26 補假)
         self.assertTrue(new.get("early_short"))
         self.assertEqual(new["short_cover"], n.next_trading_day(n.next_trading_day(date(2026, 11, 3))))
         self.assertIn("處置前一天收盤空", n.short_why(new))
         old = n.enrich(dict(code="4542", name="科嶠", market="上櫃", announce=date(2026, 10, 21), start=date(2026, 10, 22),
-                            end=date(2026, 11, 2), n_days=7, offense="累犯", entry=date(2026, 10, 23)))
+                            end=date(2026, 11, 2), n_days=7, offense="累犯", entry=date(2026, 10, 22)))
         self.assertEqual(old["short_entry"], n.prev_trading_day(date(2026, 11, 2)))   # 規則上線前：結束日前一天
         self.assertNotIn("early_short", old)
-        first = n.enrich(dict(code="6269", name="台郡", market="上櫃", announce=date(2026, 10, 23), start=date(2026, 10, 26),
-                              end=date(2026, 11, 3), n_days=7, offense="初犯", entry=date(2026, 10, 26)))
+        first = n.enrich(dict(code="6269", name="台郡", market="上櫃", announce=date(2026, 10, 22), start=date(2026, 10, 27),
+                              end=date(2026, 11, 3), n_days=7, offense="初犯", entry=date(2026, 10, 27)))
         self.assertEqual(first["short_entry"], n.prev_trading_day(date(2026, 11, 3)))  # 初犯不變
 
     def test_missed_predictions(self):
-        log = {"_cand": {"2026-10-23": [{"code": "1111", "name": "甲"}, "2222"]},
-               "_pre_short": {"2026-10-23": [{"code": "4542", "name": "科嶠"}, {"code": "3333", "name": "丙"}]}}
-        nxt = n.next_trading_day(date(2026, 10, 23))
+        log = {"_cand": {"2026-10-22": [{"code": "1111", "name": "甲"}, "2222"]},
+               "_pre_short": {"2026-10-22": [{"code": "4542", "name": "科嶠"}, {"code": "3333", "name": "丙"}]}}
+        nxt = n.next_trading_day(date(2026, 10, 22))
         disposals = [dict(code="1111", start=nxt, n_days=5, offense="初犯"),
                      dict(code="4542", start=nxt, n_days=7, offense="累犯"),
                      dict(code="3333", start=nxt, n_days=5, offense="累犯")]          # 進了但不是 7 天 → 算沒中
-        miss_buy, miss_short = n.missed_predictions(log, date(2026, 10, 23), disposals)
+        miss_buy, miss_short = n.missed_predictions(log, date(2026, 10, 22), disposals)
         self.assertEqual(miss_buy, [("2222", "")])
         self.assertEqual(miss_short, [("3333", "丙")])
-        sell, cover = n.miss_cards(miss_buy, miss_short, date(2026, 10, 23), "明天（10/26）")
-        self.assertIn("明天（10/26）收盤：回補", cover[0])
+        sell, cover = n.miss_cards(miss_buy, miss_short, date(2026, 10, 22), "明天（10/27）")
+        self.assertIn("明天（10/27）收盤：回補", cover[0])
         self.assertIn("預買沒中", sell[0])
 
     def test_pre_short_card(self):
