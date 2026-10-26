@@ -6,7 +6,7 @@
 
 import sqlite3
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Tuple
 
 
@@ -277,21 +277,43 @@ class DisposalDatabase:
             self.conn.rollback()
             return 0
     
+    @staticmethod
+    def _postpone_record(rec: Dict) -> Dict:
+        """
+        [2026-10-26] 處置期間碰到臨時休市(颱風)順延：資料庫存的是交易所原始公告起迄(公告當時的行事曆)，
+        讀出時依休市日曆(DateUtils.UNSCHEDULED)把 period_start/period_end/period_raw 換成順延後的日期，
+        所有顯示處置中/出關日的地方(儀表板、詳細頁、預測頁、統計、雲端)就自然一致。
+        原始公告留在 period_start_official / period_end_official / period_raw_official。資料庫本身不改。
+        """
+        from core.utils import DateUtils
+        ps, pe = rec.get("period_start"), rec.get("period_end")
+        if not ps or not pe:
+            return rec
+        try:
+            s0, e0 = datetime.strptime(str(ps)[:10], "%Y-%m-%d"), datetime.strptime(str(pe)[:10], "%Y-%m-%d")
+        except ValueError:
+            return rec
+        s1, e1, hit = DateUtils.postpone_period(s0, e0)
+        if not hit:
+            return rec
+        rec.update(period_start_official=ps, period_end_official=pe, period_raw_official=rec.get("period_raw"),
+                   period_start=s1.strftime("%Y-%m-%d"), period_end=e1.strftime("%Y-%m-%d"),
+                   period_raw=f"{s1.year - 1911}/{s1:%m/%d}~{e1.year - 1911}/{e1:%m/%d}")
+        return rec
+
+    def _fetch_records(self, cursor) -> List[Dict]:
+        columns = [desc[0] for desc in cursor.description]
+        return [self._postpone_record(dict(zip(columns, row))) for row in cursor.fetchall()]
+
     def get_disposal_by_code(self, code: str) -> List[Dict]:
         """查詢特定股票的所有處置紀錄"""
         cursor = self.conn.cursor()
         cursor.execute("""
-            SELECT * FROM disposal_records 
-            WHERE code = ? 
+            SELECT * FROM disposal_records
+            WHERE code = ?
             ORDER BY announce_date DESC
         """, (code,))
-        
-        columns = [desc[0] for desc in cursor.description]
-        results = []
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-        
-        return results
+        return self._fetch_records(cursor)
     
     def is_announced_on(self, code: str, target_date: str) -> bool:
         """
@@ -395,13 +417,7 @@ class DisposalDatabase:
                OR announce_date = ? 
                OR announce_date = ?
         """, (v_slash, v_dash, v_plain))
-        
-        columns = [desc[0] for desc in cursor.description]
-        results = []
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-            
-        return results
+        return self._fetch_records(cursor)
     
     def get_active_disposals(self, ref_date: str = None) -> List[Dict]:
         """
@@ -413,19 +429,17 @@ class DisposalDatabase:
         if ref_date is None:
             ref_date = datetime.now().strftime("%Y-%m-%d")
         
+        # 順延後的迄日會比資料庫原始迄日晚，SQL 先放寬 15 天，順延後再用真正的起迄日篩一次
+        lo = (datetime.strptime(ref_date[:10], "%Y-%m-%d") - timedelta(days=15)).strftime("%Y-%m-%d")
         cursor = self.conn.cursor()
         cursor.execute("""
             SELECT * FROM disposal_records
             WHERE period_start <= ? AND (period_end >= ? OR period_end IS NULL)
             ORDER BY period_start DESC
-        """, (ref_date, ref_date))
+        """, (ref_date, lo))
 
-        columns = [desc[0] for desc in cursor.description]
-        results = []
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-
-        return results
+        return [r for r in self._fetch_records(cursor)
+                if not r.get("period_end") or (r["period_start"] <= ref_date <= r["period_end"])]
 
 
     def get_all_records(self, limit: int = None) -> List[Dict]:
@@ -437,14 +451,8 @@ class DisposalDatabase:
             sql += f" LIMIT {limit}"
         
         cursor.execute(sql)
-        
-        columns = [desc[0] for desc in cursor.description]
-        results = []
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-        
-        return results
-    
+        return self._fetch_records(cursor)
+
     def get_statistics(self) -> Dict:
         """取得資料庫統計資訊"""
         cursor = self.conn.cursor()

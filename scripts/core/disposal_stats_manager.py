@@ -370,8 +370,8 @@ class DisposalStatsManager:
         if code.endswith(".0"):
             code = code[:-2]
 
-        # [2026-10-24] 期間內碰到臨時休市(颱風)→ 順延(公告「如遇休市…順延執行」)，處置結束/出關日跟著往後
-        disposal_start, disposal_end, _closed = DateUtils.postpone_period(disposal_start, disposal_end)
+        # [2026-10-26] 臨時休市(颱風)順延已改在 DisposalDatabase 讀出紀錄時處理(_postpone_record)，
+        # 傳進來的 disposal_start/end 已是順延後的日期，這裡不能再順延一次。
 
         # 1. 取得處置期間所有交易日（包含前一日和出關後 days_after 日）
         range_start = disposal_start - timedelta(days=30)  # 預留空間找前一交易日 (延長至30天以跨越春節等長假)
