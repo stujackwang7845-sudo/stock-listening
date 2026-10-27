@@ -14760,5 +14760,25 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-27",
+        "code": "8996",
+        "name": "高力",
+        "trigger_info": "115年10月13日至115年10月27日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-27",
+        "code": "3441",
+        "name": "聯一光",
+        "trigger_info": "115年10月20日至115年10月27日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
