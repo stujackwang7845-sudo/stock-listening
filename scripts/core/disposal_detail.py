@@ -221,6 +221,42 @@ def predict_next_days(code, disp_iso, trigger_progress):
     return 5, note + "。"
 
 
+class _NoNetClient:
+    """詳細頁只讀本機快取，不連網(連網會卡住畫面)；快取沒有就當資料缺。"""
+    def get_json(self, *a, **k):
+        raise RuntimeError("detail page: cache only")
+
+
+def clause13_warning(code, source, disp_d, trigger_progress, days):
+    """
+    [2026-10-29] 5 天、最快達標是連續型、且聽牌(差 1 次)時，用最近一個已收盤交易日的當沖資料預估
+    下一個公告日會不會出現第十三款；預估會出現就回傳 ⚠️ 警告(只警告，不改判天數，使用者 2026-10-24 決定)。
+    只讀本機快取；資料缺或不適用回傳 ""。
+    """
+    try:
+        fr = fastest_rule(trigger_progress)
+        if days != 5 or not fr or fr[1] not in ("rule1", "rule2") or fr[0] > 1:
+            return ""
+        import os
+        from core.clause13 import Clause13Data, outlook
+        day = disp_d if isinstance(disp_d, type(datetime.now().date())) else disp_d.date()
+        while not DateUtils.is_trading_day(datetime.combine(day, datetime.min.time())):
+            day -= timedelta(days=1)
+        paths = get_paths()
+        src = Clause13Data(os.path.dirname(os.path.abspath(paths.disposal_db)), paths.market_db,
+                           client=_NoNetClient())
+        iso = day.strftime("%Y-%m-%d")
+        recent = [datetime.strptime(h, "%Y-%m-%d").date() for h in clause13_days(code, iso, 5)]
+        o = outlook(code, source, day, src, recent13=recent)
+        if o.get("hit"):
+            ann = DateUtils.get_next_trading_day(datetime.combine(day, datetime.min.time())).date()
+            return (f"⚠️ 依 {day:%m/%d} 當沖資料預估 {ann:%m/%d} 會出現第十三款 → 若進處置可能變 7 天"
+                    f"（目前仍判 5 天，7 天要等第十三款實際公告）")
+    except Exception:
+        pass
+    return ""
+
+
 def next_stats_bucket(state, total, offense, period_start, next_info, code="", disp_iso=""):
     """
     「下次進處置」的統計分桶(詳細條件下方圖表用，使用者要求看下次那一次)：
@@ -250,6 +286,9 @@ def outlook_detail(code, disp_d, disp_iso, mine, next_hint, last):
     label = nx.get("next_label") or ""
     m = _re.match(r"(\d+分)", label)
     days, why = predict_next_days(code, disp_iso, tp)
+    warn = clause13_warning(code, src, disp_d, tp, days)
+    if warn:
+        why = f"{why}\n{warn}"
     offense = "累犯" if "累犯" in label else "初犯"
     if isinstance(need, int) and need <= 0:
         progress, state = "已達進處置條件（等待公告）", "未處置（已達條件）"
