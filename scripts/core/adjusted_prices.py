@@ -8,6 +8,7 @@
 只讀本機 parquet，不連網；找不到資料夾(例如雲端)就什麼都不補。
 """
 import os
+import time
 from datetime import date, datetime
 
 ADJ_ROOT = os.environ.get("DISPO_ADJ_ROOT", r"E:\Vibe Coding\Stock\DB\parquet_data\adjusted_price_daily")
@@ -15,13 +16,35 @@ LIMIT_PCT = 10.1
 MAX_GAP_DAYS = 12
 
 _month_cache = {}
+_month_sig = {}        # (y, m) → (檔案修改時間簽名, 上次檢查的時間)
+RECHECK_SEC = 30
+
+
+def _sig(y, m):
+    out = []
+    for mk in ("TWSE", "TPEX"):
+        f = os.path.join(ADJ_ROOT, f"market={mk}", f"year={y}", f"month={m}", "data.parquet")
+        try:
+            out.append(os.path.getmtime(f))
+        except OSError:
+            out.append(None)
+    return tuple(out)
 
 
 def _month(y, m):
-    """{code: {iso日期: adj_close}}，上市＋上櫃同一個月；同一次執行只讀一次。"""
+    """{code: {iso日期: adj_close}}，上市＋上櫃同一個月。
+    [2026-10-29] 常駐的桌面版開著時 DB 專案每天更新 parquet，舊快取會一直缺最新一天 → 檔案修改時間變了就重讀
+    (最多每 RECHECK_SEC 秒才檢查一次)。"""
     key = (y, m)
+    now = time.time()
     if key in _month_cache:
-        return _month_cache[key]
+        sig, checked = _month_sig.get(key, (None, 0))
+        if now - checked < RECHECK_SEC:
+            return _month_cache[key]
+        cur = _sig(y, m)
+        if cur == sig:
+            _month_sig[key] = (sig, now)
+            return _month_cache[key]
     out = {}
     try:
         import pyarrow.parquet as pq
@@ -39,6 +62,7 @@ def _month(y, m):
     except Exception as e:
         print(f"[adjusted_prices] 讀取 {y}/{m} 失敗：{e}")
     _month_cache[key] = out
+    _month_sig[key] = (_sig(y, m), now)
     return out
 
 
