@@ -227,8 +227,20 @@ class NewPushLayoutTest(unittest.TestCase):
         self.assertIn("明天（10/16）收盤前：買進（做多）", txt)
         self.assertIn("今天（10/15）收盤：100", txt)
         self.assertIn("<b>5 天</b>", txt)
-        self.assertIn("10日內6次 → 5天", txt)
+        self.assertNotIn("10日內6次 → 5天", txt)                 # 2026-10-30：天數敘述不再列，只留第十三款結論
+        self.assertIn("第十三款：未觸發 → 5 天處置", txt)
         self.assertIn("收盤漲幅 ≥ 3.2%", txt)
+
+    def test_clause13_line_and_short_conditions(self):
+        base = dict(code="3374", name="精材", market="上櫃", offense="累犯", days=7,
+                    days_note="很長的說明", conditions=["[1-1] 6日漲幅 > 23% 目標533.00"])
+        self.assertIn("已觸發 → <b>7 天處置</b>", n.c13_line(base))
+        self.assertIn("可能變 7 天", n.c13_line({**base, "days": 5, "clause13_hit": True}))
+        self.assertIn("預估不會觸發 → 5 天", n.c13_line({**base, "days": 5, "clause13_hit": False}))
+        txt = n.pre_short_card(base, "今天（10/30）", "明天（11/02）")
+        self.assertIn("進處置條件（今天（10/30）收盤達任一）", txt)
+        self.assertIn("目標533.00", txt)
+        self.assertNotIn("很長的說明", txt)
 
     def test_split_message_keeps_items(self):
         items = [f"項目{i}\n" + "x" * 300 for i in range(30)]

@@ -943,6 +943,28 @@ def day_lbl(word, d):
     return f"{word}（{d:%m/%d}）"
 
 
+def c13_line(c):
+    """第十三款一行結論(2026-10-30 使用者要求：只講有沒有觸發、會不會變 7 天，不要敘述)。"""
+    days, hit, note = c.get("days"), c.get("clause13_hit"), c.get("days_note") or ""
+    if days == 7:
+        return "・第十三款：已觸發 → <b>7 天處置</b>"
+    if hit:
+        return "・第十三款：預估會觸發 → ⚠️ <b>可能變 7 天處置</b>"
+    if hit is False:
+        return "・第十三款：預估不會觸發 → 5 天處置"
+    if "累積型" in note:
+        return "・第十三款：不適用（累積型一律 5 天）"
+    if "無法預估" in (c.get("clause13") or "") or "失敗" in (c.get("clause13") or ""):
+        return "・第十三款：資料不足，無法預估（目前判 5 天）"
+    return "・第十三款：未觸發 → 5 天處置"
+
+
+def cond_block(c, when):
+    """進處置條件(收盤達任一)：放空/觀察卡也要列(2026-10-30 使用者問 3374)。"""
+    cond = [f"　　{html.escape(x)}" for x in (c.get("conditions") or [])[:3]]
+    return [f"・進處置條件（{when}收盤達任一）：", *(cond or ["　　（再被注意即進處置，無單一價位條件）"])]
+
+
 def pre_short_card(c, when, after, px_line=None, live=None):
     """
     7 天累犯「處置前一天收盤空」(2026-10-23)：聽牌、預估再被注意就進 7 天累犯處置 → 那天收盤空。
@@ -963,7 +985,8 @@ def pre_short_card(c, when, after, px_line=None, live=None):
     lines += [f"・回補：處置結束後的出關日+1 收盤（約 9 個交易日後，公告後推播會給日期）",
               f"・{when}收盤漲停不空、跌停空不到",
               f"・沒中（沒公告處置或不是 7 天累犯）→ {after}收盤回補",
-              f"・天數依據：{html.escape(c.get('days_note') or '')}" if c.get("days_note") else None,
+              c13_line(c),
+              *cond_block(c, when),
               *[f"・{html.escape(w)}" for w in c.get("data_warning") or []]]
     return "\n".join(x for x in lines if x)
 
@@ -1016,7 +1039,8 @@ def watch_card(c, when, start):
         f"<b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）"
         f"｜聽牌，預估 {c.get('days')} 天{c.get('offense', '')}",
         f"👉 <b>{when}不動作</b>；{plan}",
-        f"・天數依據：{html.escape(c.get('days_note') or '')}" if c.get("days_note") else None,
+        c13_line(c),
+        *cond_block(c, when),
         *[f"・{html.escape(w)}" for w in c.get("data_warning") or []]] if x)
 
 
@@ -1121,16 +1145,12 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
     else:
         order = f"👉 <b>{when}收盤前：買進（做多）</b>｜{act}"
     days = c.get("days") or 5
-    note = c.get("days_note") or ""
     lines = [f"<b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）｜{CLAUSE_TXT[clause]}",
              order]
     if verdict in ("drop", "skip"):                      # 濾掉的只留名稱＋原因(2026-10-18 使用者要求)
         return "\n".join(lines)
     lines += [f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
-             f"・天數依據：{html.escape(note)}" if note else None,
-             f"・{html.escape(c['clause13'])}" if c.get("clause13") else None,
-             "　⚠️ <b>預估會出現第十三款 → 處置可能變 7 天</b>（不是 5 天；7 天初犯策略是處置首日收盤才買）"
-             if c.get("clause13_hit") else None,
+             c13_line(c),
              px_line,
              *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
              f"・進處置條件（{when}收盤達任一）：",
