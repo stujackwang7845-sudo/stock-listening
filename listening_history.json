@@ -14820,5 +14820,75 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "3374",
+        "name": "精材",
+        "trigger_info": "115年10月22日至115年10月29日連續四次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "3691",
+        "name": "碩禾",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "4741",
+        "name": "泓瀚",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "6751",
+        "name": "智聯服務",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "6870",
+        "name": "騰雲",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "6925",
+        "name": "意藍",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-10-29",
+        "code": "8099",
+        "name": "大世科",
+        "trigger_info": "115年10月28日至115年10月29日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
