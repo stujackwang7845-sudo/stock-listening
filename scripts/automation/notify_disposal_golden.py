@@ -83,6 +83,7 @@ def data_file(name):
     return (Path(DATA_DIR) if DATA_DIR else PROJ / "data") / name
 REPORT_HTML = PROJ / "reports" / "latest_disposal_golden_push.html"
 MIN_LOTS = 100
+MIN_PUSH_LOTS = 500        # 聽牌候選：非處置期間 5 日均量低於這個不推播(2026-10-30 使用者要求)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
       "Accept": "application/json"}
@@ -412,6 +413,66 @@ def golden_check(d, company, pq_vol, today_vol):
     vol_ok = vol5 is not None and len(vols) == 5 and vol5 >= MIN_LOTS
     return dict(is_bio=is_bio, is_ky=is_ky, vol5_lots=vol5, vol_days=len(vols),
                 industry_known=bool(comp), golden=(not is_bio) and (not is_ky) and vol_ok)
+
+
+def disposal_days_of(codes, upto):
+    """{code: set(處置期間的交易日)}：近 90 天 disposal_records，期間碰到臨時休市照順延。"""
+    import sqlite3
+    out = {c: set() for c in codes}
+    db = data_file("disposal_history.db")
+    if not codes or not db.exists():
+        return out
+    conn = sqlite3.connect(str(db))
+    marks = ",".join("?" * len(codes))
+    rows = conn.execute(f"SELECT code, period_start, period_end FROM disposal_records WHERE code IN ({marks}) "
+                        "AND period_end>=?", (*codes, (upto - timedelta(days=90)).isoformat())).fetchall()
+    conn.close()
+    for code, ps, pe in rows:
+        try:
+            s, e, _ = DateUtils.postpone_period(datetime.strptime(ps, "%Y-%m-%d").date(),
+                                                datetime.strptime(pe, "%Y-%m-%d").date())
+        except (TypeError, ValueError):
+            continue
+        cur = s
+        while cur <= e:
+            out.setdefault(str(code).strip(), set()).add(cur)
+            cur += timedelta(days=1)
+    return out
+
+
+def nondisp_vol5(codes, upto):
+    """
+    [2026-10-30 使用者要求] 非處置期間的 5 日均量(張)：upto(含)往前、跳過處置期間(分盤撮合量會縮)的最近 5 個交易日。
+    回傳 {code: 均量 或 None(資料不足 5 天)}。
+    """
+    codes = sorted(set(codes))
+    if not codes:
+        return {}
+    days = prior_trading_days(upto + timedelta(days=1), 45)
+    vol = load_parquet_daily(set(codes), days)
+    disp = disposal_days_of(codes, upto)
+    out = {}
+    for c in codes:
+        vs = [vol[(c, d)][0] for d in reversed(days) if d not in disp.get(c, set()) and (c, d) in vol][:5]
+        out[c] = sum(vs) / 5 / 1000 if len(vs) == 5 else None
+    return out
+
+
+def drop_low_volume(cands, upto, label):
+    """非處置期間 5 日均量 < MIN_PUSH_LOTS 的候選不推播；資料不足的保留(寧可多推不漏推)。"""
+    if not cands:
+        return cands
+    v5 = nondisp_vol5([c["code"] for c in cands], upto)
+    keep = []
+    for c in cands:
+        v = v5.get(c["code"])
+        if v is not None and v < MIN_PUSH_LOTS:
+            print(f"[INFO] {label} {c['code']} {c['name']} 非處置期間 5 日均量 {v:,.0f} 張 < {MIN_PUSH_LOTS}，不推播")
+            continue
+        if v is None:
+            print(f"[WARN] {label} {c['code']} 非處置期間 5 日均量資料不足，照常推播")
+        keep.append(c)
+    return keep
 
 
 def fmt_filter(g):
@@ -1490,6 +1551,8 @@ def main_post(args, today):
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 明日預買候選計算失敗：{e}")
+    cand_raw = drop_low_volume(cand_raw, today, "預買")
+    cand7 = drop_low_volume(cand7, today, "7天聽牌")
     cand7_short = [c for c in cand7 if c.get("offense") == "累犯"]      # 7 天累犯：明天收盤預空
     cand7 = [c for c in cand7 if c.get("offense") != "累犯"]            # 7 天初犯：觀察(處置首日才買)
 
@@ -1625,6 +1688,8 @@ def main_pre(args, today):
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 盤中候選計算失敗：{e}")
+    cands5 = drop_low_volume(cands5, anchor, "預買")
+    cand7 = drop_low_volume(cand7, anchor, "7天聽牌")
     cand7_short = [c for c in cand7 if c.get("offense") == "累犯"]
     cand7 = [c for c in cand7 if c.get("offense") != "累犯"]
 
