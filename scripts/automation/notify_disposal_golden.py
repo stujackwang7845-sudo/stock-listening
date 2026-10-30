@@ -1006,18 +1006,14 @@ def day_lbl(word, d):
 
 def c13_line(c):
     """第十三款一行結論(2026-10-30 使用者要求：只講有沒有觸發、會不會變 7 天，不要敘述)。"""
-    days, hit, note = c.get("days"), c.get("clause13_hit"), c.get("days_note") or ""
+    days, hit, txt = c.get("days"), c.get("clause13_hit"), c.get("clause13") or ""
     if days == 7:
-        return "・第十三款：已觸發 → <b>7 天處置</b>"
+        return "・會變 7 天處置：<b>是</b>"
     if hit:
-        return "・第十三款：預估會觸發 → ⚠️ <b>可能變 7 天處置</b>"
-    if hit is False:
-        return "・第十三款：預估不會觸發 → 5 天處置"
-    if "累積型" in note:
-        return "・第十三款：不適用（累積型一律 5 天）"
-    if "無法預估" in (c.get("clause13") or "") or "失敗" in (c.get("clause13") or ""):
-        return "・第十三款：資料不足，無法預估（目前判 5 天）"
-    return "・第十三款：未觸發 → 5 天處置"
+        return "・會變 7 天處置：⚠️ <b>可能會</b>"
+    if hit is None and ("無法預估" in txt or "失敗" in txt):
+        return "・會變 7 天處置：無法預估"
+    return "・會變 7 天處置：不會"
 
 
 def cond_block(c, when):
