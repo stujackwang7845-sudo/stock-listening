@@ -1008,12 +1008,25 @@ def c13_line(c):
     """第十三款一行結論(2026-10-30 使用者要求：只講有沒有觸發、會不會變 7 天，不要敘述)。"""
     days, hit, txt = c.get("days"), c.get("clause13_hit"), c.get("clause13") or ""
     if days == 7:
-        return "・會變 7 天處置：<b>是</b>"
+        return "・有第13款 → <b>7 天處置</b>"
     if hit:
-        return "・會變 7 天處置：⚠️ <b>可能會</b>"
+        return "・⚠️ 預估會有第13款 → <b>可能變 7 天處置</b>"
     if hit is None and ("無法預估" in txt or "失敗" in txt):
-        return "・會變 7 天處置：無法預估"
-    return "・會變 7 天處置：不會"
+        return "・第13款無法預估"
+    return "・無第13款"
+
+
+def target_line(price, prev, conditions):
+    """「目前股價 51（-5.7%）距目標價 58.2 需漲 14.1%」(2026-10-30 使用者指定格式)。
+    目標取進處置條件裡最容易達到的那個；條件沒有目標價只列現價。"""
+    chg = f"（{(price / prev - 1) * 100:+.1f}%）" if prev else ""
+    tg = [float(m.group(1)) for x in conditions or [] for m in [re.search(r"目標\s*([\d.]+)", x)] if m]
+    if not tg:
+        return f"・目前股價 {price:g}{chg}"
+    t = min(tg, key=lambda v: v / price)            # 需漲最少(或已到目標)的那個
+    gap = (f"需漲 {(t / price - 1) * 100:.1f}%" if t > price
+           else f"已到目標，可跌 {(1 - t / price) * 100:.1f}%")
+    return f"・目前股價 {price:g}{chg} 距目標價 {t:g}｜{gap}"
 
 
 def cond_block(c, when):
@@ -1206,17 +1219,17 @@ def cand_card(c, verdict, act, when, px_line, clause, cond_lines):
              order]
     if verdict in ("drop", "skip"):                      # 濾掉的只留名稱＋原因(2026-10-18 使用者要求)
         return "\n".join(lines)
+    # [2026-10-30 使用者指定] 預估 → 目前股價距目標 → 進處置條件 → 第13款一行
     lines += [f"・預估：{when}收盤再被注意就進處置 → <b>{days} 天</b>、{c.get('offense', '初犯')}",
-             c13_line(c),
              px_line,
-             *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
-             f"・進處置條件（{when}收盤達任一）：",
              *(cond_lines or ["　　（再被注意即進處置，無單一價位條件）"]),
+             c13_line(c),
+             *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
              f"・出場：處置最後一天收盤賣（處置期間若又被公告 5 天累犯 → 改抱到那次的出關日）；停損＝買價×{1 - STOP_PCT:.2f}"]
     return "\n".join(x for x in lines if x)
 
 
-def fmt_next_cand(c, cl, di, close, locked, drop=None, when="明天", today_lbl="今天"):
+def fmt_next_cand(c, cl, di, close, locked, drop=None, when="明天", today_lbl="今天", prev=None):
     """盤後版明日預買候選(多行卡片)。"""
     v = judge(cl, di, drop)
     if v == "drop":
@@ -1227,7 +1240,7 @@ def fmt_next_cand(c, cl, di, close, locked, drop=None, when="明天", today_lbl=
         act = f"⚠️ 第一款：乖離資料不足，收盤前自行確認乖離 ≤ {DEV_MAX*100:.0f}%"
     else:
         act = "✅ 可買"
-    px_line = None if close is None else f"・{today_lbl}收盤：{close:g}" + ("（漲停）" if locked else "")
+    px_line = None if close is None else target_line(close, prev, c["conditions"][:3]) + ("（漲停）" if locked else "")
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]]
     return cand_card(c, "drop" if v == "drop" else "ok", act, when, px_line, cl, cond)
 
@@ -1396,12 +1409,10 @@ def fmt_candidate(c, mis, clause, di, drop=None, when="今天"):
         act = "⚠️ 第一款：乖離資料不足，自行確認收盤乖離 ≤ 35%"
     else:
         act = "✅ 可買"
-    p = c.get("progress") or {}
-    prog = "、".join(f"{lbl} {p[k]['current']}/{p[k]['target']}" for lbl, k in
-                    (("連3日第1款", "rule1"), ("連5日1-8款", "rule2"), ("10日內6次", "rule3"), ("30日內12次", "rule4"))
-                    if p.get(k))
-    px_line = "・" + px_text(price, q.get("prev"), up, c.get("close"), q.get("traded", True), q.get("src")) + \
-              (f"\n・聽牌進度：{prog}" if prog else "")
+    if price and q.get("traded", True):
+        px_line = target_line(price, q.get("prev"), c["conditions"][:3])
+    else:                                            # 還沒成交/行情失敗：照舊講清楚
+        px_line = "・" + px_text(price, q.get("prev"), up, c.get("close"), q.get("traded", True), q.get("src"))
     cond = [f"　　{html.escape(x)}" for x in c["conditions"][:3]]
     txt = cand_card(c, "skip" if verdict in ("skip", "drop") else verdict, act, when, px_line, clause, cond)
     return txt, locked and verdict != "drop", verdict in ("skip", "drop")
@@ -1568,7 +1579,8 @@ def main_post(args, today):
         cl = clause_type(clause_db, c["code"], nxt)
         di = dev20_info(c["code"], nxt, today, quotes, daily)
         f_long.append(fmt_next_cand(c, cl, di, close_of(c["code"], today, quotes, daily), False,
-                                    drop_notice(clause_db, c["code"], today), when=N, today_lbl=T))
+                                    drop_notice(clause_db, c["code"], today), when=N, today_lbl=T,
+                                    prev=close_of(c["code"], prev_trading_day(today), quotes, daily)))
     for d in disposals:                                  # 做多 2：7 天初犯明天處置首日
         if d["offense"] == "初犯" and d["n_days"] == 7 and d["start"] == nxt:
             cl = clause_type(clause_db, d["code"], nxt)

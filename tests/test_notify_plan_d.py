@@ -225,19 +225,26 @@ class NewPushLayoutTest(unittest.TestCase):
                  days_note="10日內6次 → 5天", conditions=["收盤漲幅 ≥ 3.2%"])
         txt = n.fmt_next_cand(c, "六", None, 100.0, False, when="明天（10/16）", today_lbl="今天（10/15）")
         self.assertIn("明天（10/16）收盤前：買進（做多）", txt)
-        self.assertIn("今天（10/15）收盤：100", txt)
+        self.assertIn("・目前股價 100", txt)
         self.assertIn("<b>5 天</b>", txt)
         self.assertNotIn("10日內6次 → 5天", txt)                 # 2026-10-30：天數敘述不再列，只留第十三款結論
-        self.assertIn("會變 7 天處置：不會", txt)
+        self.assertIn("・無第13款", txt)
         self.assertNotIn("十三款", txt)
         self.assertIn("收盤漲幅 ≥ 3.2%", txt)
+
+    def test_target_line(self):
+        self.assertEqual(n.target_line(51, 54.1, ["[1] 6日漲幅 > 30% (上櫃) 目標58.20 (需漲7.58%)"]),
+                         "・目前股價 51（-5.7%） 距目標價 58.2｜需漲 14.1%")
+        self.assertIn("已到目標，可跌 25.2%",
+                      n.target_line(110.5, None, ["[1] 6日漲幅 > 30% (上櫃) 目標 82.70 跌停價 92.20 必進處置"]))
+        self.assertEqual(n.target_line(100, None, ["收盤漲幅 ≥ 3.2%"]), "・目前股價 100")
 
     def test_clause13_line_and_short_conditions(self):
         base = dict(code="3374", name="精材", market="上櫃", offense="累犯", days=7,
                     days_note="很長的說明", conditions=["[1-1] 6日漲幅 > 23% 目標533.00"])
-        self.assertEqual("・會變 7 天處置：<b>是</b>", n.c13_line(base))
-        self.assertIn("可能會", n.c13_line({**base, "days": 5, "clause13_hit": True}))
-        self.assertEqual("・會變 7 天處置：不會", n.c13_line({**base, "days": 5, "clause13_hit": False}))
+        self.assertEqual("・有第13款 → <b>7 天處置</b>", n.c13_line(base))
+        self.assertIn("可能變 7 天", n.c13_line({**base, "days": 5, "clause13_hit": True}))
+        self.assertEqual("・無第13款", n.c13_line({**base, "days": 5, "clause13_hit": False}))
         txt = n.pre_short_card(base, "今天（10/30）", "明天（11/02）")
         self.assertIn("進處置條件（今天（10/30）收盤達任一）", txt)
         self.assertIn("目標533.00", txt)
