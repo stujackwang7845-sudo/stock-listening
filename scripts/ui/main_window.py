@@ -86,6 +86,8 @@ class MainWindow(QMainWindow):
         self.tab_forecast = ForecastPage()
         from ui.settings_page import SettingsPage
         self.tab4 = SettingsPage()   # 系統設定(2026-10-20：只顯示新制開關)
+        from ui.strategy_backtest_page import StrategyBacktestPage
+        self.tab_backtest = StrategyBacktestPage()   # 策略回測(2026-11-01)
         
         # Connect Signal (Use grid_table for Dashboard)
         # Note: Dashboard mockup might load async, but widget exists immediately
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.tab_tag_mgmt, "Tag管理")  # 新增 Tag 管理 Tab
         self.tabs.addTab(self.tab_disposal_stats, "處置統計")  # 新增處置統計 Tab
         self.tabs.addTab(self.tab_disposal_stats_chart, "統計圖表")
+        self.tabs.addTab(self.tab_backtest, "策略回測")
         self.tabs.addTab(self.tab4, "系統設定")
         
         # Connect Tag update signal to refresh history page
