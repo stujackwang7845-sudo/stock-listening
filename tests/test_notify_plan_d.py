@@ -281,7 +281,7 @@ class NewPushLayoutTest(unittest.TestCase):
         with mock.patch.object(n, "long_bought", return_value=(True, "")), \
                 mock.patch.object(n, "long_status", return_value=rr), \
                 mock.patch.object(n, "short_status", return_value=sr):
-            longs, stops, notes, shorts = n.positions([d], date(2026, 10, 16), None, {}, {}, {})
+            longs, stops, notes, shorts, opens = n.positions([d], date(2026, 10, 16), None, {}, {}, {})
         self.assertEqual(longs, [])                                   # 多單今天收盤已賣
         self.assertEqual([x[0]["code"] for x in shorts], ["6213"])    # 空單今天收盤已空
 
@@ -360,6 +360,99 @@ class NewPushLayoutTest(unittest.TestCase):
 
 
 DEV = 0.35
+
+
+
+class LockedFillTest(unittest.TestCase):
+    """[2026-11-01] 收盤漲停買不到 → 隔天開盤買；收盤跌停賣不掉 → 隔天開盤賣(多空都適用)。"""
+    D = dict(code="1111", name="測試", market="上市", start=date(2026, 10, 12), end=date(2026, 10, 16), n_days=5,
+             offense="初犯", entry=date(2026, 10, 8), long_exit=date(2026, 10, 16))
+
+    def setUp(self):
+        from unittest import mock
+        p = mock.patch.object(n, "NEXT_OPEN_SINCE", date.min)   # 測試日期在生效日(11/02)前，這裡先當作已生效
+        p.start()
+        self.addCleanup(p.stop)
+
+    @staticmethod
+    def daily(rows):
+        return {("1111", d): (1000.0, c, o) for d, (c, o) in rows.items()}
+
+    def test_before_rule_date_keeps_old_behavior(self):
+        """生效日前的收盤漲停：照當時推播算沒買，持有部位才不會多出沒推過的單；回測傳 since=date.min 整段都套。"""
+        daily = self.daily({date(2026, 10, 7): (100.0, 100.0), date(2026, 10, 8): (110.0, 105.0),
+                            date(2026, 10, 12): (112.0, 115.0)})
+        old = n.calc_return(self.D, date(2026, 10, 12), {}, daily, {}, since=date(2026, 11, 2))
+        self.assertEqual(old["status"], "not_filled")
+        self.assertEqual(n.calc_return(self.D, date(2026, 10, 12), {}, daily, {})["entry_mode"], "open")
+
+    def test_limit_up_entry_buys_next_open(self):
+        daily = self.daily({date(2026, 10, 7): (100.0, 100.0), date(2026, 10, 8): (110.0, 105.0),
+                            date(2026, 10, 12): (112.0, 115.0)})
+        pend = n.calc_return(self.D, date(2026, 10, 8), {}, daily, {})
+        self.assertEqual((pend["status"], pend["entry_date"]), ("pending_entry", date(2026, 10, 12)))
+        rr = n.calc_return(self.D, date(2026, 10, 12), {}, daily, {})
+        self.assertEqual((rr["entry"], rr["entry_date"], rr["entry_mode"]), (115.0, date(2026, 10, 12), "open"))
+        self.assertAlmostEqual(rr["raw"], (112 / 115 - 1) * 100)
+
+    def test_limit_down_exit_sells_next_open(self):
+        # 10/14 收 102 → 10/15(出場日)收 91.8 = 跌停(102×0.9)，也剛好 ≤ 進場 100×0.92 → 10/16 開盤 99 賣
+        daily = self.daily({date(2026, 10, 7): (100.0, 100.0), date(2026, 10, 8): (100.0, 100.0),
+                            date(2026, 10, 12): (99.0, 99.0), date(2026, 10, 13): (98.0, 98.0),
+                            date(2026, 10, 14): (102.0, 101.0), date(2026, 10, 15): (91.8, 99.0),
+                            date(2026, 10, 16): (91.8, 99.0)})
+        d = dict(self.D, long_exit=date(2026, 10, 15))
+        pend = n.calc_return(d, date(2026, 10, 15), {}, daily, {})
+        self.assertEqual(pend["status"], "pending_exit")
+        rr = n.calc_return(d, date(2026, 10, 16), {}, daily, {})
+        self.assertEqual((rr["status"], rr["exit_date"], rr["cur"]), ("closed", date(2026, 10, 16), 99.0))
+        self.assertIsNotNone(rr["stopped"])                         # 91.8 ≤ 92 也是停損日，隔天開盤賣
+
+    def test_short_limit_down_entry_and_limit_up_cover(self):
+        d = dict(code="1111", name="測試", market="上市", start=date(2026, 10, 8), end=date(2026, 10, 14), n_days=7,
+                 offense="初犯", short_entry=date(2026, 10, 13), short_cover=date(2026, 10, 15))
+        daily = self.daily({date(2026, 10, 12): (100.0, 100.0), date(2026, 10, 13): (90.0, 95.0),
+                            date(2026, 10, 14): (88.0, 89.0), date(2026, 10, 15): (96.8, 90.0),
+                            date(2026, 10, 16): (97.0, 96.0)})
+        self.assertEqual(n.short_status(d, date(2026, 10, 13), {}, daily)["status"], "pending_entry")
+        sr = n.short_status(d, date(2026, 10, 14), {}, daily)
+        self.assertEqual((sr["entry"], sr["entry_date"], sr["entry_mode"]), (89.0, date(2026, 10, 14), "open"))
+        self.assertEqual(n.short_status(d, date(2026, 10, 15), {}, daily)["status"], "pending_exit")
+        sr = n.short_status(d, date(2026, 10, 16), {}, daily)
+        self.assertEqual((sr["status"], sr["cur"], sr["exit_mode"]), ("closed", 96.0, "open"))
+        up = self.daily({date(2026, 10, 12): (100.0, 100.0), date(2026, 10, 13): (110.0, 105.0)})
+        self.assertTrue(n.short_status(d, date(2026, 10, 13), {}, up)["blocked"])      # 漲停不空
+
+    def test_positions_lists_next_open_and_drops_low_volume(self):
+        from unittest import mock
+        d = n.enrich(dict(self.D))
+        daily = self.daily({date(2026, 10, 7): (100.0, 100.0), date(2026, 10, 8): (110.0, 105.0)})
+        with mock.patch.object(n, "clause_type", return_value="其他"), \
+                mock.patch.object(n, "drop_notice", return_value=None), \
+                mock.patch.object(n, "nondisp_vol5", return_value={"1111": 800.0}):
+            n._VOL5_CACHE.clear()
+            longs, stops, notes, shorts, opens = n.positions([d], date(2026, 10, 8), None, {}, daily, {})
+        self.assertEqual([(x[0]["code"], x[2]) for x in opens], [("1111", "buy")])
+        self.assertIn("明天（10/12）開盤：買進", n.open_card(d, opens[0][1], "buy", "明天（10/12）", "今天（10/08）"))
+        with mock.patch.object(n, "nondisp_vol5", return_value={"1111": 120.0}):
+            n._VOL5_CACHE.clear()
+            longs, stops, notes, shorts, opens = n.positions([d], date(2026, 10, 8), None, {}, daily, {})
+        n._VOL5_CACHE.clear()
+        self.assertEqual(opens, [])
+        self.assertIn("5 日均量 120 張 < 500", notes[0])
+
+    def test_rules_html_uses_live_numbers(self):
+        m = dict(n=10, n_open=1, win=0.6, avg=0.05, worst=-0.1, mdd=-0.04, ann=1.2, sharpe=3.0,
+                 first_half=0.06, second_half=0.04)
+        res = dict(as_of=date(2026, 10, 30), n_disposals=178,
+                   strategies={k: dict(m=m, trades=[]) for k in ("L5", "L7", "S7F", "S7R")},
+                   combos=[dict(name="全部策略", m=m)])
+        txt = n.rules_html(res)
+        self.assertIn("10 筆（持有中 1）｜勝率 60%｜平均 +5.00%", txt)
+        self.assertIn("08/10～10/30", txt)
+        self.assertNotIn("📊", txt)                                 # 📊 是盤後推播防重推的分隔符號
+        self.assertIn("&lt; 500", txt)                              # 規則文字要 escape
+        self.assertIn("算不出來", n.rules_html(None, "x"))
 
 
 if __name__ == "__main__":

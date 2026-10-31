@@ -28,7 +28,8 @@ NOTES = ("回測範圍：新制（2026/08/10 起開始）全部處置，規則�
          "與證交稅 0.3%；放空未扣融券手續費／借券費。組合：每筆投入「1／最大同時持有數」的資金、不複利、逐日收盤估值，"
          "年化＝總報酬依天數換算（樣本只有約 3 個月，年化只能拿來互相比較）。"
          "5 天初犯預買、7 天累犯預空要在公告前預測，這裡假設預測全中（沒中、隔天賣出／回補的單不在裡面）；"
-         "7 天累犯「處置前一天收盤空」10/22 才上線，這裡整段都套現行規則。持有中的單以最新收盤估值（也先扣掉賣出成本）。")
+         "7 天累犯「處置前一天收盤空」10/22 才上線，這裡整段都套現行規則。持有中的單以最新收盤估值（也先扣掉賣出成本）。"
+         "成交：收盤漲停買不到 → 隔天開盤買、收盤跌停賣不掉 → 隔天開盤賣（價格後面標「開」）。")
 
 
 class _Item(QTableWidgetItem):
@@ -293,10 +294,10 @@ class StrategyBacktestPage(QWidget):
                 _Item(f"{x['n_days']}天{x['offense']}"),
                 _Item(x["side"], color=UP if x["side"] == "多" else DOWN),
                 _Item(f"{x['entry']:%Y/%m/%d}", x["entry"].toordinal()),
-                _Item(f"{x['entry_px']:g}", x["entry_px"]),
+                _Item(f"{x['entry_px']:g}" + ("（開）" if x.get("entry_mode") == "open" else ""), x["entry_px"]),
                 _Item(f"{x['exit']:%Y/%m/%d}" if x["exit"] else "持有中",
                       x["exit"].toordinal() if x["exit"] else 10 ** 7, None if x["exit"] else "#fcd535"),
-                _Item(f"{x['exit_px']:g}", x["exit_px"]),
+                _Item(f"{x['exit_px']:g}" + ("（開）" if x.get("exit_mode") == "open" else ""), x["exit_px"]),
                 _Item(ret_txt, x["ret"], _color(x["ret"])),
                 _Item(f"{len(x['path'])}", len(x["path"])),
                 _Item(x["exit_why"], color=None if x["closed"] else "#fcd535"),

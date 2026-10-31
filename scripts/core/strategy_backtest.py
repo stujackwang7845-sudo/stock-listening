@@ -10,6 +10,7 @@ short_status / nondisp_vol5)，推播改規則，這裡跟著變，不會兩套�
   - 5 天初犯預買、7 天累犯預空都要在公告前預測；這裡假設預測全中，沒中「隔天收盤賣/補」的單不在裡面。
   - 7 天累犯「處置前一天收盤空」10/22 才上線，這裡對整段新制都用現行規則。
   - 放空未扣融券手續費/借券費；放空報酬不做除權息還原(與推播一致)。
+成交：收盤漲停買不到 → 隔天開盤買；收盤跌停賣不掉 → 隔天開盤賣(多單出場、融券放空都算賣；空單回補算買)。
 """
 import re
 import sqlite3
@@ -28,15 +29,14 @@ LOT_CAPITAL = 200_000               # 每筆投入金額(損益金額換算用)
 STRATEGIES = [
     ("L5", "5 天初犯做多", "多",
      "處置前一天(公告日)收盤買 → 處置最後一天收盤賣；接力處置(期間內又公告 5 天處置)續抱到那次的出關日收盤賣。"
-     "停損：收盤 ≤ 進場價×0.92 當天收盤賣。不買：進場日收盤漲停；第一款且進場日 20MA 乖離 > 35%；"
-     "第一款原文是跌幅；非處置期間 5 日均量 < 500 張。"),
+     "停損：收盤 ≤ 進場價×0.92 當天收盤賣。不買：第一款且進場日 20MA 乖離 > 35%；第一款原文是跌幅；"
+     "非處置期間 5 日均量 < 500 張。"),
     ("L7", "7 天初犯做多", "多",
      "處置首日收盤買 → 處置結束日前一天收盤賣(同一收盤改放空)。停損與不買條件同 5 天初犯(不看 500 張均量)。"),
     ("S7F", "7 天初犯放空（策略 A）", "空",
-     "處置結束日前一天收盤空 → 出關日收盤回補；無停損。進場日收盤漲停不空、跌停空不到。"),
+     "處置結束日前一天收盤空 → 出關日收盤回補；無停損。放空日收盤漲停不空。"),
     ("S7R", "7 天累犯放空", "空",
-     "處置前一天(公告日)收盤空 → 出關日+1 收盤回補；無停損。進場日收盤漲停不空、跌停空不到；"
-     "非處置期間 5 日均量 < 500 張不做。"),
+     "處置前一天(公告日)收盤空 → 出關日+1 收盤回補；無停損。放空日收盤漲停不空；非處置期間 5 日均量 < 500 張不做。"),
 ]
 COMBOS = [("LONG", "做多合計", ("L5", "L7")), ("SHORT", "放空合計", ("S7F", "S7R")),
           ("ALL", "全部策略", ("L5", "L7", "S7F", "S7R"))]
@@ -73,13 +73,13 @@ def _back_trading(day, k):
     return cur
 
 
-def load_disposals(db_path, since=RULE_CHANGE_DATE):
+def load_disposals(db_path, since=RULE_CHANGE_DATE, n=None):
     """
     新制處置(處置開始日 ≥ since)，格式同推播的 disposals_from_db。
     初犯/累犯：原因寫「30 個營業日內曾發布處置」，或開始日往前 30 個營業日內公告過別次處置 → 累犯
     (上櫃有些紀錄原因欄只有「處置」兩字，例 6217 08/11，只看原因會誤判成初犯)。
     """
-    n = _notify()
+    n = n or _notify()
     conn = sqlite3.connect(db_path)
     rows = conn.execute("SELECT code, name, source, announce_date, period_start, period_end, reason "
                         "FROM disposal_records WHERE period_start IS NOT NULL AND period_end IS NOT NULL").fetchall()
@@ -141,87 +141,71 @@ def _net_short(g):
 
 def _base(d, key):
     return dict(key=key, code=d["code"], name=d["name"], market=d["market"], start=d["start"], end=d["end"],
-                n_days=d["n_days"], offense=d["offense"], announce=d["announce"])
+                n_days=d["n_days"], offense=d["offense"], announce=d["announce"], chain=bool(d.get("chain")))
 
 
-def _long_trade(n, d, key, as_of, daily, corp, clause_db, vol5):
+def _long_trade(n, d, key, as_of, daily, corp, clause_db):
+    """多單：進出場、停損、收盤漲停/跌停改隔天開盤，全部由推播的 long_bought / calc_return 決定。"""
     ok, why = n.long_bought(d, clause_db, {}, daily, as_of)
     if ok is None:
         return None, None
     if not ok:
         return None, dict(_base(d, key), entry=d["entry"], why=why)
-    if key == "L5":
-        v = vol5.get((d["code"], n.prev_trading_day(d["entry"])))
-        if v is not None and v < n.MIN_PUSH_LOTS:
-            return None, dict(_base(d, key), entry=d["entry"], why=f"非處置期間 5 日均量 {v:,.0f} 張 < {n.MIN_PUSH_LOTS}")
-    exit_plan = d["long_exit"]
-    rr = n.calc_return(d, min(as_of, exit_plan), {}, daily, corp)
+    rr = n.calc_return(d, as_of, {}, daily, corp, since=date.min)      # 回測整段都套「隔天開盤成交」
     if rr is None:
         return None, dict(_base(d, key), entry=d["entry"], why="查無進場日行情")
-    path = {}
-    for t in _days_between(d["entry"], min(as_of, rr["cur_date"])):
-        r = n.calc_return(d, t, {}, daily, corp)
-        if r is not None and r["cur_date"] == t:
-            path[t] = (r["raw"] if r["suspicious"] else r["adj"]) / 100
+    if rr["status"] == "pending_entry":
+        return None, None                      # 收盤漲停、明天開盤才買：還沒有部位
     gross = (rr["raw"] if rr["suspicious"] else rr["adj"]) / 100
+    closed = rr["status"] == "closed"
     if rr["stopped"]:
-        x, why = rr["stopped"]["date"], "停損（收盤 ≤ 進場價×0.92）"
+        why = "停損（收盤 ≤ 進場價×0.92）"
     else:
-        x = exit_plan
         why = ("接力處置：續抱到第二次處置出關日" if d.get("chain")
                else "處置最後一天" if d["n_days"] == 5 else "處置結束日前一天")
-    closed = x <= as_of and (rr["stopped"] or rr["cur_date"] == x)
+    plan = rr["exit_day"] or d["long_exit"]
+    if closed and rr["exit_mode"] == "open":
+        why += "；當天收盤跌停賣不掉，隔天開盤賣"
     net = _net_long(gross)
+    path = dict(rr["path"])
     if closed:
-        path[x] = net
-    return dict(_base(d, key), side="多", entry=d["entry"], entry_px=rr["entry"], exit=x if closed else None,
-                plan_exit=x, exit_px=rr["cur"], last_date=rr["cur_date"], gross=gross, ret=net, closed=bool(closed),
-                exit_why=why if closed else f"持有中（預計 {x:%m/%d} {why}）", path=path,
-                suspicious=rr["suspicious"]), None
+        path[rr["exit_date"]] = net
+    return dict(_base(d, key), side="多", entry=rr["entry_date"], entry_mode=rr["entry_mode"], entry_px=rr["entry"],
+                exit=rr["exit_date"], exit_mode=rr["exit_mode"], plan_exit=plan, exit_px=rr["cur"],
+                last_date=rr["cur_date"], gross=gross, ret=net, closed=closed,
+                exit_why=why if closed else (f"持有中（{plan:%m/%d} 收盤跌停，隔天開盤賣）" if rr["status"] == "pending_exit"
+                                             else f"持有中（預計 {plan:%m/%d} {why}）"),
+                path=path, suspicious=rr["suspicious"]), None
 
 
-def _short_trade(n, d, key, as_of, daily, vol5):
-    se, cover = d["short_entry"], d["short_cover"]
+def _short_trade(n, d, key, as_of, daily):
+    se = d["short_entry"]
     if se > as_of:
         return None, None
-    if key == "S7R":
-        v = vol5.get((d["code"], n.prev_trading_day(se)))
-        if v is not None and v < n.MIN_PUSH_LOTS:
-            return None, dict(_base(d, key), entry=se, why=f"非處置期間 5 日均量 {v:,.0f} 張 < {n.MIN_PUSH_LOTS}")
-    sr = n.short_status(d, min(as_of, cover), {}, daily)
+    low = n.low_volume_reason(d)
+    if low:
+        return None, dict(_base(d, key), entry=se, why=low)
+    sr = n.short_status(d, as_of, {}, daily, since=date.min)
     if sr is None:
         return None, dict(_base(d, key), entry=se, why="查無放空日行情")
     if sr["blocked"]:
-        return None, dict(_base(d, key), entry=se, why="放空日收盤漲停不空／跌停空不到")
-    path = {}
-    for t in _days_between(se, min(as_of, sr["cur_date"])):
-        r = n.short_status(d, t, {}, daily)
-        if r["cur_date"] == t:
-            path[t] = r["ret"] / 100
+        return None, dict(_base(d, key), entry=se, why="放空日收盤漲停不空")
+    if sr["status"] == "pending_entry":
+        return None, None
     gross = sr["ret"] / 100
-    closed = cover <= as_of and sr["cur_date"] == cover
+    closed = sr["status"] == "closed"
     net = _net_short(gross)
+    path = dict(sr["path"])
     if closed:
-        path[cover] = net
-    why = n.cover_lbl(d) + "收盤回補"
-    return dict(_base(d, key), side="空", entry=se, entry_px=sr["entry"], exit=cover if closed else None,
-                plan_exit=cover, exit_px=sr["cur"], last_date=sr["cur_date"], gross=gross, ret=net, closed=closed,
-                exit_why=why if closed else f"持有中（預計 {cover:%m/%d} {why}）", path=path, suspicious=False), None
-
-
-def _vol5_map(n, disposals, as_of):
-    """{(code, 基準日): 非處置期間 5 日均量}：5 天初犯預買、7 天累犯預空要用(基準日＝進場日前一個交易日)。"""
-    need = {}
-    for d in disposals:
-        if d["offense"] == "初犯" and d["n_days"] == 5 and d["entry"] <= as_of:
-            need.setdefault(n.prev_trading_day(d["entry"]), set()).add(d["code"])
-        if d["offense"] == "累犯" and d["n_days"] == 7 and d["short_entry"] <= as_of:
-            need.setdefault(n.prev_trading_day(d["short_entry"]), set()).add(d["code"])
-    out = {}
-    for upto, codes in need.items():
-        for c, v in n.nondisp_vol5(sorted(codes), upto).items():
-            out[(c, upto)] = v
-    return out
+        path[sr["exit_date"]] = net
+    cover = d["short_cover"]
+    why = n.cover_lbl(d) + "收盤回補" + ("；當天收盤漲停買不回，隔天開盤回補" if sr.get("exit_mode") == "open" else "")
+    return dict(_base(d, key), side="空", entry=sr["entry_date"], entry_mode=sr["entry_mode"], entry_px=sr["entry"],
+                exit=sr.get("exit_date"), exit_mode=sr.get("exit_mode"), plan_exit=cover, exit_px=sr["cur"],
+                last_date=sr["cur_date"], gross=gross, ret=net, closed=closed,
+                exit_why=why if closed else (f"持有中（{cover:%m/%d} 收盤漲停，隔天開盤回補）" if sr["status"] == "pending_exit"
+                                             else f"持有中（預計 {cover:%m/%d} {why}）"),
+                path=path, suspicious=False), None
 
 
 def nav_stats(dates, nav):
@@ -306,14 +290,15 @@ def metrics(trades, calendar):
                 bench_nav=list(zip(cal, bench)) if bench else [], conc=list(zip(calendar, conc)))
 
 
-def run(as_of=None, db_path=None):
+def run(as_of=None, db_path=None, n=None):
     """
     回傳 dict(as_of, n_disposals, strategies={key: dict(name, side, rule, trades, skipped, m)}, combos=[...])。
-    as_of 預設＝本機行情 parquet 最新一天。
+    as_of 預設＝行情資料最新一天(本機 parquet；雲端 market_data.db)。
+    n：推播模組(推播自己呼叫時傳自己，避免再載入一份)。
     """
-    n = _notify()
+    n = n or _notify()
     db_path = db_path or get_paths().disposal_db
-    disposals = load_disposals(db_path)
+    disposals = load_disposals(db_path, n=n)
     today = date.today()
     codes = {d["code"] for d in disposals}
     lo = min((min(d["entry"], d.get("short_entry", d["entry"])) for d in disposals), default=today) - timedelta(days=45)
@@ -326,7 +311,6 @@ def run(as_of=None, db_path=None):
     if as_of is None:
         as_of = max((k[1] for k in daily), default=today)
     corp = n.load_corp_actions(codes, lo, as_of)
-    vol5 = _vol5_map(n, disposals, as_of)
 
     res = {k: dict(name=nm, side=side, rule=rule, trades=[], skipped=[]) for k, nm, side, rule in STRATEGIES}
     for d in sorted(disposals, key=lambda x: (x["start"], x["code"])):
@@ -334,14 +318,14 @@ def run(as_of=None, db_path=None):
             continue
         if d["offense"] == "初犯":
             key = "L5" if d["n_days"] == 5 else "L7"
-            t, s = _long_trade(n, d, key, as_of, daily, corp, db_path, vol5)
+            t, s = _long_trade(n, d, key, as_of, daily, corp, db_path)
             if t:
                 res[key]["trades"].append(t)
             if s:
                 res[key]["skipped"].append(s)
         if d["n_days"] == 7:
             key = "S7F" if d["offense"] == "初犯" else "S7R"
-            t, s = _short_trade(n, d, key, as_of, daily, vol5)
+            t, s = _short_trade(n, d, key, as_of, daily)
             if t:
                 res[key]["trades"].append(t)
             if s:
