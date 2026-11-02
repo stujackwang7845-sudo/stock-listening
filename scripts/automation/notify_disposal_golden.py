@@ -886,50 +886,57 @@ def backtest_stats():
         return None, str(e)
 
 
-def _stat_line(m):
+def _stat_lines(m):
+    """一個策略的最新回測績效，分三行。不可用「📊」：那是盤後推播防重推的分隔符號。"""
     if not m or not m.get("n"):
-        return "　↳ 目前沒有交易"
+        return ["　績效：目前沒有交易"]
     f = lambda x: "—" if x is None else f"{x * 100:+.2f}%"
-    s = (f"　↳ {m['n']} 筆（持有中 {m['n_open']}）｜勝率 {m['win'] * 100:.0f}%｜平均 {f(m['avg'])}｜"
-         f"最差 {f(m['worst'])}｜MDD {m['mdd'] * 100:.1f}%｜年化 {m['ann'] * 100:+.0f}%｜Sharpe {m['sharpe']:.2f}")
+    out = [f"　績效：{m['n']} 筆（持有中 {m['n_open']}）｜勝率 {m['win'] * 100:.0f}%｜平均 {f(m['avg'])}",
+           f"　　　最差 {f(m['worst'])}｜MDD {m['mdd'] * 100:.1f}%｜年化 {m['ann'] * 100:+.0f}%｜Sharpe {m['sharpe']:.2f}"]
     if m.get("first_half") is not None and m.get("second_half") is not None:
-        s += f"｜前半 {f(m['first_half'])}／後半 {f(m['second_half'])}"
-    return s
+        out.append(f"　　　前半 {f(m['first_half'])}／後半 {f(m['second_half'])}")
+    return out
 
 
 def rules_html(res=None, err=""):
-    """策略說明(可展開)：規則文字取自 core/strategy_backtest.STRATEGIES，每個策略下面接最新回測數字。"""
+    """策略說明：做多、放空、共通三個可展開區塊(2026-11-02 使用者要求分開放、逐行排版)。
+    規則文字取自 core/strategy_backtest.STRATEGIES(一個要點一行)；績效每次推播用 strategy_backtest.run() 重算，
+    新的交易出場就會累積進來。區塊內不可有空行：split_message 以空行拆訊息，會把區塊切斷。"""
     from core import strategy_backtest as sb
-    out = ["<blockquote expandable>📘 策略說明＋最新回測（點開）"]
     if res:
-        out.append(f"<b>回測</b>：新制 08/10～{res['as_of']:%m/%d}（{res['n_disposals']} 件處置），"
-                   "已扣手續費與證交稅；組合每筆等額、不加槓桿")
+        basis = f"統計：新制 08/10～{res['as_of']:%m/%d}（{res['n_disposals']} 件處置），每次推播重算；已扣手續費與證交稅"
     else:
-        out.append(f"⚠️ 這次回測數字算不出來（{html.escape(err[:80])}），只列規則")
-    for side, title in (("多", "做多（只做初犯）"), ("空", "放空")):
-        out.append(f"<b>{title}</b>")
+        basis = f"⚠️ 這次回測數字算不出來（{html.escape(err[:80])}），只列規則"
+    combos = {c.get("key", "ALL"): c for c in (res or {}).get("combos", [])}
+    blocks = []
+    for side, title, combo_key in (("多", "🟢 <b>做多策略說明</b>（只做初犯）", "LONG"), ("空", "🔴 <b>放空策略說明</b>", "SHORT")):
+        out = [f"<blockquote expandable>{title}＋最新績效（點開）", basis]
         for key, name, sd, rule in sb.STRATEGIES:
             if sd != side:
                 continue
-            out.append(f"• <b>{name}</b>：{html.escape(rule)}")
+            out.append(f"【{name}】")
+            out += [f"・{html.escape(line)}" for line in rule.split("\n")]
             if res:
                 v = res["strategies"][key]
-                out.append(_stat_line(v["m"]))
-                ch = [t["ret"] for t in v["trades"] if t.get("chain") and t["closed"]]
+                out += _stat_lines(v["m"])
+                ch = [t["ret"] for t in v.get("trades", []) if t.get("chain") and t["closed"]]
                 if ch:
-                    out.append(f"　　其中接力續抱 {len(ch)} 筆：平均 {sum(ch) / len(ch) * 100:+.2f}%、"
+                    out.append(f"　　　其中接力續抱 {len(ch)} 筆：平均 {sum(ch) / len(ch) * 100:+.2f}%、"
                                f"勝率 {sum(r > 0 for r in ch) / len(ch) * 100:.0f}%")
-    if res:
-        out.append("<b>合計</b>")
-        for c in res["combos"]:
-            out.append(f"• {c['name']}")
-            out.append(_stat_line(c["m"]))
-    out += ["<b>共通</b>",
-            "• 收盤漲停買不到 → 隔天開盤買；收盤跌停賣不掉 → 隔天開盤賣（多單出場、融券放空算賣，空單回補算買）",
-            "• 預買（5 天初犯）、預空（7 天累犯）回測假設預測全中；沒中的單隔天收盤賣出／回補",
-            "• 放空未扣融券費／借券費；處置股能否融券、券源請先跟券商確認",
-            "• 樣本只有新制約 3 個月、幾乎都是多頭；年化只能拿來互相比較</blockquote>"]
-    return "\n".join(out)
+        if combo_key in combos:
+            out.append(f"【{combos[combo_key]['name']}】")
+            out += _stat_lines(combos[combo_key]["m"])
+        blocks.append("\n".join(out) + "</blockquote>")
+    out = ["<blockquote expandable>📘 <b>共通說明</b>（點開）"]
+    if "ALL" in combos:
+        out.append(f"【{combos['ALL']['name']}】")
+        out += _stat_lines(combos["ALL"]["m"])
+    out += ["・收盤漲停買不到 → 隔天開盤買；收盤跌停賣不掉 → 隔天開盤賣（多單出場、融券放空算賣，空單回補算買）",
+            "・預買（5 天初犯）、預空（7 天累犯）回測假設預測全中；沒中的單隔天收盤賣出／回補",
+            "・放空未扣融券費／借券費；處置股能否融券、券源請先跟券商確認",
+            "・樣本只有新制約 3 個月、幾乎都是多頭；年化只能拿來互相比較</blockquote>"]
+    blocks.append("\n".join(out))
+    return "\n\n".join(blocks)
 
 
 def next_trading_day(day):

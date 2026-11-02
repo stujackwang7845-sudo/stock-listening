@@ -461,13 +461,32 @@ class LockedFillTest(unittest.TestCase):
                  first_half=0.06, second_half=0.04)
         res = dict(as_of=date(2026, 10, 30), n_disposals=178,
                    strategies={k: dict(m=m, trades=[]) for k in ("L5", "L7", "S7F", "S7R")},
-                   combos=[dict(name="全部策略", m=m)])
+                   combos=[dict(key="LONG", name="做多合計", m=m), dict(key="SHORT", name="放空合計", m=m),
+                           dict(key="ALL", name="全部策略", m=m)])
         txt = n.rules_html(res)
         self.assertIn("10 筆（持有中 1）｜勝率 60%｜平均 +5.00%", txt)
         self.assertIn("08/10～10/30", txt)
         self.assertNotIn("📊", txt)                                 # 📊 是盤後推播防重推的分隔符號
         self.assertIn("&lt; 500", txt)                              # 規則文字要 escape
         self.assertIn("算不出來", n.rules_html(None, "x"))
+        # 2026-11-02：做多、放空、共通分成三個區塊；區塊內不可有空行(split_message 以空行拆訊息)
+        blocks = txt.split("\n\n")
+        self.assertEqual(len(blocks), 3)
+        for b in blocks:
+            self.assertTrue(b.startswith("<blockquote expandable>") and b.endswith("</blockquote>"))
+        long_b, short_b, common_b = blocks
+        self.assertIn("5 天初犯做多", long_b)
+        self.assertIn("做多合計", long_b)
+        self.assertNotIn("放空（策略 A）", long_b)
+        self.assertIn("7 天累犯放空", short_b)
+        self.assertIn("放空合計", short_b)
+        self.assertIn("全部策略", common_b)
+        self.assertIn("+6（處置第 6 天）", long_b)                    # 7 天的結束日前一天寫成 +6
+        self.assertIn("+6（處置第 6 天）", short_b)
+        self.assertNotIn("結束日前一天", txt)
+        self.assertIn("・回補：出關日+2", short_b)                     # 一個要點一行
+        for b in blocks:                                              # 每塊都要比 Telegram 上限短，才不會被拆開
+            self.assertLess(len(b), 4000)
 
 
 if __name__ == "__main__":
