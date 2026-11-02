@@ -270,6 +270,30 @@ class NewPushLayoutTest(unittest.TestCase):
         c2 = dict(c, offense="累犯")
         self.assertIn("累犯不做多", n.watch_card(c2, "明天（10/19）", "後天（10/20）"))
 
+    def test_clause13_warned_candidate_uses_7day_card(self):
+        # [2026-11-03] 5 天初犯候選預估會有第十三款 → 改 7 天初犯卡片：公告日不買，處置首日收盤買
+        ok = dict(code="1111", name="甲", market="上櫃", offense="初犯", days=5, clause13_hit=False)
+        warn = dict(code="7704", name="明遠精密", market="上櫃", offense="初犯", days=5, clause13_hit=True)
+        keep, wait = n.split_c13([ok, warn])
+        self.assertEqual(([c["code"] for c in keep], [c["code"] for c in wait]), (["1111"], ["7704"]))
+        txt = n.watch_card(warn, "今天（11/03）", "明天（11/04）")
+        self.assertIn("今天（11/03）不動作", txt)
+        self.assertIn("明天（11/04）（處置首日）收盤買進", txt)
+        self.assertIn("可能變 7 天處置", txt)
+        self.assertIn("7 天初犯：處置首日收盤買；+6（處置第 6 天）收盤賣，同一個收盤改放空", txt)
+        self.assertIn("若公告是 5 天：今天（11/03）沒買就不追", txt)
+        self.assertNotIn("若公告是 5 天", n.watch_card(dict(warn, days=7), "今天（11/03）", "明天（11/04）"))
+
+    def test_clause13_wait_then_5day_is_not_bought(self):
+        from unittest import mock
+        d = dict(code="7704", name="明遠精密", market="上櫃", start=date(2026, 11, 4), end=date(2026, 11, 10), n_days=5,
+                 offense="初犯", entry=date(2026, 11, 3), long_exit=date(2026, 11, 10))
+        with mock.patch.object(n, "_C13_WAIT", {"2026-11-03": ["7704"]}), \
+                mock.patch.object(n, "low_volume_reason", return_value=None):
+            ok, why = n.long_bought(d, None, {}, {}, date(2026, 11, 3))
+        self.assertFalse(ok)
+        self.assertIn("改等處置首日買", why)
+
     def test_positions_keeps_short_on_long_exit_day(self):
         """7 天初犯：同一收盤賣多單再放空，那天的持倉要有空單(2026-10-18 6213 漏掉的回歸測試)。"""
         from unittest import mock

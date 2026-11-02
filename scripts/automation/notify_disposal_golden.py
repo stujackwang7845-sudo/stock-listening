@@ -1058,6 +1058,30 @@ def low_volume_reason(d):
     return f"非處置期間 5 日均量 {v:,.0f} 張 < {MIN_PUSH_LOTS}" if v is not None and v < MIN_PUSH_LOTS else None
 
 
+C13_WAIT_KEY = "_c13_wait"
+_C13_WAIT = None
+
+
+def split_c13(cands):
+    """
+    [2026-11-03 使用者決定] 5 天初犯候選預估會有第十三款(可能變 7 天)→ 改用 7 天初犯卡片：公告日不買，
+    若公告處置就處置首日收盤買。回傳 (照 5 天做的, 改等處置首日的)。
+    """
+    return [c for c in cands if not c.get("clause13_hit")], [c for c in cands if c.get("clause13_hit")]
+
+
+def c13_wait_codes(day):
+    """推播叫「等處置首日」的 5 天初犯候選(推播紀錄 _c13_wait[進場日])；結果公告 5 天時那筆多單算沒買。"""
+    global _C13_WAIT
+    if _C13_WAIT is None:
+        try:
+            _C13_WAIT = load_log().get(C13_WAIT_KEY, {})
+        except Exception as e:
+            print(f"[WARN] 讀推播紀錄失敗：{e}")
+            _C13_WAIT = {}
+    return set(_C13_WAIT.get(str(day), []))
+
+
 def long_bought(d, clause_db, quotes, daily, today):
     """照規則這檔多單有沒有買：進場日已過才判斷。回傳 (是否買進, 不買原因)。
     [2026-11-01] 進場日收盤漲停不再算不買：改隔天開盤買(calc_return 處理)。"""
@@ -1067,6 +1091,8 @@ def long_bought(d, clause_db, quotes, daily, today):
     low = low_volume_reason(d)
     if low:
         return False, low
+    if d["n_days"] == 5 and d["offense"] == "初犯" and d["code"] in c13_wait_codes(ie):
+        return False, "推播預估會有第13款、改等處置首日買，結果公告 5 天"
     cl = clause_type(clause_db, d["code"], ie)
     di = dev20_info(d["code"], ie, today, quotes, daily)
     drop = drop_notice(clause_db, d["code"], ie, inclusive=False)
@@ -1299,13 +1325,19 @@ def watch_card(c, when, start):
         plan = f"若{when}收盤後公告處置 → {start}（處置首日）收盤買進（做多）"
     else:
         plan = "累犯不做多；若進處置，處置結束日前一天收盤融券放空（策略 A）"
+    rule = []
+    if c.get("offense") == "初犯":
+        rule = [f"・7 天初犯：處置首日收盤買；+6（處置第 6 天）收盤賣，同一個收盤改放空；停損＝買價×{1 - STOP_PCT:.2f}"]
+        if c.get("days") == 5:                          # 預估會有第十三款才放進觀察的 5 天候選
+            rule.append(f"・若公告是 5 天：{when}沒買就不追（5 天初犯要公告日收盤買）")
     return "\n".join(x for x in [
         f"<b>{html.escape(c['code'])} {html.escape(nm(c['code'], c['name']))}</b>（{html.escape(str(c['market']))}）"
         f"｜聽牌，預估 {c.get('days')} 天{c.get('offense', '')}",
         f"👉 <b>{when}不動作</b>；{plan}",
         c13_line(c),
         *cond_block(c, when),
-        *[f"・{html.escape(w)}" for w in c.get("data_warning") or []]] if x)
+        *[f"・{html.escape(w)}" for w in c.get("data_warning") or []],
+        *rule] if x)
 
 
 def _focus(parts, when, f_long, f_short, f_sell, f_cover, f_stop, stop_title, f_watch=()):
@@ -1775,6 +1807,8 @@ def main_post(args, today):
         busy = {d["code"] for d in disposals if d["end"] >= nxt}
         cand_raw = [c for c in data["candidates"] if c["code"] not in busy and c["offense"] == "初犯" and c["days"] == 5]
         cand7 = [c for c in data["candidates"] if c["code"] not in busy and c["days"] == 7]
+        cand_raw, c13w = split_c13(cand_raw)
+        cand7 += c13w
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 明日預買候選計算失敗：{e}")
@@ -1883,6 +1917,7 @@ def main_post(args, today):
     if cand_err is None:
         log.setdefault("_cand", {})[str(nxt)] = [dict(code=c["code"], name=c["name"]) for c in cand_raw]
         log.setdefault("_pre_short", {})[str(nxt)] = [dict(code=c["code"], name=c["name"]) for c in cand7_short]
+        log.setdefault(C13_WAIT_KEY, {})[str(nxt)] = [c["code"] for c in cand7 if c.get("days") == 5]
     save_log(log)
 
 
@@ -1918,6 +1953,8 @@ def main_pre(args, today):
         data = run_worker(anchor, Path(PROJ / "temp" / f"preclose_{today:%Y%m%d}.json"))
         cands5 = [c for c in data["candidates"] if c["code"] not in busy and c["offense"] == "初犯" and c["days"] == 5]
         cand7 = [c for c in data["candidates"] if c["code"] not in busy and c["days"] == 7]
+        cands5, c13w = split_c13(cands5)
+        cand7 += c13w
     except Exception as e:
         cand_err = str(e)
         print(f"[WARN] 盤中候選計算失敗：{e}")
@@ -2050,6 +2087,10 @@ def main_pre(args, today):
         for c in cands5:
             if not any((x if isinstance(x, str) else x.get("code")) == c["code"] for x in buy):
                 buy.append(dict(code=c["code"], name=c["name"]))
+        # 改等處置首日的從預買拿掉(前一晚舊版盤後可能已記成預買，沒中時會誤推「賣出」)
+        wait = log.setdefault(C13_WAIT_KEY, {}).setdefault(str(today), [])
+        wait += [c["code"] for c in cand7 if c.get("days") == 5 and c["code"] not in wait]
+        buy[:] = [x for x in buy if (x if isinstance(x, str) else x.get("code")) not in wait]
     save_log(log)
 
 
