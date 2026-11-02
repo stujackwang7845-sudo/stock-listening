@@ -259,11 +259,14 @@ class StrategyBacktestPage(QWidget):
         row = self.metrics.currentRow()
         it = self.metrics.item(row, 0) if row >= 0 else None
         key = it.data(Qt.ItemDataRole.UserRole) if it else "ALL"
-        self._sel = key
         if key in r["strategies"]:
+            self._sel = key
             v = r["strategies"][key]
             return v["name"], v["trades"], v["skipped"], v["m"], [key]
-        c = next(c for c in r["combos"] if c["key"] == key)
+        c = next((c for c in r["combos"] if c["key"] == key), None)
+        if c is None:                                # 0050 對照列沒有交易明細，下方維持原本選的策略
+            return None
+        self._sel = key
         skipped = [s for k in c["keys"] for s in r["strategies"][k]["skipped"]]
         return c["name"], c["trades"], skipped, c["m"], list(c["keys"])
 

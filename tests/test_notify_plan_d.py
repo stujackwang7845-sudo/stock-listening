@@ -454,7 +454,7 @@ class LockedFillTest(unittest.TestCase):
             longs, stops, notes, shorts, opens = n.positions([d], date(2026, 10, 8), None, {}, daily, {})
         n._VOL5_CACHE.clear()
         self.assertEqual(opens, [])
-        self.assertIn("5 日均量 120 張 < 500", notes[0])
+        self.assertIn("5 日均量 120 張 &lt; 500", notes[0])   # 推播是 HTML，裸「<」會被 Telegram 拒收
 
     def test_rules_html_uses_live_numbers(self):
         m = dict(n=10, n_open=1, win=0.6, avg=0.05, worst=-0.1, mdd=-0.04, ann=1.2, sharpe=3.0,

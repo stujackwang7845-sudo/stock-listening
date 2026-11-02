@@ -1379,7 +1379,8 @@ def positions(disposals, today, clause_db, quotes, daily, corp):
         ok, why = long_bought(d, clause_db, quotes, daily, today)
         if not ok:
             if d["entry"] == today:
-                notes.append(f"（{d['code']} {nm(d['code'], d['name'])} {today:%m/%d} 是進場日但不買：{why}）")
+                # why 可能含「<」(均量 67 張 < 500)，不跳脫 Telegram 會整則拒收(2026-11-02 雲端盤後沒推)
+                notes.append(html.escape(f"（{d['code']} {nm(d['code'], d['name'])} {today:%m/%d} 是進場日但不買：{why}）"))
             return
         rr = long_status(d, today, quotes, daily, corp)
         if rr is None:
