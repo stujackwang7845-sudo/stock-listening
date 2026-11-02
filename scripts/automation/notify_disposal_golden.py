@@ -953,14 +953,27 @@ def enrich(d):
             if pre >= RECID_EARLY_START:
                 d["short_entry"] = pre
                 d["early_short"] = True
+        elif d["short_entry"] >= FIRST_COVER2_START:
+            # 規則上線前已經空下去的部位維持出關日回補，不改使用者手上空單的出場日
+            extend_first_cover(d)
     return d
 
 
 RECID_EARLY_START = date(2026, 10, 22)     # 7 天累犯「處置前一天收盤空」規則上線日(處置前一天在這天以後才套用)
+FIRST_COVER2_START = date(2026, 11, 3)     # 7 天初犯回補延到出關日+2 的上線日(放空日在這天以後才套用)
+
+
+def extend_first_cover(d):
+    """[2026-11-02] 7 天初犯放空(策略 A)回補延到出關日+2(出關日後第 2 個交易日)。
+    依據：葛瀚中(2018)事件研究法重測新制，7 天初犯出關日、出關日+2 的異常報酬都顯著為負；
+    新制 11 筆簡化回測平均 +5.72%→+7.86%、前後半都較好，但最差一筆 -2.3%→-6.0%，樣本小
+    (論文研究 reports/處置新制_葛瀚中事件研究_20261102.md 第七節)。"""
+    d["short_cover"] = next_trading_day(next_trading_day(next_trading_day(d["end"])))
+    d["cover_lbl"] = "出關日+2"
 
 
 def cover_lbl(d):
-    """空單回補日的名稱：7 天初犯「出關日」、7 天累犯「出關日+1」。"""
+    """空單回補日的名稱：7 天初犯「出關日+2」(11/03 前放空的是「出關日」)、7 天累犯「出關日+1」。"""
     return d.get("cover_lbl", "出關日")
 
 
@@ -1001,7 +1014,7 @@ def chain_note(d):
 
 
 def short_why(d):
-    """放空卡片附處置期間，讓人看得出為什麼是這天空(策略 A：結束日前一天收盤空、出關日收盤補)。"""
+    """放空卡片附處置期間，讓人看得出為什麼是這天空(策略 A：結束日前一天收盤空、cover_lbl 那天收盤補)。"""
     if d.get("early_short"):
         return (f"・處置 {d['start']:%m/%d}～{d['end']:%m/%d}：{d['short_entry']:%m/%d} 處置前一天收盤空（7 天累犯），"
                 f"{d['short_cover']:%m/%d}（{cover_lbl(d)}）回補")

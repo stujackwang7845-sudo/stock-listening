@@ -323,6 +323,21 @@ class NewPushLayoutTest(unittest.TestCase):
                               end=date(2026, 11, 3), n_days=7, offense="初犯", entry=date(2026, 10, 27)))
         self.assertEqual(first["short_entry"], n.prev_trading_day(date(2026, 11, 3)))  # 初犯不變
 
+    def test_first_7day_cover_extended(self):
+        """7 天初犯：放空日 >= 11/03 → 出關日+2 收盤回補；11/03 前已空的維持出關日回補。"""
+        new = n.enrich(dict(code="6269", name="台郡", market="上櫃", announce=date(2026, 11, 3), start=date(2026, 11, 4),
+                            end=date(2026, 11, 12), n_days=7, offense="初犯", entry=date(2026, 11, 4)))
+        exit_day = n.next_trading_day(date(2026, 11, 12))
+        self.assertEqual(new["short_entry"], n.prev_trading_day(date(2026, 11, 12)))   # 放空日不變：結束日前一天
+        self.assertEqual(new["short_cover"], n.next_trading_day(n.next_trading_day(exit_day)))
+        self.assertEqual(n.cover_lbl(new), "出關日+2")
+        self.assertIn("（出關日+2）回補", n.short_why(new))
+        self.assertEqual(new["long_exit"], new["short_entry"])                         # 多單出場不受影響
+        old = n.enrich(dict(code="6269", name="台郡", market="上櫃", announce=date(2026, 10, 22), start=date(2026, 10, 27),
+                            end=date(2026, 11, 3), n_days=7, offense="初犯", entry=date(2026, 10, 27)))
+        self.assertEqual(old["short_cover"], n.next_trading_day(date(2026, 11, 3)))  # 11/02 已空：照舊出關日
+        self.assertEqual(n.cover_lbl(old), "出關日")
+
     def test_missed_predictions(self):
         log = {"_cand": {"2026-10-22": [{"code": "1111", "name": "甲"}, "2222"]},
                "_pre_short": {"2026-10-22": [{"code": "4542", "name": "科嶠"}, {"code": "3333", "name": "丙"}]}}
