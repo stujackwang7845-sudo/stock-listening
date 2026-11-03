@@ -14950,5 +14950,35 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-11-03",
+        "code": "6213",
+        "name": "聯茂",
+        "trigger_info": "115年10月20日至115年11月3日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-03",
+        "code": "8099",
+        "name": "大世科",
+        "trigger_info": "115年11月02日至115年11月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-03",
+        "code": "8272",
+        "name": "全景軟體",
+        "trigger_info": "115年11月02日至115年11月03日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
