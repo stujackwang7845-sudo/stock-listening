@@ -14980,5 +14980,15 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-11-04",
+        "code": "5013",
+        "name": "強新",
+        "trigger_info": "115年11月03日至115年11月04日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
