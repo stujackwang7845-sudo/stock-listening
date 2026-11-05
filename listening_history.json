@@ -14990,5 +14990,25 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-11-05",
+        "code": "2360",
+        "name": "致茂",
+        "trigger_info": "115年11月4日至115年11月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-05",
+        "code": "3532",
+        "name": "台勝科",
+        "trigger_info": "115年11月4日至115年11月5日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
