@@ -15010,5 +15010,115 @@
         "tags": [],
         "comment": "GitHub Actions 自動每日擷取",
         "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "2455",
+        "name": "全新",
+        "trigger_info": "115年11月5日至115年11月6日連續二次<br>115年10月27日至115年11月6日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "3189",
+        "name": "景碩",
+        "trigger_info": "115年11月5日至115年11月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "4919",
+        "name": "新唐",
+        "trigger_info": "115年11月5日至115年11月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "5284",
+        "name": "jpp-KY",
+        "trigger_info": "115年11月5日至115年11月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "6451",
+        "name": "訊芯-KY",
+        "trigger_info": "115年11月5日至115年11月6日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "6672",
+        "name": "騰輝電子-KY",
+        "trigger_info": "115年10月27日至115年11月6日等九個營業日已有五次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "3455",
+        "name": "由田",
+        "trigger_info": "115年11月05日至115年11月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "4542",
+        "name": "科嶠",
+        "trigger_info": "115年11月05日至115年11月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "6217",
+        "name": "中探針",
+        "trigger_info": "115年11月05日至115年11月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "6488",
+        "name": "環球晶",
+        "trigger_info": "115年11月05日至115年11月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
+    },
+    {
+        "date": "2026-11-06",
+        "code": "8099",
+        "name": "大世科",
+        "trigger_info": "115年11月05日至115年11月06日連續二次",
+        "is_disposed_next_day": false,
+        "tags": [],
+        "comment": "GitHub Actions 自動每日擷取",
+        "has_futures": false
     }
 ]
